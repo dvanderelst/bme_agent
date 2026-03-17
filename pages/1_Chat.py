@@ -31,12 +31,12 @@ if not st.session_state.get("authenticated"):
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["bme_agent"]
-    moderator_agent_id = st.secrets.get("moderator_agent", "bme_moderator")
+    moderator_agent_id = st.secrets.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")  # Use the actual created agent ID
     supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
 except (AttributeError, KeyError):
     from library.ConfigManager import config
     agent_id = config.bme_agent
-    moderator_agent_id = config.get("moderator_agent", "bme_moderator")
+    moderator_agent_id = config.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")  # Use the actual created agent ID
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
 
 def moderate_message(message: str) -> tuple[bool, str]:
@@ -52,14 +52,20 @@ def moderate_message(message: str) -> tuple[bool, str]:
         # Parse the JSON response
         moderation_result = moderation_response.get('assistant_response', '{}')
         
+        # Clean up Markdown code blocks if present
+        if moderation_result.startswith('```json'):
+            # Remove Markdown code block markers
+            moderation_result = moderation_result.replace('```json', '').replace('```', '').strip()
+        
         try:
             result_data = json.loads(moderation_result)
             status = result_data.get('status', 'fail')
+            reason = result_data.get('reason', 'No reason provided')
             
             if status == 'pass':
                 return True, result_data.get('sanitized_message', message)
             else:
-                return False, result_data.get('reason', 'Content moderation failed')
+                return False, reason
                 
         except json.JSONDecodeError:
             return False, "Invalid moderator response format"
@@ -98,8 +104,9 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     moderation_passed, moderation_result = moderate_message(prompt)
     
     if not moderation_passed:
-        # Message failed moderation - show boilerplate response
-        agent_response = "I'm sorry, I can't process that request as it contains content that violates our guidelines or may include personal information. Please rephrase your question focusing on biomedical engineering topics without personal details."
+        # Message failed moderation - show specific reason if available
+        reason = moderation_result if moderation_result else "content that violates our guidelines or may include personal information"
+        agent_response = f"I am sorry, I can't process that request. Reason: {reason}"
         
         # Display the rejection message
         with st.chat_message("assistant"):
@@ -121,6 +128,18 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             st.session_state.conversation_id = response.get('conversation_id')
             agent_response = response.get('assistant_response', 'No response from agent')
             
+            # Log interaction to Supabase (use sanitized message, not original)
+            try:
+                log_interaction(
+                    client=supabase,
+                    conversation_id=st.session_state.conversation_id,
+                    user_message=sanitized_prompt,  # Use sanitized version
+                    agent_response=agent_response,
+                    user_id=student_id
+                )
+            except Exception as log_err:
+                st.warning(f"Logging failed: {log_err}")
+
             # Display assistant response in chat message container
             with st.chat_message("assistant"):
                 st.markdown(agent_response)
@@ -131,26 +150,3 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             with st.chat_message("assistant"):
                 st.markdown(error_msg)
             st.session_state.messages.append({"role": "assistant", "content": error_msg})
-
-        # Log interaction to Supabase
-        try:
-            log_interaction(
-                client=supabase,
-                conversation_id=st.session_state.conversation_id,
-                user_message=prompt,
-                agent_response=agent_response,
-                user_id=student_id
-            )
-        except Exception as log_err:
-            st.warning(f"Logging failed: {log_err}")
-
-        # Display assistant response in chat message container
-        with st.chat_message("assistant"):
-            st.markdown(agent_response)
-        # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": agent_response})
-    except Exception as e:
-        error_msg = f"Error getting agent response: {str(e)}"
-        with st.chat_message("assistant"):
-            st.markdown(error_msg)
-        st.session_state.messages.append({"role": "assistant", "content": error_msg})
