@@ -23,8 +23,8 @@ body {background-color: #1e1e1e; color: #f0f0f0;}
 [data-testid="stChatInput"] textarea {color: #f0f0f0;}
 
 /* Add spacing for title to account for header */
-.stTitle {margin-top: 2rem !important;}
-.block-container {margin-top: 1rem !important;}
+.stTitle {margin-top: 4rem !important;}
+.block-container {margin-top: 2rem !important;}
 </style>
 """, unsafe_allow_html=True)
 
