@@ -2,7 +2,26 @@ import streamlit as st
 from library import ConversationManagement
 from library.SupabaseLogger import get_supabase_client, log_interaction
 
-st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
+st.markdown("""
+<style>
+[data-testid='stSidebar'] {display: none;}
+/* Make chat conversation more compact */
+.stChatMessage {margin-bottom: 0 !important; margin-top: 0 !important; padding-bottom: 0 !important; padding-top: 0 !important;}
+[data-testid="chatAvatarIcon"] {margin-bottom: 0 !important;}
+.block-container {padding-top: 0.1rem !important; padding-bottom: 0.1rem !important;}
+.element-container {margin-bottom: 0 !important;}
+.stMarkdown {margin-bottom: 0 !important;}
+
+/* Dark theme styling */
+body {background-color: #1e1e1e; color: #f0f0f0;}
+.stApp {background-color: #1e1e1e;}
+.stChatMessage {background-color: #2d2d2d;}
+.stChatMessage[data-testid="user"] {background-color: #3a3a3a;}
+.stChatMessage[data-testid="assistant"] {background-color: #2d2d2d;}
+[data-testid="stChatInput"] {background-color: #2d2d2d; border: 1px solid #444;}
+[data-testid="stChatInput"] textarea {color: #f0f0f0;}
+</style>
+""", unsafe_allow_html=True)
 
 # Redirect to login if not authenticated
 if not st.session_state.get("authenticated"):
@@ -31,12 +50,16 @@ if "conversation_id" not in st.session_state:
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        if message["role"] == "user":
+            st.markdown(f'**{message["content"]}**')  # Bold for user messages
+        else:
+            st.markdown(message["content"])
 
 # React to user input
 if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     # Display user message in chat message container
-    st.chat_message("user").markdown(prompt)
+    with st.chat_message("user"):
+        st.markdown(f'**{prompt}**')  # Bold for user messages
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
