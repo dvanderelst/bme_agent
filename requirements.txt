@@ -1,0 +1,13 @@
+# BME Agent Requirements
+# Core dependencies for Streamlit deployment
+streamlit
+python-dotenv
+mistralai
+supabase
+toml
+requests
+python-dateutil
+pytz
+
+# To install: pip install -r requirements.txt
+# For deployment: Ensure all packages are installed in your environment
