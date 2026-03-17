@@ -6,7 +6,7 @@ Provides functions to communicate with agents and manage conversations.
 from mistralai.client import Mistral
 from typing import Optional, List, Dict, Any
 import traceback
-from library.ConfigManager import get_mistral_key, get_teacher_agent
+from library.ConfigManager import config
 from library.Logging import get_logger, log_debug, log_error, log_exception
 
 # Initialize logger
@@ -60,8 +60,8 @@ def send_message_to_agent(
 
     Args:
         message (str): The message/content to send to the agent
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
-        agent_id (str, optional): The ID of the agent. Uses get_teacher_agent() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
+        agent_id (str): The ID of the agent. Must be explicitly provided.
         conversation_id (str, optional): Existing conversation ID. If None, starts a new conversation
         display (bool, optional): If True, prints the conversation in a formatted way. Default: True
 
@@ -92,8 +92,9 @@ def send_message_to_agent(
         >>> response = send_message_to_agent("Quick question", display=False)
     """
     # Use defaults from Configuration if not provided
-    api_key = api_key or get_mistral_key()
-    agent_id = agent_id or get_teacher_agent()
+    api_key = api_key or config.get("mistral_key")
+    if agent_id is None:
+        raise ValueError("agent_id must be explicitly provided")
 
     client = Mistral(api_key=api_key)
 

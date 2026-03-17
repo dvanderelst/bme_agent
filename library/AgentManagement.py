@@ -7,7 +7,7 @@ from mistralai.client import Mistral
 from typing import Optional, Union, List
 
 import os
-from library.ConfigManager import get_mistral_key, get_teacher_agent, get_library_id
+from library.ConfigManager import config
 
 
 def agent_instructions(api_key: Optional[str] = None, agent_id: Optional[str] = None, new_instructions: Optional[str] = None):
@@ -74,9 +74,10 @@ def agent_instructions(api_key: Optional[str] = None, agent_id: Optional[str] = 
         ...     new_instructions="Custom instructions"
         ... )
     """
-    # Use defaults from Configuration if not provided
-    api_key = api_key or get_mistral_key()
-    agent_id = agent_id or get_teacher_agent()
+    # API key can have a default, but agent_id must be explicitly provided
+    api_key = api_key or config.get("mistral_key")
+    if agent_id is None:
+        raise ValueError("agent_id must be explicitly provided")
 
     # Initialize the Mistral client
     client = Mistral(api_key=api_key)
@@ -131,9 +132,9 @@ def set_agent_description(
     Set the description for an agent.
 
     Args:
-        agent_id (str, optional): The ID of the agent. Uses get_teacher_agent() if not provided
+        agent_id (str, optional): The ID of the agent. Uses config.get("teacher_agent") if not provided
         description (str, optional): The description text to set for the agent
-        api_key (str, optional): Your Mistral AI API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral AI API key. Uses config.get("mistral_key") if not provided
 
     Returns:
         bool: True if description was set successfully
@@ -149,8 +150,9 @@ def set_agent_description(
         ... )
     """
     # Use defaults from ConfigManager if not provided
-    api_key = api_key or get_mistral_key()
-    agent_id = agent_id or get_teacher_agent()
+    api_key = api_key or config.get("mistral_key")
+    if agent_id is None:
+        raise ValueError("agent_id must be explicitly provided")
 
     if not description:
         raise ValueError("Description cannot be empty")
@@ -178,8 +180,8 @@ def unassign_all_libraries_from_agent(
     or when you want to completely reset an agent's document access.
 
     Args:
-        agent_id (str, optional): The ID of the agent. Uses get_teacher_agent() if not provided
-        api_key (str, optional): Your Mistral AI API key. Uses get_mistral_key() if not provided
+        agent_id (str): The ID of the agent. Must be explicitly provided.
+        api_key (str, optional): Your Mistral AI API key. Uses config.get("mistral_key") if not provided
 
     Returns:
         bool: True if all libraries were removed successfully
@@ -194,8 +196,9 @@ def unassign_all_libraries_from_agent(
         >>> print(f"Cleaned up default agent libraries: {success}")
     """
     # Use defaults from ConfigManager if not provided
-    api_key = api_key or get_mistral_key()
-    agent_id = agent_id or get_teacher_agent()
+    api_key = api_key or config.get("mistral_key")
+    if agent_id is None:
+        raise ValueError("agent_id must be explicitly provided")
 
     client = Mistral(api_key=api_key)
 
@@ -243,9 +246,9 @@ def assign_library_to_agent(
 
     Args:
         library_id (str): The ID of the library to share
-        agent_id (str, optional): The ID of the agent. Uses get_teacher_agent() if not provided
+        agent_id (str, optional): The ID of the agent. Uses config.get("teacher_agent") if not provided
         level (str, optional): Access level ("Viewer" or "Editor"). Default: "Viewer"
-        api_key (str, optional): Your Mistral AI API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral AI API key. Uses config.get("mistral_key") if not provided
 
     Returns:
         bool: True if sharing was successful
@@ -271,9 +274,11 @@ def assign_library_to_agent(
         ... )
     """
     # Use defaults from ConfigManager if not provided
-    api_key = api_key or get_mistral_key()
-    agent_id = agent_id or get_teacher_agent()
-    library_id = library_id or get_library_id()
+    api_key = api_key or config.get("mistral_key")
+    if agent_id is None:
+        raise ValueError("agent_id must be explicitly provided")
+    if library_id is None:
+        raise ValueError("library_id must be explicitly provided")
 
     # Validate access level (though it may not be used in this approach)
     valid_levels = ["Viewer", "Editor"]

@@ -4,11 +4,11 @@ Cleanup script to remove duplicate or unwanted libraries.
 Helps manage libraries created during testing.
 """
 import os
-from library.ConfigManager import get_mistral_key
+from library.ConfigManager import config
 from library.LibraryManagement import list_libraries, delete_library, get_library, list_all_libraries
 
 # Configuration
-api_key = get_mistral_key()
+api_key = config.get("mistral_key")
 
 def cleanup_duplicate_libraries():
     """Clean up libraries with duplicate names"""

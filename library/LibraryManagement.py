@@ -7,7 +7,7 @@ from mistralai.client import Mistral
 from typing import List, Dict, Any, Optional, Union
 import os
 import time
-from library.ConfigManager import get_mistral_key, get_library_id
+from library.ConfigManager import config
 
 
 def list_libraries(api_key: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -15,7 +15,7 @@ def list_libraries(api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     List all libraries accessible to the current API key.
 
     Args:
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
 
     Returns:
         list: List of library objects with id, name, description, etc.
@@ -30,7 +30,7 @@ def list_libraries(api_key: Optional[str] = None) -> List[Dict[str, Any]]:
         >>> libraries = list_libraries(api_key="different_key")
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
+    api_key = api_key or config.get("mistral_key")
 
     client = Mistral(api_key=api_key)
     libraries_response = client.beta.libraries.list()
@@ -51,7 +51,7 @@ def get_library(library_id: Optional[str] = None, api_key: Optional[str] = None)
     Get detailed information about a specific library.
 
     Args:
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
         library_id (str): The ID of the library to retrieve
 
     Returns:
@@ -69,8 +69,9 @@ def get_library(library_id: Optional[str] = None, api_key: Optional[str] = None)
         >>> library = get_library(api_key="different_key", library_id="lib_123")
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
-    library_id = library_id or get_library_id()
+    api_key = api_key or config.get("mistral_key")
+    if library_id is None:
+        raise ValueError("library_id must be explicitly provided")
 
     client = Mistral(api_key=api_key)
     library = client.beta.libraries.get(library_id=library_id)
@@ -82,7 +83,7 @@ def create_library(name: str, api_key: Optional[str] = None, description: Option
     Create a new library for storing documents.
 
     Args:
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
         name (str): Name of the new library
         description (str, optional): Description of the library's purpose
 
@@ -105,7 +106,7 @@ def create_library(name: str, api_key: Optional[str] = None, description: Option
         ... )
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
+    api_key = api_key or config.get("mistral_key")
 
     client = Mistral(api_key=api_key)
 
@@ -132,7 +133,7 @@ def upload_document(
     Supports common text formats: TXT, CSV, PDF, MD, etc.
 
     Args:
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
         library_id (str): The ID of the target library
         file_path (str): Path to the file to upload. Can be:
                         - A filename (e.g., "programming_blocks.md") to load from agent_files/documents/
@@ -171,8 +172,9 @@ def upload_document(
         ... )
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
-    library_id = library_id or get_library_id()
+    api_key = api_key or config.get("mistral_key")
+    if library_id is None:
+        raise ValueError("library_id must be explicitly provided")
 
     # Check if file_path is just a filename (no path), look in default documents folder
     if not os.path.isfile(file_path) and not os.path.isabs(file_path):
@@ -254,7 +256,7 @@ def upload_document_and_wait(
         library_id: ID of the library to upload to
         file_path: Path to the file to upload
         document_name: Optional custom name for the document
-        api_key: Your Mistral API key (uses get_mistral_key() if not provided)
+        api_key: Your Mistral API key (uses config.get("mistral_key") if not provided)
         max_wait_time: Maximum time to wait for processing in seconds (default: 60)
         verbose: Whether to print progress updates (default: True)
         
@@ -298,7 +300,7 @@ def upload_document_and_wait(
         print(f"🕒 Waiting for processing to complete (max {max_wait_time}s)...")
     
     start_time = time.time()
-    api_key = api_key or get_mistral_key()
+    api_key = api_key or config.get("mistral_key")
     
     while time.time() - start_time < max_wait_time:
         # Get current document status
@@ -332,7 +334,7 @@ def list_all_libraries(api_key: Optional[str] = None, display: bool = True) -> L
     formatted display, making it consistent with other list_* functions in the library.
 
     Args:
-        api_key (str, optional): Your Mistral AI API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral AI API key. Uses config.get("mistral_key") if not provided
         display (bool, optional): If True, prints the libraries in a formatted table. Default: True
 
     Returns:
@@ -351,7 +353,7 @@ def list_all_libraries(api_key: Optional[str] = None, display: bool = True) -> L
         >>> libraries = list_all_libraries(api_key="different_key", display=True)
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
+    api_key = api_key or config.get("mistral_key")
 
     libraries = list_libraries(api_key=api_key)
 
@@ -396,7 +398,7 @@ def delete_library(library_id: Optional[str] = None, api_key: Optional[str] = No
     Delete a library and all its contents.
 
     Args:
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
         library_id (str): The ID of the library to delete
 
     Returns:
@@ -411,8 +413,9 @@ def delete_library(library_id: Optional[str] = None, api_key: Optional[str] = No
         >>> success = delete_library(library_id="lib_123",api_key="different_key")
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
-    library_id = library_id or get_library_id()
+    api_key = api_key or config.get("mistral_key")
+    if library_id is None:
+        raise ValueError("library_id must be explicitly provided")
 
     client = Mistral(api_key=api_key)
     client.beta.libraries.delete(library_id=library_id)
@@ -428,8 +431,8 @@ def remove_all_documents_from_library(
     Remove all documents from a library.
 
     Args:
-        library_id (str, optional): The ID of the library to clear. Uses get_library_id() if not provided
-        api_key (str, optional): Your Mistral AI API key. Uses get_mistral_key() if not provided
+        library_id (str, optional): The ID of the library to clear. Must be explicitly provided
+        api_key (str, optional): Your Mistral AI API key. Uses config.get("mistral_key") if not provided
         confirm (bool, optional): If True, asks for confirmation before deleting. Default: True
 
     Returns:
@@ -450,8 +453,9 @@ def remove_all_documents_from_library(
         >>> count = remove_all_documents_from_library(library_id="lib_123", api_key="different_key")
     """
     # Use defaults from Configuration if not provided
-    api_key = api_key or get_mistral_key()
-    library_id = library_id or get_library_id()
+    api_key = api_key or config.get("mistral_key")
+    if library_id is None:
+        raise ValueError("library_id must be explicitly provided")
 
     client = Mistral(api_key=api_key)
 
@@ -498,7 +502,7 @@ def list_library_documents(library_id: Optional[str] = None, api_key: Optional[s
     List all documents in a specific library.
 
     Args:
-        api_key (str, optional): Your Mistral API key. Uses get_mistral_key() if not provided
+        api_key (str, optional): Your Mistral API key. Uses config.get("mistral_key") if not provided
         library_id (str): The ID of the library
 
     Returns:
@@ -514,8 +518,9 @@ def list_library_documents(library_id: Optional[str] = None, api_key: Optional[s
         >>> documents = list_library_documents(api_key="different_key", library_id="lib_123")
     """
     # Use default from secrets if not provided
-    api_key = api_key or get_mistral_key()
-    library_id = library_id or get_library_id()
+    api_key = api_key or config.get("mistral_key")
+    if library_id is None:
+        raise ValueError("library_id must be explicitly provided")
 
     client = Mistral(api_key=api_key)
     documents_response = client.beta.libraries.documents.list(library_id=library_id)
