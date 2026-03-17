@@ -63,11 +63,15 @@ def moderate_message(message: str) -> tuple[bool, str]:
             reason = result_data.get('reason', 'No reason provided')
             
             if status == 'pass':
-                return True, result_data.get('sanitized_message', message)
+                sanitized_msg = result_data.get('sanitized_message', message)
+                return True, sanitized_msg if sanitized_msg else message
             else:
-                return False, reason
+                rejection_reason = result_data.get('reason', 'Content moderation failed')
+                return False, rejection_reason if rejection_reason else 'Content moderation failed'
                 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
+            print(f"Problematic response: {moderation_result}")
             return False, "Invalid moderator response format"
             
     except Exception as e:
