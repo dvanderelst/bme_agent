@@ -21,6 +21,10 @@ body {background-color: #1e1e1e; color: #f0f0f0;}
 .stChatMessage[data-testid="assistant"] {background-color: #2d2d2d;}
 [data-testid="stChatInput"] {background-color: #2d2d2d; border: 1px solid #444;}
 [data-testid="stChatInput"] textarea {color: #f0f0f0;}
+
+/* Add spacing for title to account for header */
+.stTitle {margin-top: 2rem !important;}
+.block-container {margin-top: 1rem !important;}
 </style>
 """, unsafe_allow_html=True)
 
