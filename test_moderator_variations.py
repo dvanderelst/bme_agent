@@ -8,7 +8,7 @@ from library import ConversationManagement
 from library.ConfigManager import config
 
 # Get moderator agent ID
-moderator_agent_id = config.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")
+moderator_agent_id = config.get("moderator_agent")
 
 # Test various message types
 test_messages = [

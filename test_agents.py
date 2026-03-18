@@ -13,7 +13,7 @@ test_message = "hello"
 
 # Get agent IDs from configuration
 bme_agent_id = config.get("bme_agent")
-moderator_agent_id = config.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")  # Use the actual created agent ID
+moderator_agent_id = config.get("moderator_agent")
 
 print(f"Testing agents with message: '{test_message}'")
 print(f"BME Agent ID: {bme_agent_id}")

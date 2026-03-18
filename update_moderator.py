@@ -7,7 +7,7 @@ from library import AgentManagement
 from library.ConfigManager import config
 
 # Get the moderator agent ID
-moderator_agent_id = config.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")
+moderator_agent_id = config.get("moderator_agent")
 
 print(f"Updating moderator agent: {moderator_agent_id}")
 

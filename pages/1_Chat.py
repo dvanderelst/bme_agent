@@ -35,12 +35,12 @@ if not st.session_state.get("authenticated"):
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["bme_agent"]
-    moderator_agent_id = st.secrets.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")  # Use the actual created agent ID
+    moderator_agent_id = st.secrets["moderator_agent"]
     supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
 except (AttributeError, KeyError):
     from library.ConfigManager import config
     agent_id = config.bme_agent
-    moderator_agent_id = config.get("moderator_agent", "ag_019cfce17e42754b86cf2a3eef28dd2b")  # Use the actual created agent ID
+    moderator_agent_id = config.get("moderator_agent")
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
 
 def moderate_message(message: str) -> tuple[bool, str]:
