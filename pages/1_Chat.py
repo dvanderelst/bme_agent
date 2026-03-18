@@ -1,5 +1,7 @@
 import streamlit as st
 import json
+import logging
+import re
 from library import ConversationManagement
 from library.SupabaseLogger import get_supabase_client, log_interaction
 
@@ -43,43 +45,71 @@ except (AttributeError, KeyError):
     moderator_agent_id = config.get("moderator_agent")
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
 
-def moderate_message(message: str) -> tuple[bool, str]:
-    """Send message to moderator agent and return (passed, sanitized_message_or_reason)."""
+def _parse_moderation_response(raw: str) -> dict | None:
+    """Extract and parse a JSON object from the moderator's response.
+
+    Handles markdown code fences and falls back to regex extraction
+    if direct parsing fails.
+    """
+    # Strip markdown code fences
+    text = re.sub(r'```(?:json)?\s*', '', raw).strip()
+
+    # Try direct parse
     try:
-        moderation_response = ConversationManagement.send_message_to_agent(
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Fall back to extracting the first {...} block
+    match = re.search(r'\{.*?\}', text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except json.JSONDecodeError:
+            pass
+
+    return None
+
+
+def _call_moderator(message: str) -> dict | None:
+    """Call the moderator agent and return parsed JSON, or None on failure."""
+    try:
+        response = ConversationManagement.send_message_to_agent(
             message=message,
             agent_id=moderator_agent_id,
-            conversation_id=None,  # Moderator gets fresh context each time
+            conversation_id=None,
             display=False
         )
-        
-        # Parse the JSON response
-        moderation_result = moderation_response.get('assistant_response', '{}')
-        
-        # Clean up Markdown code blocks if present
-        if moderation_result.startswith('```json'):
-            # Remove Markdown code block markers
-            moderation_result = moderation_result.replace('```json', '').replace('```', '').strip()
-        
-        try:
-            result_data = json.loads(moderation_result)
-            status = result_data.get('status', 'fail')
-            reason = result_data.get('reason', 'No reason provided')
-            
-            if status == 'pass':
-                sanitized_msg = result_data.get('sanitized_message', message)
-                return True, sanitized_msg if sanitized_msg else message
-            else:
-                rejection_reason = result_data.get('reason', 'Content moderation failed')
-                return False, rejection_reason if rejection_reason else 'Content moderation failed'
-                
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
-            print(f"Problematic response: {moderation_result}")
-            return False, "Invalid moderator response format"
-            
+        raw = response.get('assistant_response', '')
+        return _parse_moderation_response(raw)
     except Exception as e:
-        return False, f"Moderation error: {str(e)}"
+        logging.warning(f"Moderator API call failed: {e}")
+        return None
+
+
+def moderate_message(message: str) -> tuple[bool, str]:
+    """Send message to moderator and return (passed, sanitized_message_or_reason).
+
+    Retries once on parse failure. Fails open if both attempts fail,
+    logging the incident for review.
+    """
+    result = _call_moderator(message)
+
+    if result is None:
+        logging.warning("Moderator returned unparseable response, retrying...")
+        result = _call_moderator(message)
+
+    if result is None:
+        logging.error(f"Moderator failed twice for message: {message[:100]!r}")
+        st.session_state.moderation_error = message
+        return False, "moderation_system_failure"
+
+    if result.get('status') == 'pass':
+        sanitized = result.get('sanitized_message') or message
+        return True, sanitized
+    else:
+        reason = result.get('reason') or 'Content moderation failed'
+        return False, reason
 
 st.title("BME Specialist Chat")
 
@@ -91,6 +121,18 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "conversation_id" not in st.session_state:
     st.session_state.conversation_id = None
+
+# Show moderation system error if one occurred
+if st.session_state.get("moderation_error"):
+    st.warning(
+        "Something went wrong processing your message. "
+        "Please restart the chat and try again."
+    )
+    if st.button("Restart Chat"):
+        st.session_state.messages = []
+        st.session_state.conversation_id = None
+        st.session_state.moderation_error = None
+        st.rerun()
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
@@ -112,14 +154,14 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     moderation_passed, moderation_result = moderate_message(prompt)
     
     if not moderation_passed:
-        # Message failed moderation - show specific reason if available
-        reason = moderation_result if moderation_result else "content that violates our guidelines or may include personal information"
-        agent_response = f"I am sorry, I can't process that request. Reason: {reason}"
-        
-        # Display the rejection message
-        with st.chat_message("assistant"):
-            st.markdown(agent_response)
-        st.session_state.messages.append({"role": "assistant", "content": agent_response})
+        if moderation_result != "moderation_system_failure":
+            # Message was rejected by the moderator — tell the student why
+            reason = moderation_result or "content that violates our guidelines or may include personal information"
+            agent_response = f"I am sorry, I can't process that request. Reason: {reason}"
+            with st.chat_message("assistant"):
+                st.markdown(agent_response)
+            st.session_state.messages.append({"role": "assistant", "content": agent_response})
+        # If moderation_system_failure, the warning box above handles the messaging
     else:
         # Message passed moderation - use sanitized version
         sanitized_prompt = moderation_result
