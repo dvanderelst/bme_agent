@@ -37,13 +37,19 @@ if not st.session_state.get("authenticated"):
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["bme_agent"]
-    moderator_agent_id = st.secrets["moderator_agent"]
+    bme_moderator_id = st.secrets["bme_moderator"]
     supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
 except (AttributeError, KeyError):
     from library.ConfigManager import config
-    agent_id = config.bme_agent
-    moderator_agent_id = config.get("moderator_agent")
+    agent_id = config.get("bme_agent")
+    bme_moderator_id = config.get("bme_moderator")
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
+
+# Validate required config
+missing = [k for k, v in {"bme_agent": agent_id, "bme_moderator": bme_moderator_id}.items() if not v]
+if missing:
+    st.error(f"Missing required configuration: {', '.join(missing)}. Check your secrets.toml.")
+    st.stop()
 
 def _parse_moderation_response(raw: str) -> dict | None:
     """Extract and parse a JSON object from the moderator's response.
@@ -76,7 +82,7 @@ def _call_moderator(message: str) -> dict | None:
     try:
         response = ConversationManagement.send_message_to_agent(
             message=message,
-            agent_id=moderator_agent_id,
+            agent_id=bme_moderator_id,
             conversation_id=None,
             display=False
         )

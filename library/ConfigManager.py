@@ -34,7 +34,7 @@ class ConfigManager:
                 config_key = env_var.lower().replace('_', '')
                 config[config_key] = value
             # Also include exact matches for common keys
-            elif env_var in ['mistral_key', 'bme_agent', 'moderator_agent']:
+            elif env_var in ['mistral_key', 'bme_agent', 'bme_moderator']:
                 config[env_var] = value
         
         return config
