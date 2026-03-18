@@ -1,22 +1,31 @@
-# Intro
-This document provides an overview of the blocks available to students in the mBlock interface.
-+ The top-level titles are the block categories as they appear in the mBlock user interface. For example, there are **Action** and a **Control** categories.
-+ The second-level titles in this document are the exact names by which each block is listed in the user interface. For example, there is block **move forward at power [] % for [] secs** and a block **Stop Moving**.
-+ In the names of blocks, `[slot]` signifies a slot into which other blocks (including variable blocks) can be inserted or values can be entered. The string `[dropdown]` denotes that the slot is a dropdown menu with specific values from which the student can select.
 # Action Blocks
 ## `move forward at power [slot]% for [slot] secs`
 - **Description:** Moves the robot forward at a specified power (0-100%) for a set duration (in seconds).
+- **Agent Notes:**
+  - Keep power as low as possible while still allowing the robot to move — lower speeds give the sensors more time to react. If the power is too low, the robot won't overcome static friction and won't move at all.
+
 ## `move backward at power [slot]% for [slot] secs`
 - **Description:** Moves the robot backward at a specified power (0-100%) for a set duration (in seconds).
+- **Agent Notes:**
+  - Same power guidance as move forward: use the lowest power that still produces reliable movement.
+
 ## `turn left at power [slot]% for [slot] secs`
 - **Description:** Turns the robot left at a specified power (0-100%) for a set duration (in seconds).
+- **Agent Notes:**
+  - Same power guidance applies. Duration controls how sharp the turn is — short durations for small corrections, longer for larger turns.
+
 ## `turn right at power [slot]% for [slot] secs`
 - **Description:** Turns the robot right at a specified power (0-100%) for a set duration (in seconds).
-## `move forward [slot] at power [slot]%`
-- **Description:** Moves the robot forward continuously at a specified power (0-100%) until stopped manually or by another block.
 - **Agent Notes:**
-  - Remind students to use the *"stop moving"* block to halt the robot.
-  - Useful for open-ended movement (e.g., until a sensor detects something).
+  - Same power guidance applies. Duration controls how sharp the turn is — short durations for small corrections, longer for larger turns.
+## `move [slot] at power [slot]%`
+- **Description:** Moves the robot continuously in a chosen direction at a specified power (0-100%) until stopped by a `stop moving` block or another action block.
+- **First slot (direction):** `forward`, `backward`, `turn left`, or `turn right`
+- **Second slot (power):** 0–100%
+- **Agent Notes:**
+  - Unlike the timed movement blocks, this runs indefinitely — students must use `stop moving` to halt it.
+  - Useful inside a `forever` loop where a sensor condition determines when to stop.
+  - Example: move forward at 50% power inside a loop, stop when ultrasonic sensor reads < 10 cm.
 
 ## `left wheel turns at power [slot]%, right wheel at power [slot]%`
 - **Description:** Controls each wheel independently with separate power levels (0-100%).
@@ -99,7 +108,7 @@ This document provides an overview of the blocks available to students in the mB
 # Sensing Blocks
 
 ## `light sensor [dropdown] light intensity`
-- **Description:** Measures the ambient light intensity using a light sensor. The slot in the block is a dropdown menu that can take either take the value `Onboard Sensor` to read out the onboard light sensor or `port3` or `port4` to read out an external light sensor attached to these ports.  
+- **Description:** Measures the ambient light intensity using a light sensor. The dropdown can take the value `Onboard Sensor` to read the onboard light sensor, or `port3` or `port4` to read an external light sensor attached to those ports.
 - **Output:** Returns a value where higher numbers = brighter light.
 - **Agent Notes:**
   - **Whisker Sensor Compatibility:** The custom whisker sensor uses the same blocks as the light sensor
@@ -124,7 +133,18 @@ This document provides an overview of the blocks available to students in the mB
 
 ## `line follower sensor [dropdown] value`
 - **Description:** Reads the line sensor’s position. The port to which the sensor is connected should be selected from the dropdown menu (the sensor can be attached to ports 1, 2, 3, or 4).
-- **Output:** The way this sensor operates is covered in the document `technological_details_robot.md`
+- **Output:** Returns a number (1–4) based on which IR pairs detect a dark surface (the line):
+
+| Value | Left Pair | Right Pair | Interpretation | Suggested Action |
+|-------|-----------|------------|----------------|-----------------|
+| 1 | Low | Low | Centered on line | Continue straight |
+| 2 | High | Low | Veering left | Turn right |
+| 3 | Low | High | Veering right | Turn left |
+| 4 | High | High | Lost — no line detected | Stop or search |
+
+- **Agent Notes:**
+  - *"Robot keeps turning left?"* → The right sensor (value 3) is likely over the line — turn left to correct.
+  - *"Value keeps returning 4?"* → Robot has lost the line. Try slowing down or widening the search turn.
 
 # Light & Sound Blocks (Extension Required)
 
@@ -157,7 +177,7 @@ To access these blocks:
 - **Dropdown Options:** `pressed` or `released`
 - **Output:** Returns true if the button matches the selected state, false otherwise.
 - **Agent Notes:**
-  - Functions as an operator block (hexagonal shape) despite being in Sensing category
+  - **Where to find it in mBlock:** This block is located in the **Sensing** category in the UI, not Operators — despite its hexagonal (operator) shape.
   - Use in control blocks for conditional execution
   - **Example 1:** `if when on-board button pressed? then move forward`
   - **Example 2:** `wait until when on-board button released?`
@@ -165,38 +185,62 @@ To access these blocks:
   - **Common Uses:** Start/stop programs, trigger specific actions, create interactive programs
 
 ## `[slot] + [slot]`
-- **Description:** Performs addition on two numbers.
+- **Description:** Adds two numbers. Slots can be typed values, sensor blocks, or variable blocks.
+- **Agent Notes:**
+  - Common use: combine two sensor readings, or add an offset to a value.
+  - Example: `light sensor port3 light intensity + 10`
 
 ## `[slot] - [slot]`
-- **Description:** Performs subtraction on two numbers.
+- **Description:** Subtracts the second number from the first.
+- **Agent Notes:**
+  - Useful for finding the difference between two sensor values (e.g., left sound sensor minus right sound sensor to detect which side is louder).
 
-## `[slot] + [slot]`
-- **Description:** Performs multiplication on two numbers.
+## `[slot] * [slot]`
+- **Description:** Multiplies two numbers.
+- **Agent Notes:**
+  - Useful for scaling values (e.g., multiplying a sensor reading to amplify a small difference).
 
 ## `[slot] / [slot]`
-- **Description:** Performs division on two numbers.
+- **Description:** Divides the first number by the second.
+- **Agent Notes:**
+  - Useful for averaging: `(sensor A + sensor B) / 2`
 
 ## `pick random [slot] to [slot]`
-- **Description:** Picks a random number between two values.
-- **Use Case:** Random robot behaviors (e.g., *"turn left random 1-3 seconds"*).
+- **Description:** Returns a random number between two values (inclusive).
+- **Agent Notes:**
+  - Useful for unpredictable robot behavior (e.g., random turn duration to avoid getting stuck).
+  - Example: `turn left at power 50% for (pick random 1 to 3) secs`
 
 ## `[slot] > [slot]`
-- **Description:** Checks if the first value is greater than the second value.
+- **Description:** Returns true if the first value is greater than the second.
+- **Agent Notes:**
+  - Used inside `if` or `while` blocks to compare sensor values to thresholds.
+  - Example: `if ultrasonic sensor port1 distance > 20 then move forward`
 
 ## `[slot] < [slot]`
-- **Description:** Checks if the first value is less than the second value.
+- **Description:** Returns true if the first value is less than the second.
+- **Agent Notes:**
+  - Example: `if ultrasonic sensor port1 distance < 10 then stop moving`
 
 ## `[slot] = [slot]`
-- **Description:** Checks if the first value is equal to the second value.
+- **Description:** Returns true if both values are equal.
+- **Agent Notes:**
+  - Most useful with the line follower sensor (e.g., `if line follower sensor value = 1 then`)
 
 ## `[slot] and [slot]`
-- **Description:** Returns true if both conditions are true.
+- **Description:** Returns true only if both conditions are true.
+- **Agent Notes:**
+  - Combine two comparisons: `if distance < 20 and sound loudness > 50 then`
 
 ## `[slot] or [slot]`
 - **Description:** Returns true if either condition is true.
+- **Agent Notes:**
+  - Example: trigger an action if either the left or right whisker is bent.
 
 ## `not [slot]`
-- **Description:** Reverses a condition.
+- **Description:** Reverses a true/false condition.
+- **Agent Notes:**
+  - Example: `if not (line follower value = 1) then` — acts when the robot is off-center.
 
 # Variables in mBlock
 
@@ -207,10 +251,11 @@ To access these blocks:
   3. The variable will appear as a block with its name.
   4. Creating at least one variable gives access to the following blocks:
 
-## Variable Blocks
-
 ## `set [variable] to [slot]`
-- **Description:** Assigns a value to the variable. The slot can be a sensor block to store a sensor's value in a variable. It can also be a combination of operator blocks. 
+- **Description:** Assigns a value to the variable. The slot can be a sensor block to store a sensor's value in a variable. It can also be a combination of operator blocks.
+- **Agent Notes:**
+  - Most common use: store a sensor reading so it can be compared or reused. Example: `set sensorValue to light sensor port3 light intensity`
+  - Useful when you need to read a sensor once and use the result multiple times in the same loop iteration.
 
 ## `change [variable] by [slot]`
 - **Description:** Increments or decrements the variable by a specified amount. The slot is typically filled with a manually typed value.
@@ -225,14 +270,22 @@ To access these blocks:
     - Is this block missing?
     - Are other blocks attached to it?
   - **Critical:** Without this block, the program won’t run.
+
 ## `wait [slot] seconds`
 - **Description:** Pauses the program. Use for timed actions (e.g., *"Wait 1 second before turning"*).
 
 ## `forever`
 - **Description:** Repeats enclosed blocks indefinitely. Ideal for continuous tasks like sensor monitoring.
+- **Agent Notes:**
+  - The standard pattern for sensor-driven programs: put an `if` block inside `forever` to continuously check a sensor and react.
+  - Example: `forever` → `if ultrasonic sensor distance < 10 then stop moving`
+  - A `forever` loop never ends on its own — the program runs until the student stops it or the robot is turned off.
 
 ## `if [slot] then`
-- **Description:** Executes blocks if the condition is true (e.g., *"If distance < 10 cm, stop"*). v
+- **Description:** Executes blocks if the condition is true (e.g., *"If distance < 10 cm, stop"*).
+- **Agent Notes:**
+  - The slot takes a comparison operator block (e.g., `distance < 10`, `loudness > 50`).
+  - Use `if/then/else` instead when the robot needs to do something different in both cases.
 
 ## `if [slot] then else`
 - **Description:** Chooses between two actions based on a condition. The slot is typically filled with one or more of the operator blocks and a variable block to create a condition to check.

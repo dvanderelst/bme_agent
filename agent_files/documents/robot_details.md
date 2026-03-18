@@ -5,7 +5,7 @@
 The **mBot by Makeblock** is a 2-wheeled, differentially driven robot programmed using **mBlock**, a Scratch-based drag-and-drop interface. Students can use mBlock [online](https://ide.mblock.cc/) or via installed software.
 
 - **Key Feature:** Designed for beginners; ideal for modeling biological behaviors with sensors
-- **Programming Environment:** Visual drag-and-drop interface with optional Python/Arduino code view
+- **Programming Environment:** Visual drag-and-drop block interface (mBlock). BME students use blocks only.
 
 ## Hardware Specifications
 
@@ -93,10 +93,6 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 **Testing the Pairing:**
 - **Test 1:** Turn robot off → dongle LED should flash slowly (lost connection)
 - **Test 2:** Unplug dongle → robot’s blue LED should flash (lost connection)
-
-**Classroom Tips:**
-- **Prevent cross-pairing:** Label dongle/robot pairs
-- **Prevent accidental unpairing:** Cover dongle button with a label
 
 **✅ Pairing Complete!** Next: [Step 2: Add the Robot to mBlock](#step-2-adding-the-robot-to-mblock)
 
@@ -187,14 +183,16 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 ### Ultrasonic Sensor
 
 - **Output:** Distance in centimeters
+- **Range:** 3 cm to 400 cm. Readings outside this range are unreliable.
 - **Technical Characteristics:**
   - **Directional:** Most sensitive to objects straight ahead
   - **Acoustic Mirror Effect:** Smooth, angled surfaces may reflect sound away
   - **Pinging Rhythm:** Sensors ping constantly; software returns most recent measurement
 
 **Troubleshooting:**
-- *“Sensor misses obstacles!”* → Ask:
-  *“Is the object directly in front? Smooth or angled surfaces can ‘hide’ from sonar.”*
+- *”Sensor gives strange values!”* → Ask: *”Is the object closer than 3 cm or further than 400 cm? The sensor doesn’t work reliably outside that range.”*
+- *”Sensor misses obstacles!”* → Ask:
+  *”Is the object directly in front? Smooth or angled surfaces can ‘hide’ from sonar.”*
 - **Multiple Sensors:** Nearby robots may interfere (same pinging rhythm)
   - **Solution:** Space robots apart or use other sensors (e.g., whiskers)
 
@@ -202,7 +200,7 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 
 - **Type:** Analog (uses flex sensors to detect bending/pressure)
 - **Behavior:** Mimics mechanosensation (e.g., rodent whiskers or insect antennae)
-- **Output:** Higher values = more bending/pressure
+- **Output:** Lower values = more bending/pressure (bending the whisker reduces the sensor reading)
 
 **Usage Tips:**
 - **Port Assignment:** Attach to ports 3 or 4
