@@ -4,6 +4,3 @@ primaryColor = "#FF4B51"
 backgroundColor = "#1e1e1e"
 secondaryBackgroundColor = "#2d2d2d"
 textColor = "#f0f0f0"
-
-[ui]
-hideSidebarNav = true
