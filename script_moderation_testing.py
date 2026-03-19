@@ -4,8 +4,8 @@ Runs a set of prompts through the Mistral moderation classifier
 and prints results so we can assess thresholds and coverage.
 """
 
-from library.Moderation import moderate_batch, DEFAULT_MODEL
-from library.ConfigManager import config
+from mistral_lib.Moderation import moderate_batch, DEFAULT_MODEL
+from shared_lib.ConfigManager import config
 
 MODEL = config.get("moderation_model") or DEFAULT_MODEL
 

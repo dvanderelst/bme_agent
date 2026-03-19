@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from mistralai.client import Mistral
-from library.ConfigManager import config
+from shared_lib.ConfigManager import config
 
 DEFAULT_MODEL = "mistral-moderation-2411"
 

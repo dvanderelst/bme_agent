@@ -7,7 +7,7 @@ from mistralai.client import Mistral
 from typing import Optional, Union, List
 
 import os
-from library.ConfigManager import config
+from shared_lib.ConfigManager import config
 
 
 def agent_instructions(api_key: Optional[str] = None, agent_id: Optional[str] = None, new_instructions: Optional[str] = None):

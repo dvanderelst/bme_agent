@@ -4,8 +4,8 @@ Cleanup script to remove duplicate or unwanted libraries.
 Helps manage libraries created during testing.
 """
 import os
-from library.ConfigManager import config
-from library.LibraryManagement import list_libraries, delete_library, get_library, list_all_libraries
+from shared_lib.ConfigManager import config
+from mistral_lib.LibraryManagement import list_libraries, delete_library, get_library, list_all_libraries
 
 # Configuration
 api_key = config.get("mistral_key")
@@ -325,7 +325,7 @@ def create_new_library():
     
     try:
         # Create the library
-        from library.LibraryManagement import create_library
+        from mistral_lib.LibraryManagement import create_library
         
         library_data = {"name": name}
         if description:
@@ -360,7 +360,7 @@ def upload_documents_to_library(library_id):
     """Upload documents to a specific library"""
     print(f"\n📁 UPLOAD DOCUMENTS TO LIBRARY {library_id}")
     
-    from library.LibraryManagement import upload_document
+    from mistral_lib.LibraryManagement import upload_document
     import os
     
     while True:

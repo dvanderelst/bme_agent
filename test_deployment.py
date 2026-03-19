@@ -10,13 +10,13 @@ try:
     import streamlit
     print("✅ Streamlit imported")
     
-    from library import ConversationManagement
+    from mistral_lib import ConversationManagement
     print("✅ ConversationManagement imported")
     
-    from library.SupabaseLogger import get_supabase_client
+    from shared_lib.SupabaseLogger import get_supabase_client
     print("✅ SupabaseLogger imported")
     
-    from library.ConfigManager import config
+    from shared_lib.ConfigManager import config
     print("✅ ConfigManager imported")
     
     # Test mistralai import specifically

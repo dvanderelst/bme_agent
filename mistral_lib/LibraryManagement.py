@@ -7,7 +7,7 @@ from mistralai.client import Mistral
 from typing import List, Dict, Any, Optional, Union
 import os
 import time
-from library.ConfigManager import config
+from shared_lib.ConfigManager import config
 
 
 def list_libraries(api_key: Optional[str] = None) -> List[Dict[str, Any]]:
