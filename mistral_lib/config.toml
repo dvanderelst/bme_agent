@@ -1,0 +1,2 @@
+[mistral]
+moderation_model = "mistral-moderation-2411"

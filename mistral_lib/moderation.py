@@ -16,9 +16,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 from mistralai.client import Mistral
-from shared_lib.ConfigManager import config
+from shared_lib.config_manager import config
+from mistral_lib.config import get as mistral_config
 
-DEFAULT_MODEL = "mistral-moderation-2411"
+__default_model = mistral_config("moderation_model")
 
 # ---------------------------------------------------------------------------
 # Active categories
@@ -27,7 +28,7 @@ DEFAULT_MODEL = "mistral-moderation-2411"
 # Comment out any category to disable it for this app.
 # jailbreaking is only available on mistral-moderation-2603.
 # ---------------------------------------------------------------------------
-ACTIVE_CATEGORIES = {
+active_categories = {
     "sexual",
     "hate_and_discrimination",
     "violence_and_threats",
@@ -70,7 +71,7 @@ def _parse_result(result) -> ModerationResult:
     cats_dict = _to_dict(result.categories)
     scores_dict = _to_dict(result.category_scores)
 
-    flagged = [k for k, v in cats_dict.items() if v and k in ACTIVE_CATEGORIES]
+    flagged = [k for k, v in cats_dict.items() if v and k in active_categories]
     return ModerationResult(
         passed=len(flagged) == 0,
         flagged_categories=flagged,
@@ -81,7 +82,7 @@ def _parse_result(result) -> ModerationResult:
 
 def moderate(
     message: str,
-    model: str = DEFAULT_MODEL,
+    model: str = _default_model,
     api_key: Optional[str] = None,
 ) -> ModerationResult:
     """
@@ -103,7 +104,7 @@ def moderate(
 
 def moderate_batch(
     messages: list,
-    model: str = DEFAULT_MODEL,
+    model: str = _default_model,
     api_key: Optional[str] = None,
 ) -> list:
     """

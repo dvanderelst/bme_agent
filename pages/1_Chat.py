@@ -1,8 +1,8 @@
 import streamlit as st
 import logging
-from mistral_lib import ConversationManagement
-from mistral_lib.Moderation import moderate, DEFAULT_MODEL
-from shared_lib.SupabaseLogger import get_supabase_client, log_interaction
+from mistral_lib import conversation_management
+from mistral_lib.moderation import moderate
+from shared_lib.supabase_logger import get_supabase_client, log_interaction
 
 st.markdown("""
 <style>
@@ -31,18 +31,17 @@ body {background-color: #1e1e1e; color: #f0f0f0;}
 
 # Redirect to login if not authenticated
 if not st.session_state.get("authenticated"):
-    st.switch_page("main.py")
+    st.switch_page("app.py")
 
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["bme_agent"]
-    moderation_model = st.secrets.get("moderation_model", DEFAULT_MODEL)
     supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
 except (AttributeError, KeyError):
-    from shared_lib.ConfigManager import config
+    from shared_lib.config_manager import config
     agent_id = config.get("bme_agent")
-    moderation_model = config.get("moderation_model") or DEFAULT_MODEL
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
+
 
 # Validate required config
 if not agent_id:
@@ -56,7 +55,7 @@ def run_moderation(message: str) -> tuple[bool, list]:
     Fails closed on API error — blocks the message and logs the incident.
     """
     try:
-        result = moderate(message, model=moderation_model)
+        result = moderate(message)
         return result.passed, result.flagged_categories
     except Exception as e:
         logging.error(f"Moderation API call failed: {e}")
@@ -118,7 +117,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
         # Get response from the configured agent
         try:
             with st.spinner("Thinking..."):
-                response = ConversationManagement.send_message_to_agent(
+                response = conversation_management.send_message_to_agent(
                     message=prompt,
                     agent_id=agent_id,
                     conversation_id=st.session_state.conversation_id,
