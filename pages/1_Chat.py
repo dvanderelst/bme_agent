@@ -1,8 +1,7 @@
 import streamlit as st
-import json
 import logging
-import re
 from library import ConversationManagement
+from library.Moderation import moderate, DEFAULT_MODEL
 from library.SupabaseLogger import get_supabase_client, log_interaction
 
 st.markdown("""
@@ -37,85 +36,32 @@ if not st.session_state.get("authenticated"):
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["bme_agent"]
-    bme_moderator_id = st.secrets["bme_moderator"]
+    moderation_model = st.secrets.get("moderation_model", DEFAULT_MODEL)
     supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
 except (AttributeError, KeyError):
     from library.ConfigManager import config
     agent_id = config.get("bme_agent")
-    bme_moderator_id = config.get("bme_moderator")
+    moderation_model = config.get("moderation_model") or DEFAULT_MODEL
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
 
 # Validate required config
-missing = [k for k, v in {"bme_agent": agent_id, "bme_moderator": bme_moderator_id}.items() if not v]
-if missing:
-    st.error(f"Missing required configuration: {', '.join(missing)}. Check your secrets.toml.")
+if not agent_id:
+    st.error("Missing required configuration: bme_agent. Check your secrets.toml.")
     st.stop()
 
-def _parse_moderation_response(raw: str) -> dict | None:
-    """Extract and parse a JSON object from the moderator's response.
+def run_moderation(message: str) -> tuple[bool, list]:
+    """Run message through the Mistral moderation classifier.
 
-    Handles markdown code fences and falls back to regex extraction
-    if direct parsing fails.
+    Returns (passed, flagged_categories).
+    Fails closed on API error — blocks the message and logs the incident.
     """
-    # Strip markdown code fences
-    text = re.sub(r'```(?:json)?\s*', '', raw).strip()
-
-    # Try direct parse
     try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-
-    # Fall back to extracting the first {...} block
-    match = re.search(r'\{.*?\}', text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group())
-        except json.JSONDecodeError:
-            pass
-
-    return None
-
-
-def _call_moderator(message: str) -> dict | None:
-    """Call the moderator agent and return parsed JSON, or None on failure."""
-    try:
-        response = ConversationManagement.send_message_to_agent(
-            message=message,
-            agent_id=bme_moderator_id,
-            conversation_id=None,
-            display=False
-        )
-        raw = response.get('assistant_response', '')
-        return _parse_moderation_response(raw)
+        result = moderate(message, model=moderation_model)
+        return result.passed, result.flagged_categories
     except Exception as e:
-        logging.warning(f"Moderator API call failed: {e}")
-        return None
-
-
-def moderate_message(message: str) -> tuple[bool, str]:
-    """Send message to moderator and return (passed, sanitized_message_or_reason).
-
-    Retries once on parse failure. Fails open if both attempts fail,
-    logging the incident for review.
-    """
-    result = _call_moderator(message)
-
-    if result is None:
-        logging.warning("Moderator returned unparseable response, retrying...")
-        result = _call_moderator(message)
-
-    if result is None:
-        logging.error(f"Moderator failed twice for message: {message[:100]!r}")
+        logging.error(f"Moderation API call failed: {e}")
         st.session_state.moderation_error = message
-        return False, "moderation_system_failure"
-
-    if result.get('status') == 'pass':
-        sanitized = result.get('sanitized_message') or message
-        return True, sanitized
-    else:
-        reason = result.get('reason') or 'Content moderation failed'
-        return False, reason
+        return False, []
 
 st.title("BME Specialist Chat")
 
@@ -157,26 +103,23 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     # First, moderate the user message
-    moderation_passed, moderation_result = moderate_message(prompt)
-    
+    moderation_passed, flagged_categories = run_moderation(prompt)
+
     if not moderation_passed:
-        if moderation_result != "moderation_system_failure":
-            # Message was rejected by the moderator — tell the student why
-            reason = moderation_result or "content that violates our guidelines or may include personal information"
-            agent_response = f"I am sorry, I can't process that request. Reason: {reason}"
+        if not st.session_state.get("moderation_error"):
+            # Message was rejected — tell the student which categories were violated
+            categories_str = ", ".join(flagged_categories) if flagged_categories else "content policy"
+            agent_response = f"I'm sorry, I can't process that request. Violated categories: **{categories_str}**."
             with st.chat_message("assistant"):
                 st.markdown(agent_response)
             st.session_state.messages.append({"role": "assistant", "content": agent_response})
-        # If moderation_system_failure, the warning box above handles the messaging
+        # If moderation_error is set, the warning box above handles the messaging
     else:
-        # Message passed moderation - use sanitized version
-        sanitized_prompt = moderation_result
-        
         # Get response from the configured agent
         try:
             with st.spinner("Thinking..."):
                 response = ConversationManagement.send_message_to_agent(
-                    message=sanitized_prompt,
+                    message=prompt,
                     agent_id=agent_id,
                     conversation_id=st.session_state.conversation_id,
                     display=False
@@ -184,12 +127,12 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             st.session_state.conversation_id = response.get('conversation_id')
             agent_response = response.get('assistant_response', 'No response from agent')
             
-            # Log interaction to Supabase (use sanitized message, not original)
+            # Log interaction to Supabase
             try:
                 log_interaction(
                     client=supabase,
                     conversation_id=st.session_state.conversation_id,
-                    user_message=sanitized_prompt,  # Use sanitized version
+                    user_message=prompt,
                     agent_response=agent_response,
                     user_id=student_id
                 )
