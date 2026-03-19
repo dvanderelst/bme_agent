@@ -1,7 +1,8 @@
 import streamlit as st
 import logging
-from mistral_lib import conversation_management
+from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
+from anthropic_lib import conversation_management as anthropic_conversation
 from shared_lib.supabase_logger import get_supabase_client, log_interaction
 
 st.markdown("""
@@ -62,16 +63,35 @@ def run_moderation(message: str) -> tuple[bool, list]:
         st.session_state.moderation_error = message
         return False, []
 
-st.title("BME Specialist Chat")
-
-# Get anonymous student ID stored at login
-student_id = st.session_state.get("student_id", None)
-
-# Initialize chat history and conversation tracking
+# Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "conversation_id" not in st.session_state:
     st.session_state.conversation_id = None
+if "backend" not in st.session_state:
+    st.session_state.backend = "mistral"
+
+_title_col, _spacer, _mistral_col, _toggle_col, _anthropic_col = st.columns([6, 1, 2, 1, 2])
+with _title_col:
+    st.title("BME Specialist Chat")
+with _mistral_col:
+    st.markdown("<div style='text-align:right; padding-top:18px; font-size:0.9em;'>Mistral</div>", unsafe_allow_html=True)
+with _toggle_col:
+    st.markdown("<div style='padding-top:14px;'>", unsafe_allow_html=True)
+    _use_anthropic = st.toggle("backend", value=(st.session_state.backend == "anthropic"), label_visibility="collapsed")
+    st.markdown("</div>", unsafe_allow_html=True)
+with _anthropic_col:
+    st.markdown("<div style='text-align:left; padding-top:18px; font-size:0.9em;'>Anthropic</div>", unsafe_allow_html=True)
+
+_new_backend = "anthropic" if _use_anthropic else "mistral"
+if _new_backend != st.session_state.backend:
+    st.session_state.backend = _new_backend
+    st.session_state.messages = []
+    st.session_state.conversation_id = None
+    st.rerun()
+
+# Get anonymous student ID stored at login
+student_id = st.session_state.get("student_id", None)
 
 # Show moderation system error if one occurred
 if st.session_state.get("moderation_error"):
@@ -114,16 +134,22 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             st.session_state.messages.append({"role": "assistant", "content": agent_response})
         # If moderation_error is set, the warning box above handles the messaging
     else:
-        # Get response from the configured agent
+        # Get response from the configured backend
         try:
             with st.spinner("Thinking..."):
-                response = conversation_management.send_message_to_agent(
-                    message=prompt,
-                    agent_id=agent_id,
-                    conversation_id=st.session_state.conversation_id,
-                    display=False
-                )
-            st.session_state.conversation_id = response.get('conversation_id')
+                if st.session_state.backend == "anthropic":
+                    response = anthropic_conversation.send_message(
+                        history=st.session_state.messages[:-1],
+                        user_message=prompt,
+                    )
+                else:
+                    response = mistral_conversation.send_message_to_agent(
+                        message=prompt,
+                        agent_id=agent_id,
+                        conversation_id=st.session_state.conversation_id,
+                        display=False,
+                    )
+                    st.session_state.conversation_id = response.get('conversation_id')
             agent_response = response.get('assistant_response', 'No response from agent')
             
             # Log interaction to Supabase
@@ -133,7 +159,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     conversation_id=st.session_state.conversation_id,
                     user_message=prompt,
                     agent_response=agent_response,
-                    user_id=student_id
+                    user_id=student_id,
                 )
             except Exception as log_err:
                 st.warning(f"Logging failed: {log_err}")
