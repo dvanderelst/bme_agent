@@ -7,7 +7,7 @@ from mistralai.client import Mistral
 from typing import Optional, List, Dict, Any
 import traceback
 from shared_lib.config_manager import config
-from shared_lib.logging import get_logger, log_debug, log_error, log_exception
+from shared_lib.logger import get_logger, log_debug, log_error, log_exception
 
 # Initialize logger
 logger = get_logger(__name__)
