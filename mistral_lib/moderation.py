@@ -19,7 +19,7 @@ from mistralai.client import Mistral
 from shared_lib.config_manager import config
 from mistral_lib.config import get as mistral_config
 
-__default_model = mistral_config("moderation_model")
+_default_model = mistral_config("moderation_model")
 
 # ---------------------------------------------------------------------------
 # Active categories
