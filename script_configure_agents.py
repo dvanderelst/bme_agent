@@ -25,10 +25,15 @@ logger.log("✅ Agent configured successfully")
 
 logger.log_section("Agent Library Configuration", level=2)
 LibraryManagement.remove_all_documents_from_library(library_id=bme_agent_library, confirm=False)
-LibraryManagement.upload_document('robot_details.md', library_id=bme_agent_library)
-LibraryManagement.upload_document('programming_blocks.md', library_id=bme_agent_library)
-LibraryManagement.upload_document('faculty_and_staff.md', library_id=bme_agent_library)
-LibraryManagement.upload_document('color_vision.md', library_id=bme_agent_library)
+documents = [
+    'robot_details.md',
+    'programming_blocks.md',
+    'faculty_and_staff.md',
+    'color_vision.md',
+]
+for doc in documents:
+    LibraryManagement.upload_document(doc, library_id=bme_agent_library)
+    logger.log(f"  📄 Uploaded: {doc}")
 AgentManagement.unassign_all_libraries_from_agent(agent_id=bme_agent)
 AgentManagement.assign_library_to_agent(agent_id=bme_agent, library_id=bme_agent_library)
 logger.log("🎉 Library configured successfully")
