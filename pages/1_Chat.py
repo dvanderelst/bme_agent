@@ -1,8 +1,8 @@
 import streamlit as st
 import logging
-from library import ConversationManagement
-from library.Moderation import moderate, DEFAULT_MODEL
-from library.SupabaseLogger import get_supabase_client, log_interaction
+from mistral_lib import ConversationManagement
+from mistral_lib.Moderation import moderate, DEFAULT_MODEL
+from shared_lib.SupabaseLogger import get_supabase_client, log_interaction
 
 st.markdown("""
 <style>
@@ -39,7 +39,7 @@ try:
     moderation_model = st.secrets.get("moderation_model", DEFAULT_MODEL)
     supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
 except (AttributeError, KeyError):
-    from library.ConfigManager import config
+    from shared_lib.ConfigManager import config
     agent_id = config.get("bme_agent")
     moderation_model = config.get("moderation_model") or DEFAULT_MODEL
     supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))

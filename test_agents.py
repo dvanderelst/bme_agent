@@ -7,8 +7,8 @@ Test both BME agents.
 
 import json
 import re
-from library import ConversationManagement
-from library.ConfigManager import config
+from mistral_lib import ConversationManagement
+from shared_lib.ConfigManager import config
 
 bme_agent_id = config.get("bme_agent")
 bme_moderator_id = config.get("bme_moderator")

@@ -1,7 +1,7 @@
-from library import AgentManagement
-from library import LibraryManagement
-from library.OutputLogging import start_logging, stop_logging, OutputLogger
-from library.ConfigManager import config
+from mistral_lib import AgentManagement
+from mistral_lib import LibraryManagement
+from shared_lib.OutputLogging import start_logging, stop_logging, OutputLogger
+from shared_lib.ConfigManager import config
 
 # Configuration
 bme_agent = config.get("bme_agent")
