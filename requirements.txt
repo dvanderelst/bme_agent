@@ -4,7 +4,6 @@ streamlit
 python-dotenv
 mistralai
 anthropic
-supabase
 toml
 requests
 python-dateutil
