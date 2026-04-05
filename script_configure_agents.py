@@ -14,7 +14,7 @@ from shared_lib.output_logging import start_logging, stop_logging, OutputLogger
 from shared_lib.config_manager import config
 
 # ── UPDATE THIS BEFORE RUNNING ─────────────────────────────────────────────
-DAILY_MODULES = ["olfaction.md"]
+daily_modules = ["olfaction.md"]
 # ──────────────────────────────────────────────────────────────────────────
 
 # ── Paths ──────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ shared_documents = [
     "faculty_and_staff.md",
 ]
 
-documents = shared_documents + DAILY_MODULES
+documents = shared_documents + daily_modules
 
 # ── Agent IDs ──────────────────────────────────────────────────────────────
 bme_agent         = config.get("bme_agent")
@@ -44,7 +44,7 @@ logger.log_section("Today's Activity — Instructions Update", level=1)
 ##################################################################
 
 activity_texts = []
-for module in DAILY_MODULES:
+for module in daily_modules:
     activity_path = os.path.join(activity_dir, module)
     if os.path.exists(activity_path):
         with open(activity_path) as f:
