@@ -29,6 +29,7 @@ documents = [
     'programming_blocks.md',
     'faculty_and_staff.md',
     'color_vision.md',
+    'sonar.md',
 ]
 for doc in documents:
     library_management.upload_document(doc, library_id=bme_agent_library)

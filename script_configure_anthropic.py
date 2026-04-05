@@ -17,6 +17,7 @@ documents = [
     "programming_blocks.md",
     "faculty_and_staff.md",
     "color_vision.md",
+    "sonar.md",
 ]
 
 start_logging("anthropic_configuration")
