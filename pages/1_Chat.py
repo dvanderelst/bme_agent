@@ -42,6 +42,9 @@ except (AttributeError, KeyError):
     from shared_lib.config_manager import config
     agent_id = config.get("bme_agent")
     baserow_config = get_baserow_client(config.get("baserow_api_url"), config.get("baserow_api_token"))
+except ValueError as ve:
+    st.error(f"Baserow configuration error: {str(ve)}")
+    st.stop()
 
 
 # Validate required config
