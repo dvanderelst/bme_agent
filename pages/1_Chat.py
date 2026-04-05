@@ -3,7 +3,7 @@ import logging
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
-from shared_lib.supabase_logger import get_supabase_client, log_interaction
+from shared_lib.baserow_logger import get_baserow_client, log_interaction
 
 st.markdown("""
 <style>
@@ -37,11 +37,11 @@ if not st.session_state.get("authenticated"):
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["bme_agent"]
-    supabase = get_supabase_client(st.secrets["supabase_url"], st.secrets["supabase_key"])
+    baserow_config = get_baserow_client(st.secrets["baserow_api_url"], st.secrets["baserow_api_token"])
 except (AttributeError, KeyError):
     from shared_lib.config_manager import config
     agent_id = config.get("bme_agent")
-    supabase = get_supabase_client(config.get("supabase_url"), config.get("supabase_key"))
+    baserow_config = get_baserow_client(config.get("baserow_api_url"), config.get("baserow_api_token"))
 
 
 # Validate required config
@@ -152,15 +152,17 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     st.session_state.conversation_id = response.get('conversation_id')
             agent_response = response.get('assistant_response', 'No response from agent')
             
-            # Log interaction to Supabase
+            # Log interaction to Baserow
             try:
-                log_interaction(
-                    client=supabase,
+                log_success = log_interaction(
+                    client_config=baserow_config,
                     conversation_id=st.session_state.conversation_id,
                     user_message=prompt,
                     agent_response=agent_response,
                     user_id=student_id,
                 )
+                if not log_success:
+                    st.warning("Logging to Baserow failed")
             except Exception as log_err:
                 st.warning(f"Logging failed: {log_err}")
 
