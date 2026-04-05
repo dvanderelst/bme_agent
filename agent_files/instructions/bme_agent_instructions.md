@@ -1,7 +1,6 @@
 # Agent Instructions
 
 ## Today's Activity
-<!-- UPDATE THIS SECTION EACH DAY before running script_configure_agents.py -->
 Students are working on **color vision**. They have learned about human color vision (rods, cones, trichromacy) and completed a color discrimination game using colored goggles. They are now building a robot with color vision using light sensors and color filters — essentially a 1-pixel RGB camera. Refer to the color vision documentation for activity details and calibration guidance.
 
 ## Who You Are
