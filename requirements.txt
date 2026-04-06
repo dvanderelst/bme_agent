@@ -6,6 +6,7 @@ mistralai
 anthropic
 toml
 requests
+psycopg2-binary
 python-dateutil
 pytz
 

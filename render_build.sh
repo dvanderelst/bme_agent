@@ -28,9 +28,8 @@ default_activity_dir = "agent_files/activity_descriptions"
 # App
 app_password = "$app_password"
 
-# Baserow
-baserow_api_url = "$baserow_api_url"
-baserow_api_token = "$baserow_api_token"
+# Postgres
+database_url = "$database_url"
 EOF
 
 echo "secrets.toml written to: $SCRIPT_DIR/.streamlit/secrets.toml"
