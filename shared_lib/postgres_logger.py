@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS interactions (
     conversation_id TEXT,
     user_id         TEXT,
     user_message    TEXT,
-    agent_response  TEXT
+    agent_response  TEXT,
+    llm             TEXT
 );
 """
 
@@ -51,6 +52,7 @@ def log_interaction(
     user_message: str,
     agent_response: str,
     user_id: Optional[str] = None,
+    llm: Optional[str] = None,
 ) -> bool:
     """
     Log a single user/agent exchange to the Postgres interactions table.
@@ -61,6 +63,7 @@ def log_interaction(
         user_message: The message sent by the user
         agent_response: The response returned by the agent
         user_id: Optional identifier for the user
+        llm: Name of the LLM backend used (e.g. "mistral", "anthropic")
 
     Returns:
         True if logging succeeded, False if failed
@@ -71,10 +74,10 @@ def log_interaction(
                 cur.execute(
                     """
                     INSERT INTO interactions
-                        (conversation_id, user_id, user_message, agent_response)
-                    VALUES (%s, %s, %s, %s)
+                        (conversation_id, user_id, user_message, agent_response, llm)
+                    VALUES (%s, %s, %s, %s, %s)
                     """,
-                    (conversation_id, user_id, user_message, agent_response),
+                    (conversation_id, user_id, user_message, agent_response, llm),
                 )
         return True
 

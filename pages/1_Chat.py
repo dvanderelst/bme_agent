@@ -163,6 +163,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     user_message=prompt,
                     agent_response=agent_response,
                     user_id=student_id,
+                    llm=st.session_state.backend,
                 )
                 if not log_success:
                     st.warning("Logging to database failed")
