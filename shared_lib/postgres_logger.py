@@ -1,7 +1,6 @@
 """
 Postgres logging module for BME agent interactions.
-Logs user/agent conversations to a Render managed Postgres database.
-Drop-in replacement for baserow_logger.py.
+Logs user/agent conversations to a Postgres database.
 """
 
 import psycopg2
@@ -27,7 +26,7 @@ def get_postgres_client(database_url: str) -> str:
     Validate the database URL and ensure the interactions table exists.
 
     Args:
-        database_url: Postgres connection URL (e.g. from Render's DATABASE_URL)
+        database_url: Postgres connection URL
 
     Returns:
         The validated database URL

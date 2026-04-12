@@ -14,7 +14,7 @@ with st.form("password_form"):
     submitted = st.form_submit_button("Enter")
     
     if submitted:
-        if password == st.secrets["app_password"]:
+        if password == st.secrets["APP_PASSWORD"]:
             st.session_state.authenticated = True
             st.session_state.student_id = st.query_params.get("student", None)
             st.switch_page("pages/1_Chat.py")

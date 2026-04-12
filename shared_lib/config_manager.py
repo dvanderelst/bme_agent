@@ -15,33 +15,28 @@ class ConfigManager:
         self._config = self._load_config()
     
     def _load_config(self) -> Dict[str, Any]:
-        """Load configuration from secrets.toml with environment variable fallback."""
+        """Load configuration from secrets.toml with environment variable fallback.
+        All keys are normalized to lowercase so callers can use either case."""
         config = {}
-        
+
         # Try to load from .streamlit/secrets.toml
         secrets_path = ".streamlit/secrets.toml"
         if os.path.exists(secrets_path):
             try:
                 with open(secrets_path, "r") as f:
-                    config.update(toml.load(f))
+                    config.update({k.lower(): v for k, v in toml.load(f).items()})
             except Exception as e:
                 print(f"Warning: Could not load secrets.toml: {e}")
-        
-        # Load all environment variables that start with relevant prefixes
+
+        # Load environment variables, normalizing keys to lowercase
         for env_var, value in os.environ.items():
-            # Include common config variables (remove prefix if present)
-            if env_var.startswith(('MISTRAL_', 'BME_', 'MODERATOR_', 'AGENT_')):
-                config_key = env_var.lower().replace('_', '')
-                config[config_key] = value
-            # Also include exact matches for common keys
-            elif env_var in ['mistral_key', 'bme_agent', 'bme_moderator']:
-                config[env_var] = value
-        
+            config[env_var.lower()] = value
+
         return config
-    
+
     def get(self, key: str, default: Optional[Any] = None) -> Any:
-        """Get a configuration value by key."""
-        return self._config.get(key, default)
+        """Get a configuration value by key (case-insensitive)."""
+        return self._config.get(key.lower(), default)
     
     def __getattr__(self, name: str) -> Any:
         """Allow attribute-style access to config values."""

@@ -3,7 +3,7 @@ import logging
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
-from shared_lib.postgres_logger import get_postgres_client as get_baserow_client, log_interaction
+from shared_lib.postgres_logger import get_postgres_client, log_interaction
 
 st.markdown("""
 <style>
@@ -36,16 +36,15 @@ if not st.session_state.get("authenticated"):
 
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
-    agent_id = st.secrets["bme_agent"]
-    baserow_config = get_baserow_client(st.secrets["database_url"])
+    agent_id = st.secrets["BME_AGENT"]
+    db_config = get_postgres_client(st.secrets["DATABASE_URL"])
 except (AttributeError, KeyError):
     from shared_lib.config_manager import config
     agent_id = config.get("bme_agent")
-    baserow_config = get_baserow_client(config.get("database_url"))
+    db_config = get_postgres_client(config.get("database_url"))
 except ValueError as ve:
     st.error(f"Database configuration error: {str(ve)}")
     st.stop()
-
 
 # Validate required config
 if not agent_id:
@@ -155,10 +154,10 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     st.session_state.conversation_id = response.get('conversation_id')
             agent_response = response.get('assistant_response', 'No response from agent')
             
-            # Log interaction to Baserow
+            # Log interaction to database
             try:
                 log_success = log_interaction(
-                    client_config=baserow_config,
+                    client_config=db_config,
                     conversation_id=st.session_state.conversation_id,
                     user_message=prompt,
                     agent_response=agent_response,
