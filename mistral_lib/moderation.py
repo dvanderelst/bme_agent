@@ -99,6 +99,8 @@ def moderate(
     api_key = api_key or config.get("mistral_key")
     client = Mistral(api_key=api_key)
     response = client.classifiers.moderate(model=model, inputs=[message])
+    if not response.results:
+        raise ValueError("Moderation API returned no results")
     return _parse_result(response.results[0])
 
 

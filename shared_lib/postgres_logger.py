@@ -3,6 +3,7 @@ Postgres logging module for BME agent interactions.
 Logs user/agent conversations to a Postgres database.
 """
 
+import logging
 import psycopg2
 from psycopg2.extras import execute_values
 from typing import Optional
@@ -81,8 +82,8 @@ def log_interaction(
         return True
 
     except psycopg2.Error as e:
-        print(f"❌ Postgres error: {e}")
+        logging.error("Postgres error: %s", e)
         return False
     except Exception as e:
-        print(f"❌ Unexpected error logging to Postgres: {e}")
+        logging.error("Unexpected error logging to Postgres: %s", e)
         return False

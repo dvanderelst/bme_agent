@@ -159,14 +159,11 @@ def set_agent_description(
 
     client = Mistral(api_key=api_key)
 
-    try:
-        client.beta.agents.update(
-            agent_id=agent_id,
-            description=description
-        )
-        return True
-    except Exception as e:
-        raise Exception(f"Failed to set agent description: {e}") from e
+    client.beta.agents.update(
+        agent_id=agent_id,
+        description=description
+    )
+    return True
 
 
 def unassign_all_libraries_from_agent(
@@ -230,9 +227,6 @@ def unassign_all_libraries_from_agent(
             )
 
         return True
-
-    except Exception as e:
-        raise Exception(f"Failed to unassign all libraries from agent: {e}") from e
 
 
 def assign_library_to_agent(
@@ -324,6 +318,3 @@ def assign_library_to_agent(
             **update_request
         )
         return True
-
-    except Exception as e:
-        raise Exception(f"Failed to share library with agent: {e}") from e

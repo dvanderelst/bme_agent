@@ -133,7 +133,7 @@ def cleanup_strategy(duplicates, strategy):
         
         for lib in to_delete:
             try:
-                delete_library(library_id=lib.id, api_key=get_mistral_key())
+                delete_library(library_id=lib.id, api_key=api_key)
                 print(f"  🗑️  Deleted: {lib.id}")
                 deleted_count += 1
             except Exception as e:
@@ -172,7 +172,7 @@ def cleanup_specific(duplicates):
     
     for lib_id in ids_to_delete:
         try:
-            delete_library(library_id=lib_id, api_key=get_mistral_key())
+            delete_library(library_id=lib_id, api_key=api_key)
             print(f"  🗑️  Deleted: {lib_id}")
             deleted_count += 1
         except Exception as e:
@@ -226,7 +226,7 @@ def cleanup_by_name_pattern():
     deleted_count = 0
     for lib in matching_libs:
         try:
-            delete_library(library_id=lib.id, api_key=get_mistral_key())
+            delete_library(library_id=lib.id, api_key=api_key)
             print(f"  🗑️  Deleted: {lib.id} - '{lib.name}'")
             deleted_count += 1
         except Exception as e:
@@ -293,7 +293,7 @@ def cleanup_specific_all():
     deleted_count = 0
     for lib in libs_to_delete:
         try:
-            delete_library(library_id=lib.id, api_key=get_mistral_key())
+            delete_library(library_id=lib.id, api_key=api_key)
             print(f"  🗑️  Deleted: {lib.id} - '{lib.name}'")
             deleted_count += 1
         except Exception as e:
@@ -332,7 +332,7 @@ def create_new_library():
             library_data["description"] = description
         
         new_library = create_library(
-            api_key=get_mistral_key(),
+            api_key=api_key,
             **library_data
         )
         
@@ -394,7 +394,7 @@ def upload_documents_to_library(library_id):
             result = upload_document(
                 library_id=library_id,
                 file_path=file_path,
-                api_key=get_mistral_key(),
+                api_key=api_key,
                 document_name=document_name
             )
             print(f"✅ Upload successful! Document ID: {result.id}")
@@ -433,7 +433,7 @@ def cleanup_all_libraries():
     
     for lib in all_libraries:
         try:
-            delete_library(library_id=lib.id, api_key=get_mistral_key())
+            delete_library(library_id=lib.id, api_key=api_key)
             print(f"  🗑️  Deleted: {lib.id} - '{lib.name}'")
             deleted_count += 1
         except Exception as e:

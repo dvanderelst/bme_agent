@@ -4,6 +4,14 @@ from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
 from shared_lib.postgres_logger import get_postgres_client, log_interaction
+from settings import BACKEND
+
+SESSION_AUTHENTICATED = "authenticated"
+SESSION_MESSAGES = "messages"
+SESSION_CONVERSATION_ID = "conversation_id"
+SESSION_BACKEND = "backend"
+SESSION_MODERATION_ERROR = "moderation_error"
+SESSION_STUDENT_ID = "student_id"
 
 st.markdown("""
 <style>
@@ -31,17 +39,20 @@ body {background-color: #1e1e1e; color: #f0f0f0;}
 """, unsafe_allow_html=True)
 
 # Redirect to login if not authenticated
-if not st.session_state.get("authenticated"):
+if not st.session_state.get(SESSION_AUTHENTICATED):
     st.switch_page("app.py")
 
 # Configuration - try Streamlit secrets first, fallback to ConfigManager
 try:
     agent_id = st.secrets["BME_AGENT"]
-    db_config = get_postgres_client(st.secrets["DATABASE_URL"])
+    database_url = st.secrets["DATABASE_URL"]
 except (AttributeError, KeyError):
     from shared_lib.config_manager import config
     agent_id = config.get("bme_agent")
-    db_config = get_postgres_client(config.get("database_url"))
+    database_url = config.get("database_url")
+
+try:
+    db_config = get_postgres_client(database_url)
 except ValueError as ve:
     st.error(f"Database configuration error: {str(ve)}")
     st.stop()
@@ -62,53 +73,56 @@ def run_moderation(message: str) -> tuple[bool, list]:
         return result.passed, result.flagged_categories
     except Exception as e:
         logging.error(f"Moderation API call failed: {e}")
-        st.session_state.moderation_error = message
+        st.session_state[SESSION_MODERATION_ERROR] = message
         return False, []
 
 # Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "conversation_id" not in st.session_state:
-    st.session_state.conversation_id = None
-if "backend" not in st.session_state:
-    st.session_state.backend = "mistral"
+if SESSION_MESSAGES not in st.session_state:
+    st.session_state[SESSION_MESSAGES] = []
+if SESSION_CONVERSATION_ID not in st.session_state:
+    st.session_state[SESSION_CONVERSATION_ID] = None
+if SESSION_BACKEND not in st.session_state:
+    _initial_backend = "mistral" if BACKEND != "anthropic" else "anthropic"
+    st.session_state[SESSION_BACKEND] = _initial_backend
 
-_title_col, _spacer, _mistral_col, _toggle_col, _anthropic_col = st.columns([6, 1, 2, 1, 2])
-with _title_col:
-    st.title("BME Specialist Chat")
-with _mistral_col:
-    st.markdown("<div style='text-align:right; padding-top:18px; font-size:0.9em;'>Mistral</div>", unsafe_allow_html=True)
-with _toggle_col:
-    st.markdown("<div style='padding-top:14px;'>", unsafe_allow_html=True)
-    _use_anthropic = st.toggle("backend", value=(st.session_state.backend == "anthropic"), label_visibility="collapsed")
-    st.markdown("</div>", unsafe_allow_html=True)
-with _anthropic_col:
-    st.markdown("<div style='text-align:left; padding-top:18px; font-size:0.9em;'>Anthropic</div>", unsafe_allow_html=True)
-
-_new_backend = "anthropic" if _use_anthropic else "mistral"
-if _new_backend != st.session_state.backend:
-    st.session_state.backend = _new_backend
-    st.session_state.messages = []
-    st.session_state.conversation_id = None
+# Lock backend if settings.py specifies a fixed one
+if BACKEND in ("mistral", "anthropic") and st.session_state[SESSION_BACKEND] != BACKEND:
+    st.session_state[SESSION_BACKEND] = BACKEND
+    st.session_state[SESSION_MESSAGES] = []
+    st.session_state[SESSION_CONVERSATION_ID] = None
     st.rerun()
 
+if BACKEND == "toggle":
+    _use_anthropic = st.toggle(
+        "Use Anthropic",
+        value=(st.session_state[SESSION_BACKEND] == "anthropic"),
+    )
+    _new_backend = "anthropic" if _use_anthropic else "mistral"
+    if _new_backend != st.session_state[SESSION_BACKEND]:
+        st.session_state[SESSION_BACKEND] = _new_backend
+        st.session_state[SESSION_MESSAGES] = []
+        st.session_state[SESSION_CONVERSATION_ID] = None
+        st.rerun()
+
+st.title("BME Specialist Chat")
+
 # Get anonymous student ID stored at login
-student_id = st.session_state.get("student_id", None)
+student_id = st.session_state.get(SESSION_STUDENT_ID, None)
 
 # Show moderation system error if one occurred
-if st.session_state.get("moderation_error"):
+if st.session_state.get(SESSION_MODERATION_ERROR):
     st.warning(
         "Something went wrong processing your message. "
         "Please restart the chat and try again."
     )
     if st.button("Restart Chat"):
-        st.session_state.messages = []
-        st.session_state.conversation_id = None
-        st.session_state.moderation_error = None
+        st.session_state[SESSION_MESSAGES] = []
+        st.session_state[SESSION_CONVERSATION_ID] = None
+        st.session_state[SESSION_MODERATION_ERROR] = None
         st.rerun()
 
 # Display chat messages from history on app rerun
-for message in st.session_state.messages:
+for message in st.session_state[SESSION_MESSAGES]:
     with st.chat_message(message["role"]):
         if message["role"] == "user":
             st.markdown(f'**{message["content"]}**')  # Bold for user messages
@@ -121,48 +135,48 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     with st.chat_message("user"):
         st.markdown(f'**{prompt}**')  # Bold for user messages
     # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state[SESSION_MESSAGES].append({"role": "user", "content": prompt})
 
     # First, moderate the user message
     moderation_passed, flagged_categories = run_moderation(prompt)
 
     if not moderation_passed:
-        if not st.session_state.get("moderation_error"):
+        if not st.session_state.get(SESSION_MODERATION_ERROR):
             # Message was rejected — tell the student which categories were violated
             categories_str = ", ".join(flagged_categories) if flagged_categories else "content policy"
             agent_response = f"I'm sorry, I can't process that request. Violated categories: **{categories_str}**."
             with st.chat_message("assistant"):
                 st.markdown(agent_response)
-            st.session_state.messages.append({"role": "assistant", "content": agent_response})
-        # If moderation_error is set, the warning box above handles the messaging
+            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
+        # If SESSION_MODERATION_ERROR is set, the warning box above handles the messaging
     else:
         # Get response from the configured backend
         try:
             with st.spinner("Thinking..."):
-                if st.session_state.backend == "anthropic":
+                if st.session_state[SESSION_BACKEND] == "anthropic":
                     response = anthropic_conversation.send_message(
-                        history=st.session_state.messages[:-1],
+                        history=st.session_state[SESSION_MESSAGES][:-1],
                         user_message=prompt,
                     )
                 else:
                     response = mistral_conversation.send_message_to_agent(
                         message=prompt,
                         agent_id=agent_id,
-                        conversation_id=st.session_state.conversation_id,
+                        conversation_id=st.session_state[SESSION_CONVERSATION_ID],
                         display=False,
                     )
-                    st.session_state.conversation_id = response.get('conversation_id')
+                    st.session_state[SESSION_CONVERSATION_ID] = response.get('conversation_id')
             agent_response = response.get('assistant_response', 'No response from agent')
-            
+
             # Log interaction to database
             try:
                 log_success = log_interaction(
                     client_config=db_config,
-                    conversation_id=st.session_state.conversation_id,
+                    conversation_id=st.session_state[SESSION_CONVERSATION_ID],
                     user_message=prompt,
                     agent_response=agent_response,
                     user_id=student_id,
-                    llm=st.session_state.backend,
+                    llm=st.session_state[SESSION_BACKEND],
                 )
                 if not log_success:
                     st.warning("Logging to database failed")
@@ -173,9 +187,9 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             with st.chat_message("assistant"):
                 st.markdown(agent_response)
             # Add assistant response to chat history
-            st.session_state.messages.append({"role": "assistant", "content": agent_response})
+            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
         except Exception as e:
             error_msg = f"Error getting agent response: {str(e)}"
             with st.chat_message("assistant"):
                 st.markdown(error_msg)
-            st.session_state.messages.append({"role": "assistant", "content": error_msg})
+            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": error_msg})

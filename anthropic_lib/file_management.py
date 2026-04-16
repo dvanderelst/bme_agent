@@ -92,6 +92,8 @@ def upload_file(
         response = _client(api_key).beta.files.upload(
             file=(filename, f, mime),
         )
+    if not getattr(response, "id", None):
+        raise RuntimeError(f"File upload failed: unexpected response {response!r}")
     return response.id
 
 

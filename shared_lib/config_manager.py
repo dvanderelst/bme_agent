@@ -3,6 +3,7 @@ Simple Configuration Manager.
 Loads configuration from secrets.toml with environment variable fallback.
 """
 
+import logging
 import os
 import toml
 from typing import Dict, Any, Optional
@@ -26,7 +27,7 @@ class ConfigManager:
                 with open(secrets_path, "r") as f:
                     config.update({k.lower(): v for k, v in toml.load(f).items()})
             except Exception as e:
-                print(f"Warning: Could not load secrets.toml: {e}")
+                logging.warning("Could not load secrets.toml: %s", e)
 
         # Load environment variables, normalizing keys to lowercase
         for env_var, value in os.environ.items():

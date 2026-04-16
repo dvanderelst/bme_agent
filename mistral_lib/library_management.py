@@ -313,7 +313,7 @@ def upload_document_and_wait(
                 print(f"   Status: {current_status}", end="\r")
             
             # Check if processing is complete
-            if current_status in ['Completed', 'completed', 'done']:
+            if current_status.lower() in ('completed', 'done'):
                 if verbose:
                     print(f"   ✅ Processing completed! Status: {current_status}")
                     tokens = getattr(current_doc, 'tokens_processing_total', 'N/A')

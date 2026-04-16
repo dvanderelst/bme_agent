@@ -1,16 +1,6 @@
-"""
-Configuration loader for the Mistral library.
-Reads mistral_lib/config.toml.
-"""
+"""Configuration loader for the Mistral library."""
 
 import os
-import toml
-from typing import Any, Optional
+from shared_lib.lib_config import make_config_loader
 
-_config_path = os.path.join(os.path.dirname(__file__), "config.toml")
-_data = toml.load(_config_path).get("mistral", {})
-
-
-def get(key: str, default: Optional[Any] = None) -> Any:
-    """Get a configuration value by key."""
-    return _data.get(key, default)
+get = make_config_loader(os.path.join(os.path.dirname(__file__), "config.toml"), "mistral")

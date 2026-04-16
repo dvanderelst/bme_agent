@@ -208,4 +208,4 @@ def send_message_to_agent(
                         logger.debug(f"Exception attribute {attr}: {getattr(e, attr)}")
                     except Exception:
                         pass
-        raise Exception(f"Failed to send message to agent: {e}") from e
+        raise
