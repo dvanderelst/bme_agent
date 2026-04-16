@@ -3,7 +3,7 @@ import logging
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
-from shared_lib.postgres_logger import get_postgres_client, log_interaction
+from shared_lib.postgres_logger import get_postgres_client, log_interaction, log_feedback
 from settings import BACKEND
 
 SESSION_AUTHENTICATED = "authenticated"
@@ -12,6 +12,7 @@ SESSION_CONVERSATION_ID = "conversation_id"
 SESSION_BACKEND = "backend"
 SESSION_MODERATION_ERROR = "moderation_error"
 SESSION_STUDENT_ID = "student_id"
+SESSION_FEEDBACK_KEY = "feedback_key"
 
 st.markdown("""
 <style>
@@ -81,6 +82,8 @@ if SESSION_MESSAGES not in st.session_state:
     st.session_state[SESSION_MESSAGES] = []
 if SESSION_CONVERSATION_ID not in st.session_state:
     st.session_state[SESSION_CONVERSATION_ID] = None
+if SESSION_FEEDBACK_KEY not in st.session_state:
+    st.session_state[SESSION_FEEDBACK_KEY] = 0
 if SESSION_BACKEND not in st.session_state:
     _initial_backend = "mistral" if BACKEND != "anthropic" else "anthropic"
     st.session_state[SESSION_BACKEND] = _initial_backend
@@ -193,3 +196,24 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             with st.chat_message("assistant"):
                 st.markdown(error_msg)
             st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": error_msg})
+
+# Feedback widget — only shown once there is something to rate
+if st.session_state[SESSION_MESSAGES]:
+    st.markdown("**How is the chatbot doing?**")
+    sentiment = st.feedback(
+        "thumbs",
+        key=f"feedback_{st.session_state[SESSION_FEEDBACK_KEY]}",
+    )
+    if sentiment is not None:
+        note = st.text_input("Add a note (optional)", key="feedback_note")
+        if st.button("Submit feedback"):
+            log_feedback(
+                client_config=db_config,
+                conversation_id=st.session_state[SESSION_CONVERSATION_ID],
+                sentiment=sentiment,
+                note=note,
+                user_id=student_id,
+            )
+            st.session_state[SESSION_FEEDBACK_KEY] += 1
+            st.toast("Thanks for your feedback!")
+            st.rerun()
