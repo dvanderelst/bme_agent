@@ -107,7 +107,9 @@ if st.session_state.get(SESSION_MODERATION_ERROR):
 for message in st.session_state[SESSION_MESSAGES]:
     with st.chat_message(message["role"]):
         if message["role"] == "user":
-            st.markdown(f'**{message["content"]}**')  # Bold for user messages
+            # Render as plain text so student-typed Markdown (links, images,
+            # headings) is not interpreted.
+            st.text(message["content"])
         else:
             st.markdown(message["content"])
 
@@ -115,7 +117,8 @@ for message in st.session_state[SESSION_MESSAGES]:
 if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     # Display user message in chat message container
     with st.chat_message("user"):
-        st.markdown(f'**{prompt}**')  # Bold for user messages
+        # Plain text — see note above on Markdown interpretation.
+        st.text(prompt)
     # Add user message to chat history
     st.session_state[SESSION_MESSAGES].append({"role": "user", "content": prompt})
 

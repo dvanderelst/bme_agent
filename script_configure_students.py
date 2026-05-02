@@ -24,6 +24,7 @@ import argparse
 import os
 import sys
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
@@ -155,6 +156,25 @@ def _quote_ident(name: str) -> str:
     return f'"{name}"'
 
 
+def _confirm_destructive(database_url: str, existing_count: int, new_count: int) -> None:
+    """Print the target host/db and prompt for confirmation before TRUNCATE.
+
+    Aborts the script if the user does not type 'y' or 'yes'.
+    """
+    parsed = urlparse(database_url)
+    host = parsed.hostname or "(unknown)"
+    db_name = (parsed.path or "/").lstrip("/") or "(unknown)"
+    print()
+    print("About to TRUNCATE and re-sync the students table.")
+    print(f"  Host:     {host}")
+    print(f"  Database: {db_name}")
+    print(f"  Existing: {existing_count} row(s)  →  will be deleted")
+    print(f"  New:      {new_count} row(s)  →  will be inserted")
+    response = input("Proceed? [y/N]: ").strip().lower()
+    if response not in ("y", "yes"):
+        sys.exit("Aborted — no changes made.")
+
+
 def cmd_sync(args, database_url: str) -> None:
     rows = read_ods_rows(args.path)
     headers = list(rows[0].keys()) if rows else []
@@ -195,6 +215,10 @@ def cmd_sync(args, database_url: str) -> None:
 
             to_add = [h for h in desired_extras if h not in existing_extras]
             to_drop = [c for c in existing_extras if c not in desired_extras]
+
+            cur.execute("SELECT COUNT(*) FROM students")
+            existing_count = cur.fetchone()[0]
+            _confirm_destructive(database_url, existing_count, len(rows))
 
             for col in to_add:
                 cur.execute(
