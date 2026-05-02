@@ -31,6 +31,7 @@ class OutputLogger:
         self._log_dir = "logs"
         self._log_file = None
         self._current_file = None
+        self._atexit_registered = False
         
     @property
     def enabled(self) -> bool:
@@ -58,11 +59,16 @@ class OutputLogger:
             >>> OutputLogger().enable_logging("agent_setup")
             >>> # Logs will be saved to logs/agent_setup_2024-02-15.md
         """
+        # Close any previously open log so a second enable_logging() call
+        # doesn't leak the prior file handle.
+        if self._current_file is not None:
+            self.disable_logging()
+
         self._log_dir = log_dir
-        
+
         # Create log directory if it doesn't exist
         os.makedirs(self._log_dir, exist_ok=True)
-        
+
         # Generate filename with timestamp if not provided
         if filename is None:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -70,17 +76,22 @@ class OutputLogger:
         else:
             # Remove .md extension if provided
             filename = filename.replace('.md', '')
-        
+
         self._log_file = os.path.join(self._log_dir, f"{filename}.md")
         self._enabled = True
-        
+
         # Open the file for writing
         self._current_file = open(self._log_file, 'w', encoding='utf-8')
-        atexit.register(self.disable_logging)
+
+        # Register the shutdown hook only once — disable_logging is safe to
+        # call when nothing is open, so re-registration is harmless but noisy.
+        if not self._atexit_registered:
+            atexit.register(self.disable_logging)
+            self._atexit_registered = True
 
         # Write header
         self._write_header()
-        
+
         return self._log_file
     
     def _write_header(self):

@@ -44,7 +44,7 @@ def _build_document_blocks() -> list:
     """Build document content blocks for all files in the registry."""
     registry = load_registry()
     if not registry:
-        logging.warning("File registry is empty — no documents will be attached. Run script_configure_anthropic.py first.")
+        logging.warning("File registry is empty — no documents will be attached. Run script_configure_agents.py first.")
         return []
     return [document_block(file_id) for file_id in registry.values()]
 

@@ -5,7 +5,6 @@ Logs user/agent conversations and student feedback to a Postgres database.
 
 import logging
 import psycopg2
-from psycopg2.extras import execute_values
 from typing import Optional
 
 from shared_lib.auth import (

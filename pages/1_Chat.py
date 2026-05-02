@@ -92,6 +92,13 @@ student = st.session_state.get(SESSION_STUDENT) or {}
 student_id = st.session_state.get(SESSION_STUDENT_ID, None)
 backend = student.get("backend")
 
+# Refuse to route to a backend if the student row doesn't pin one. The
+# configure script forbids this, but a hand-edited DB row could land here.
+if backend not in ("mistral", "anthropic"):
+    logging.error("Student %s has invalid backend: %r", student_id, backend)
+    st.error("Your account is not configured correctly. Please contact your instructor.")
+    st.stop()
+
 # Show moderation system error if one occurred
 if st.session_state.get(SESSION_MODERATION_ERROR):
     st.warning(
@@ -144,7 +151,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                         history=st.session_state[SESSION_MESSAGES][:-1],
                         user_message=prompt,
                     )
-                else:
+                elif backend == "mistral":
                     response = mistral_conversation.send_message_to_agent(
                         message=prompt,
                         agent_id=agent_id,
