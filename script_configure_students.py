@@ -140,7 +140,7 @@ def get_existing_columns(cur) -> List[str]:
     cur.execute(
         """
         SELECT column_name FROM information_schema.columns
-        WHERE table_name = 'students'
+        WHERE table_name = 'students' AND table_schema = 'public'
         ORDER BY ordinal_position
         """
     )

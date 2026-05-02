@@ -1,7 +1,14 @@
+import logging
+import time
+
 import streamlit as st
 
 from shared_lib.auth import authenticate
 from shared_lib.postgres_logger import get_postgres_client
+
+# Penalty added to every failed login. Equalises timing between unknown-user
+# and wrong-password paths and slows brute-force attempts to a crawl.
+FAILED_LOGIN_DELAY_SECONDS = 0.5
 
 st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
 
@@ -18,8 +25,9 @@ except (AttributeError, KeyError):
 
 try:
     db_config = get_postgres_client(database_url)
-except (ValueError, Exception) as e:
-    st.error(f"Database configuration error: {e}")
+except Exception as e:
+    logging.error("Database setup failed: %s", e)
+    st.error("The chatbot is temporarily unavailable. Please try again later.")
     st.stop()
 
 st.title("BME Specialist Chat")
@@ -33,8 +41,10 @@ with st.form("login_form"):
     if submitted:
         student = authenticate(db_config, username, password)
         if student is None:
+            time.sleep(FAILED_LOGIN_DELAY_SECONDS)
             st.error("Incorrect username or password.")
         elif not student.get("enabled", True):
+            time.sleep(FAILED_LOGIN_DELAY_SECONDS)
             st.error("Sorry, you don't have access to the chatbot at this moment.")
         else:
             st.session_state.authenticated = True

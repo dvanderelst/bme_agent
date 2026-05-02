@@ -52,6 +52,12 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
+# Pre-computed throwaway hash used to equalise the cost of authenticating an
+# unknown username vs. a wrong password. Without this, response-time
+# differences would let attackers enumerate valid usernames.
+_DUMMY_HASH = bcrypt.hashpw(b"dummy", bcrypt.gensalt())
+
+
 def authenticate(
     database_url: str, username: str, password: str
 ) -> Optional[Dict[str, Any]]:
@@ -80,6 +86,9 @@ def authenticate(
         return None
 
     if row is None:
+        # Run bcrypt against a dummy hash so the response time matches the
+        # wrong-password path — avoids leaking which usernames exist.
+        bcrypt.checkpw(password.encode("utf-8"), _DUMMY_HASH)
         return None
 
     stored_hash = row.get("password_hash")
