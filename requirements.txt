@@ -9,6 +9,10 @@ requests
 psycopg2-binary
 python-dateutil
 pytz
+bcrypt
+
+# Local-only — needed by script_manage_students.py to read the .ods roster
+odfpy
 
 # To install: pip install -r requirements.txt
 # For deployment: Ensure all packages are installed in your environment

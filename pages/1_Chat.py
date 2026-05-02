@@ -4,13 +4,12 @@ from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
 from shared_lib.postgres_logger import get_postgres_client, log_interaction, log_feedback
-from settings import BACKEND
 
 SESSION_AUTHENTICATED = "authenticated"
 SESSION_MESSAGES = "messages"
 SESSION_CONVERSATION_ID = "conversation_id"
-SESSION_BACKEND = "backend"
 SESSION_MODERATION_ERROR = "moderation_error"
+SESSION_STUDENT = "student"
 SESSION_STUDENT_ID = "student_id"
 SESSION_FEEDBACK_KEY = "feedback_key"
 
@@ -84,33 +83,13 @@ if SESSION_CONVERSATION_ID not in st.session_state:
     st.session_state[SESSION_CONVERSATION_ID] = None
 if SESSION_FEEDBACK_KEY not in st.session_state:
     st.session_state[SESSION_FEEDBACK_KEY] = 0
-if SESSION_BACKEND not in st.session_state:
-    _initial_backend = "mistral" if BACKEND != "anthropic" else "anthropic"
-    st.session_state[SESSION_BACKEND] = _initial_backend
-
-# Lock backend if settings.py specifies a fixed one
-if BACKEND in ("mistral", "anthropic") and st.session_state[SESSION_BACKEND] != BACKEND:
-    st.session_state[SESSION_BACKEND] = BACKEND
-    st.session_state[SESSION_MESSAGES] = []
-    st.session_state[SESSION_CONVERSATION_ID] = None
-    st.rerun()
-
-if BACKEND == "toggle":
-    _use_anthropic = st.toggle(
-        "Use Anthropic",
-        value=(st.session_state[SESSION_BACKEND] == "anthropic"),
-    )
-    _new_backend = "anthropic" if _use_anthropic else "mistral"
-    if _new_backend != st.session_state[SESSION_BACKEND]:
-        st.session_state[SESSION_BACKEND] = _new_backend
-        st.session_state[SESSION_MESSAGES] = []
-        st.session_state[SESSION_CONVERSATION_ID] = None
-        st.rerun()
 
 st.title("BME Specialist Chat")
 
-# Get anonymous student ID stored at login
+# Student identity (set at login). Full row is in st.session_state["student"].
+student = st.session_state.get(SESSION_STUDENT) or {}
 student_id = st.session_state.get(SESSION_STUDENT_ID, None)
+backend = student.get("backend")
 
 # Show moderation system error if one occurred
 if st.session_state.get(SESSION_MODERATION_ERROR):
@@ -156,7 +135,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
         # Get response from the configured backend
         try:
             with st.spinner("Thinking..."):
-                if st.session_state[SESSION_BACKEND] == "anthropic":
+                if backend == "anthropic":
                     response = anthropic_conversation.send_message(
                         history=st.session_state[SESSION_MESSAGES][:-1],
                         user_message=prompt,
@@ -179,7 +158,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     user_message=prompt,
                     agent_response=agent_response,
                     user_id=student_id,
-                    llm=st.session_state[SESSION_BACKEND],
+                    llm=backend,
                 )
                 if not log_success:
                     st.warning("Logging to database failed")

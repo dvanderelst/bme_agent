@@ -199,34 +199,33 @@ def unassign_all_libraries_from_agent(
 
     client = Mistral(api_key=api_key)
 
-    try:
-        # Get current agent
-        agent = client.beta.agents.get(agent_id=agent_id)
+    # Get current agent
+    agent = client.beta.agents.get(agent_id=agent_id)
 
-        # Find document_library tool
-        tools = agent.tools if hasattr(agent, 'tools') and agent.tools else []
-        library_tool = None
+    # Find document_library tool
+    tools = agent.tools if hasattr(agent, 'tools') and agent.tools else []
+    library_tool = None
 
-        for tool in tools:
-            if hasattr(tool, 'type') and tool.type == 'document_library':
-                library_tool = tool
-                break
+    for tool in tools:
+        if hasattr(tool, 'type') and tool.type == 'document_library':
+            library_tool = tool
+            break
 
-        if library_tool and hasattr(library_tool, 'library_ids'):
-            # Remove the document_library tool entirely to unassign all libraries
-            tools.remove(library_tool)
+    if library_tool and hasattr(library_tool, 'library_ids'):
+        # Remove the document_library tool entirely to unassign all libraries
+        tools.remove(library_tool)
 
-            # Update agent with new tools (without document_library)
-            update_request = {
-                "tools": tools
-            }
+        # Update agent with new tools (without document_library)
+        update_request = {
+            "tools": tools
+        }
 
-            response = client.beta.agents.update(
-                agent_id=agent_id,
-                **update_request
-            )
+        response = client.beta.agents.update(
+            agent_id=agent_id,
+            **update_request
+        )
 
-        return True
+    return True
 
 
 def assign_library_to_agent(
@@ -281,40 +280,39 @@ def assign_library_to_agent(
 
     client = Mistral(api_key=api_key)
 
-    try:
-        # Get current agent
-        agent = client.beta.agents.get(agent_id=agent_id)
+    # Get current agent
+    agent = client.beta.agents.get(agent_id=agent_id)
 
-        # Find or create document_library tool
-        tools = agent.tools if hasattr(agent, 'tools') and agent.tools else []
-        library_tool = None
+    # Find or create document_library tool
+    tools = agent.tools if hasattr(agent, 'tools') and agent.tools else []
+    library_tool = None
 
-        for tool in tools:
-            if hasattr(tool, 'type') and tool.type == 'document_library':
-                library_tool = tool
-                break
+    for tool in tools:
+        if hasattr(tool, 'type') and tool.type == 'document_library':
+            library_tool = tool
+            break
 
-        if library_tool:
-            # Add to existing library_ids if not already present
-            current_libs = getattr(library_tool, 'library_ids', [])
-            if library_id not in current_libs:
-                current_libs.append(library_id)
-                library_tool.library_ids = current_libs
-        else:
-            # Create new document_library tool
-            library_tool = {
-                "type": "document_library",
-                "library_ids": [library_id]
-            }
-            tools.append(library_tool)
-
-        # Update agent with new tools
-        update_request = {
-            "tools": tools
+    if library_tool:
+        # Add to existing library_ids if not already present
+        current_libs = getattr(library_tool, 'library_ids', [])
+        if library_id not in current_libs:
+            current_libs.append(library_id)
+            library_tool.library_ids = current_libs
+    else:
+        # Create new document_library tool
+        library_tool = {
+            "type": "document_library",
+            "library_ids": [library_id]
         }
+        tools.append(library_tool)
 
-        response = client.beta.agents.update(
-            agent_id=agent_id,
-            **update_request
-        )
-        return True
+    # Update agent with new tools
+    update_request = {
+        "tools": tools
+    }
+
+    response = client.beta.agents.update(
+        agent_id=agent_id,
+        **update_request
+    )
+    return True

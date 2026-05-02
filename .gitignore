@@ -129,3 +129,9 @@ dmypy.json
 
 logs/
 anthropic_lib/file_registry.json
+
+# Student roster — contains plaintext passwords, never commit
+students.ods
+
+# LibreOffice lock files (created while a document is open)
+.~lock.*#

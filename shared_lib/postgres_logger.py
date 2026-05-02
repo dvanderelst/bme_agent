@@ -8,6 +8,12 @@ import psycopg2
 from psycopg2.extras import execute_values
 from typing import Optional
 
+from shared_lib.auth import (
+    CREATE_STUDENTS_TABLE_SQL,
+    ADD_ENABLED_COLUMN_SQL,
+    ADD_BACKEND_COLUMN_SQL,
+)
+
 
 CREATE_INTERACTIONS_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS interactions (
@@ -53,6 +59,9 @@ def get_postgres_client(database_url: str) -> str:
         with conn.cursor() as cur:
             cur.execute(CREATE_INTERACTIONS_TABLE_SQL)
             cur.execute(CREATE_FEEDBACK_TABLE_SQL)
+            cur.execute(CREATE_STUDENTS_TABLE_SQL)
+            cur.execute(ADD_ENABLED_COLUMN_SQL)
+            cur.execute(ADD_BACKEND_COLUMN_SQL)
 
     return database_url
 
