@@ -53,8 +53,9 @@ except (AttributeError, KeyError):
 
 try:
     db_config = get_postgres_client(database_url)
-except ValueError as ve:
-    st.error(f"Database configuration error: {str(ve)}")
+except Exception as e:
+    logging.error("Database setup failed on chat page: %s", e)
+    st.error("The chatbot is temporarily unavailable. Please try again later.")
     st.stop()
 
 # Validate required config
@@ -187,15 +188,26 @@ if st.session_state[SESSION_MESSAGES]:
         key=f"feedback_{st.session_state[SESSION_FEEDBACK_KEY]}",
     )
     if sentiment is not None:
-        note = st.text_input("Add a note (optional)", key="feedback_note")
+        # Versioned key so the field resets after each submission, matching
+        # the thumbs widget above. A fixed key would carry the previous
+        # note into the next feedback round.
+        note = st.text_input(
+            "Add a note (optional)",
+            key=f"feedback_note_{st.session_state[SESSION_FEEDBACK_KEY]}",
+        )
         if st.button("Submit feedback"):
-            log_feedback(
-                client_config=db_config,
-                conversation_id=st.session_state[SESSION_CONVERSATION_ID],
-                sentiment=sentiment,
-                note=note,
-                user_id=student_id,
-            )
+            try:
+                log_success = log_feedback(
+                    client_config=db_config,
+                    conversation_id=st.session_state[SESSION_CONVERSATION_ID],
+                    sentiment=sentiment,
+                    note=note,
+                    user_id=student_id,
+                )
+                if not log_success:
+                    st.warning("Saving your feedback failed — please try again.")
+            except Exception as log_err:
+                st.warning(f"Saving your feedback failed: {log_err}")
             st.session_state[SESSION_FEEDBACK_KEY] += 1
             st.toast("Thanks for your feedback!")
             st.rerun()
