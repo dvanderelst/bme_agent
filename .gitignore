@@ -128,7 +128,6 @@ dmypy.json
 .streamlit/secrets.toml
 
 logs/
-anthropic_lib/file_registry.json
 
 # Student roster — contains plaintext passwords, never commit
 students.ods
