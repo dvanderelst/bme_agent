@@ -92,6 +92,14 @@ student = st.session_state.get(SESSION_STUDENT) or {}
 student_id = st.session_state.get(SESSION_STUDENT_ID, None)
 backend = student.get("backend")
 
+# Snapshot of the student row stored alongside each log entry. Excludes
+# username (already in user_id) and created_at (datetime, not JSON-native
+# and not a "setting"). The snapshot guards against later student-table
+# resyncs, which TRUNCATE the table.
+student_settings = {
+    k: v for k, v in student.items() if k not in ("username", "created_at")
+} or None
+
 # Refuse to route to a backend if the student row doesn't pin one. The
 # configure script forbids this, but a hand-edited DB row could land here —
 # and clearing the backend column can also serve as an intentional kill-switch.
@@ -171,6 +179,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     agent_response=agent_response,
                     user_id=student_id,
                     llm=backend,
+                    student_settings=student_settings,
                 )
                 if not log_success:
                     st.warning("Logging to database failed")
@@ -211,6 +220,7 @@ if st.session_state[SESSION_MESSAGES]:
                     sentiment=sentiment,
                     note=note,
                     user_id=student_id,
+                    student_settings=student_settings,
                 )
                 if not log_success:
                     st.warning("Saving your feedback failed — please try again.")
