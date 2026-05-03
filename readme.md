@@ -11,14 +11,15 @@ streamlit run app.py
 
 ### How are documents handled by Mistral vs Anthropic?
 
-Both backends are fed from the same source folder (`agent_files/documents/`) by the same script (`script_configure_agents.py`), which wipes the existing state on each run and re-uploads everything. What happens at chat time differs:
+Both backends are fed from the same source folder (`agent_files/documents/`) by the same script (`script_configure_agents.py`), which wipes the existing state on each run and re-uploads everything. Per-document metadata (title + description) lives in **`agent_files/documents/manifest.toml`** — a single source of truth that both backends consume. What happens at chat time differs:
 
-- **Mistral** stores documents in a server-side *library* (`bme_agent_library`). The library is attached to the agent via a `document_library` tool. On each turn, the agent searches the library (RAG) and only pulls in relevant snippets — you don't pay tokens for documents the model doesn't consult.
-- **Anthropic** stores documents in the workspace-level Files API as individual `file_id`s. `anthropic_lib/file_registry.json` (gitignored, written by the configure script) maps filenames to IDs. `conversation_management._build_document_blocks()` attaches **every** registered file as a content block to **every** new user message — the model sees the whole document set on each turn. No search step, but token cost grows with the library.
+- **Mistral** stores documents in a server-side *library* (`bme_agent_library`). The library is attached to the agent via a `document_library` tool. On each turn, the agent searches the library (RAG) and only pulls in relevant snippets — you don't pay tokens for documents the model doesn't consult. The manifest's per-doc descriptions are rolled up into a single library description (Mistral's SDK has no per-doc description hook), and each doc's title becomes its `document_name` on upload.
+- **Anthropic** stores documents in the workspace-level Files API as individual `file_id`s. `anthropic_lib/file_registry.json` (tracked in git so production picks it up) maps filenames to `{file_id, title, description}`. `conversation_management._build_document_blocks()` attaches **every** registered file as a content block to **every** new user message, with title and context pulled from the manifest — the model sees the whole document set on each turn, with each doc clearly labelled. No search step, but token cost grows with the library.
+  - Document blocks are placed **before** the user's text per Anthropic's guidance, so the model treats the docs as primary source material rather than appendices to skim after answering.
   - Only the file IDs go over the wire (a few hundred bytes); Anthropic resolves them server-side. But the model processes each file's full contents on every turn, so token cost scales with `document size × turn count` — the small request body does not reflect the actual cost.
   - Historical turns are sent as plain text only — document blocks are attached to the latest user message, not duplicated across history.
 
-Practical implication: Anthropic is simpler (no relevance issues, model always has full context) but more expensive per turn as the document set grows. Mistral is cheaper at scale but answer quality depends on its search picking the right documents.
+Practical implication: Anthropic is simpler (no relevance issues, model always has full context) but more expensive per turn as the document set grows. Mistral is cheaper at scale but answer quality depends on its search picking the right documents — which is why the rolled-up library description is important: it tells the agent what's in the library so it knows when to consult it.
 
 ### How do I change the model used by each backend?
 
@@ -48,15 +49,17 @@ Practical implication: every student message that hits either backend is real mo
 ## Project structure
 
 ```
-app.py                          Streamlit login page
-pages/1_Chat.py                 Chat UI (post-login)
-mistral_lib/                    Mistral — conversations, agents, libraries, moderation
-anthropic_lib/                  Anthropic Claude — conversations, file management
-shared_lib/                     Shared utilities — config, auth, logging, Postgres
-agent_files/                    Documents and instructions uploaded to the agents
-script_configure_students.py    Sync local students.ods → Railway Postgres
-script_configure_agents.py      Configure both Mistral and Anthropic agents
-students.ods                    Local student roster (gitignored — contains plaintext passwords)
+app.py                                    Streamlit login page
+pages/1_Chat.py                           Chat UI (post-login)
+mistral_lib/                              Mistral — conversations, agents, libraries, moderation
+anthropic_lib/                            Anthropic Claude — conversations, file management
+shared_lib/                               Shared utilities — config, auth, logging, Postgres
+agent_files/                              Documents and instructions uploaded to the agents
+agent_files/documents/manifest.toml       Per-doc title + description; consumed by both backends
+script_configure_students.py              Sync local students.ods → Railway Postgres
+script_configure_agents.py                Configure both Mistral and Anthropic agents
+script_chat.py                            Interactive REPL for probing either backend with diagnostics
+students.ods                              Local student roster (gitignored — contains plaintext passwords)
 ```
 
 ---
@@ -102,9 +105,23 @@ The full `student` dict is available in `st.session_state["student"]`, so any ex
 
 ### Backend selection
 
-There is no UI toggle. Each student is pinned to either `mistral` or `anthropic` via the spreadsheet's `backend` column. To change a student's backend, edit the cell and re-sync.
+For regular students, there is no UI toggle. Each student is pinned to either `mistral` or `anthropic` via the spreadsheet's `backend` column. To change a student's backend, edit the cell and re-sync.
 
 If a row in the `students` table ever ends up with a `backend` value outside `{"mistral", "anthropic"}` (e.g. via a hand-edited row, or as an intentional kill-switch), the chat page hard-stops with a generic *"Sorry, you can't use the chatbot at this moment"* message — it never silently routes to a default backend. The error cause is logged server-side for debugging.
+
+Diagnostic users (see below) get a session-only backend override radio in the sidebar — useful for comparing the two backends on the same prompt without changing the DB.
+
+### Diagnostic users
+
+A student row with `diagnostics` set to `true` (or `yes` / `1` / `y` / `t`) gets an extra Streamlit sidebar on the chat page exposing:
+
+- a **session-only backend override** (radio; defaults to the row's pinned `backend`, not persisted to the DB),
+- the **last turn's request shape** — model, conversation_id, doc-block titles + file_ids + block order on Anthropic; agent_id and responding-agent ids on Mistral,
+- the **full student row**.
+
+The diagnostics flag is itself a regular spreadsheet column — not in `RESERVED_COLUMNS`, so it's added as a `TEXT` column the first time the configure script runs after you add it to `students.ods`. Set `true` for the test/staff accounts; leave blank for everyone else.
+
+Logs of diagnostic sessions record the **effective** backend (i.e. whatever the radio was set to) in both the `interactions.llm` column and the `student_settings.backend` field of the JSONB snapshot, so a later analyst can tell what was actually used. The presence of `diagnostics: true` in the same snapshot signals that the row could have been overridden mid-session.
 
 ---
 
@@ -126,24 +143,28 @@ created_at     TIMESTAMPTZ DEFAULT NOW()
 ### `interactions`
 One row per user/agent message exchange.
 ```
-id              SERIAL PRIMARY KEY
-timestamp       TIMESTAMPTZ DEFAULT NOW()
-conversation_id TEXT
-user_id         TEXT      -- the student's username
-user_message    TEXT
-agent_response  TEXT
-llm             TEXT      -- 'mistral' or 'anthropic'
+id               SERIAL PRIMARY KEY
+timestamp        TIMESTAMPTZ DEFAULT NOW()
+conversation_id  TEXT      -- "Not Applicable" for Anthropic (stateless)
+user_id          TEXT      -- the student's username
+user_message     TEXT
+agent_response   TEXT
+llm              TEXT      -- 'mistral' or 'anthropic' (effective backend)
+student_settings JSONB     -- snapshot of the student row at log time
 ```
+
+`student_settings` is a JSONB snapshot of the student row at the moment of the interaction — every column from the `students` table except `username` (already in `user_id`) and `created_at`. It guards against later student-table re-syncs (which `TRUNCATE` and rewrite) erasing the context of historical log entries: e.g., what `challenge` the student was on, whether `diagnostics` was enabled, etc.
 
 ### `feedback`
 One row per thumbs-up / thumbs-down submission.
 ```
-id              SERIAL PRIMARY KEY
-timestamp       TIMESTAMPTZ DEFAULT NOW()
-conversation_id TEXT
-user_id         TEXT
-sentiment       SMALLINT  -- 1 = up, 0 = down
-note            TEXT
+id               SERIAL PRIMARY KEY
+timestamp        TIMESTAMPTZ DEFAULT NOW()
+conversation_id  TEXT
+user_id          TEXT
+sentiment        SMALLINT  -- 1 = up, 0 = down
+note             TEXT
+student_settings JSONB     -- snapshot of the student row at log time
 ```
 
 ---
@@ -235,8 +256,9 @@ Manages Mistral document libraries. Used by `script_configure_agents.py` and `sc
 | `create_library(name, description)` | Create a new library |
 | `list_libraries()` | List all libraries in the workspace |
 | `get_library(library_id)` | Get metadata for a specific library |
+| `update_library_description(library_id, description)` | Update an existing library's description (used to push the rolled-up manifest overview) |
 | `delete_library(library_id)` | Delete a library and all its contents |
-| `upload_document(file_path, library_id)` | Upload a document. Bare filenames look in `agent_files/documents/` |
+| `upload_document(file_path, library_id, document_name)` | Upload a document. Bare filenames look in `agent_files/documents/` |
 | `upload_document_and_wait(library_id, file_path)` | Upload and poll until processing completes |
 | `list_library_documents(library_id)` | List all documents in a library |
 | `remove_all_documents_from_library(library_id)` | Delete all documents from a library |
@@ -261,7 +283,7 @@ Sends messages to Claude with full conversation history and BME document context
 
 **Key difference from Mistral:** Anthropic's API is stateless. The full conversation history must be sent with every request. History is stored in `st.session_state.messages` and passed in by the caller.
 
-BME reference documents (from the file registry) are attached as content blocks to each new user message, giving the model access to the knowledge base on every turn.
+BME reference documents (from the file registry) are attached as content blocks to each new user message, giving the model access to the knowledge base on every turn. Each block carries the `title` and `context` from the manifest so the model can tell the documents apart and pick the right one. Blocks are placed **before** the user's text (per Anthropic's guidance for grounding), not after.
 
 #### `send_message(history, user_message)`
 
@@ -317,14 +339,24 @@ Used when building message payloads manually.
 
 ### `file_registry.py`
 
-Maps document filenames to their current Anthropic `file_id`s. Generated by `script_configure_agents.py` — do not edit by hand. Stored in `anthropic_lib/file_registry.json` (gitignored).
+Maps document filenames to their current Anthropic `file_id` plus the title and description from `agent_files/documents/manifest.toml`. Generated by `script_configure_agents.py` — do not edit by hand. Stored in `anthropic_lib/file_registry.json` (tracked in git so production deploys carry the same file_ids the configure script wrote locally; commit and push the regenerated registry whenever you re-run the configure script).
+
+Shape:
+```json
+{
+  "robot_details.md": {
+    "file_id":     "file_011...",
+    "title":       "mBot Robot — Hardware, Setup, ...",
+    "description": "Hardware specs (ports, sensors, motors), ..."
+  },
+  ...
+}
+```
 
 | Function | Description |
 |----------|-------------|
-| `save(file_map)` | Write a `{filename: file_id}` dict to the registry |
-| `load()` | Return the full registry as a dict |
-| `get_file_id(document_name)` | Look up a file_id by document name |
-| `all_file_ids()` | Return all registered file_ids as a list |
+| `save(file_map)` | Write the document → metadata mapping to the registry |
+| `load()` | Return the registry as a dict |
 
 ---
 
@@ -360,8 +392,8 @@ The same keys can also be supplied as environment variables (Railway injects `DA
 | Script | Description |
 |--------|-------------|
 | `script_configure_students.py` | Sync the local `students.ods` roster to the Postgres `students` table |
-| `script_configure_agents.py` | Configure both Mistral and Anthropic agents — set instructions, upload documents, write `file_registry.json` |
+| `script_configure_agents.py` | Configure both Mistral and Anthropic agents — read `manifest.toml`, set instructions, upload documents, write `file_registry.json`, and push the rolled-up library description to Mistral |
+| `script_chat.py` | Interactive REPL for probing either backend with diagnostic output (doc blocks, file_ids, conversation_id, etc). Pick backend at startup with `a`/`m` aliases |
 | `script_manage_mistral_libraries.py` | Utility for managing Mistral document libraries |
 | `script_moderation_testing.py` | Test the moderation classifier against a set of sample prompts |
-| `script_test_anthropic.py` | Smoke-test the Anthropic backend end-to-end — API reachability, document grounding, multi-turn history |
-| `script_test_anthropic.py` | Smoke-test the Anthropic conversation flow |
+| `script_test_anthropic.py` | Non-interactive regression suite for the Anthropic conversation flow — API reachability, document grounding, multi-turn history |
