@@ -93,10 +93,11 @@ student_id = st.session_state.get(SESSION_STUDENT_ID, None)
 backend = student.get("backend")
 
 # Refuse to route to a backend if the student row doesn't pin one. The
-# configure script forbids this, but a hand-edited DB row could land here.
+# configure script forbids this, but a hand-edited DB row could land here —
+# and clearing the backend column can also serve as an intentional kill-switch.
 if backend not in ("mistral", "anthropic"):
     logging.error("Student %s has invalid backend: %r", student_id, backend)
-    st.error("Your account is not configured correctly. Please contact your instructor.")
+    st.error("Sorry, you can't use the chatbot at this moment.")
     st.stop()
 
 # Show moderation system error if one occurred
