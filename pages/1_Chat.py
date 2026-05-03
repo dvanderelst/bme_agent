@@ -85,7 +85,7 @@ if SESSION_CONVERSATION_ID not in st.session_state:
 if SESSION_FEEDBACK_KEY not in st.session_state:
     st.session_state[SESSION_FEEDBACK_KEY] = 0
 
-st.title("BME Specialist Chat")
+st.title("Bme Chat")
 
 # Student identity (set at login). Full row is in st.session_state["student"].
 student = st.session_state.get(SESSION_STUDENT) or {}

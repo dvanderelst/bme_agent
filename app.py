@@ -30,7 +30,7 @@ except Exception as e:
     st.error("The chatbot is temporarily unavailable. Please try again later.")
     st.stop()
 
-st.title("BME Specialist Chat")
+st.title("Bme Chat")
 st.write("Please log in to continue.")
 
 with st.form("login_form"):
