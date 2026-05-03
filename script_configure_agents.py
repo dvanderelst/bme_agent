@@ -7,6 +7,10 @@ Available modules: color_vision.md, sonar.md, olfaction.md, touch_whiskers.md
 
 import os
 import re
+import sys
+
+import toml
+
 from mistral_lib import agent_management, library_management
 from anthropic_lib.file_management import upload_file, list_files, delete_file
 from anthropic_lib.file_registry import save as save_registry
@@ -22,6 +26,7 @@ documents_dir     = config.get("default_documents_dir")    or os.path.join("agen
 instructions_dir  = config.get("default_instructions_dir") or os.path.join("agent_files", "instructions")
 activity_dir      = config.get("default_activity_dir")     or os.path.join("agent_files", "activity_descriptions")
 instructions_path = os.path.join(instructions_dir, "bme_agent_instructions.md")
+manifest_path     = os.path.join(documents_dir, "manifest.toml")
 
 # ── Document selection ─────────────────────────────────────────────────────
 shared_documents = [
@@ -31,6 +36,20 @@ shared_documents = [
 ]
 
 documents = shared_documents + daily_modules
+
+# ── Document metadata (single source of truth for both backends) ───────────
+with open(manifest_path) as f:
+    manifest = toml.load(f)
+
+# Keyed by filename so lookups in the upload loops are direct.
+metadata_by_file = {entry["file"]: entry for entry in manifest.values()}
+
+missing = [d for d in documents if d not in metadata_by_file]
+if missing:
+    sys.exit(
+        f"Manifest is missing entries for: {', '.join(missing)}. "
+        f"Add them to {manifest_path}."
+    )
 
 # ── Agent IDs ──────────────────────────────────────────────────────────────
 bme_agent         = config.get("bme_agent")
@@ -86,8 +105,25 @@ logger.log("  ✅ Agent configured successfully")
 logger.log_section("Agent Library Configuration", level=2)
 library_management.remove_all_documents_from_library(library_id=bme_agent_library, confirm=False)
 for doc in documents:
-    library_management.upload_document(doc, library_id=bme_agent_library)
-    logger.log(f"  📄 Uploaded: {doc}")
+    meta = metadata_by_file[doc]
+    library_management.upload_document(
+        doc, library_id=bme_agent_library, document_name=meta["title"]
+    )
+    logger.log(f"  📄 Uploaded: {doc} as {meta['title']!r}")
+
+# Mistral has no per-doc description hook — roll the manifest descriptions
+# into a single library description so the agent has an overview of what
+# it's looking at.
+library_overview = "\n".join(
+    f"- {metadata_by_file[doc]['title']}: {metadata_by_file[doc]['description']}"
+    for doc in documents
+)
+library_management.update_library_description(
+    library_id=bme_agent_library,
+    description=f"BME reference materials currently loaded:\n{library_overview}",
+)
+logger.log("  📝 Library description updated")
+
 agent_management.unassign_all_libraries_from_agent(agent_id=bme_agent)
 agent_management.assign_library_to_agent(agent_id=bme_agent, library_id=bme_agent_library)
 logger.log("  🎉 Library configured successfully")
@@ -111,14 +147,19 @@ uploaded = {}
 for doc in documents:
     file_path = os.path.join(documents_dir, doc)
     file_id = upload_file(file_path)
-    uploaded[doc] = file_id
+    meta = metadata_by_file[doc]
+    uploaded[doc] = {
+        "file_id":     file_id,
+        "title":       meta["title"],
+        "description": meta["description"],
+    }
     logger.log(f"  📄 {doc} → {file_id}")
 
 logger.log_section("Summary", level=2)
 logger.log(f"  ✅ {len(uploaded)} document(s) uploaded successfully")
 save_registry(uploaded)
 logger.log("  📋 Registry written to anthropic_lib/file_registry.json")
-for doc, file_id in uploaded.items():
-    logger.log(f"    {doc}: {file_id}")
+for doc, entry in uploaded.items():
+    logger.log(f"    {doc}: {entry['file_id']}")
 
 stop_logging()

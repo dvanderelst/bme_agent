@@ -121,6 +121,34 @@ def create_library(name: str, api_key: Optional[str] = None, description: Option
     return library
 
 
+def update_library_description(
+    library_id: str,
+    description: str,
+    api_key: Optional[str] = None,
+) -> dict:
+    """
+    Update an existing library's description.
+
+    Mistral's documents API has no per-document description hook, so the
+    library description is the natural place to put a rolled-up overview
+    of what's in the library — which the agent uses to decide whether to
+    consult it.
+
+    Args:
+        library_id: The library to update.
+        description: New description text.
+        api_key: Override for config.get("mistral_key").
+
+    Returns:
+        The updated library object.
+    """
+    api_key = api_key or config.get("mistral_key")
+    if not library_id:
+        raise ValueError("library_id must be explicitly provided")
+    client = Mistral(api_key=api_key)
+    return client.beta.libraries.update(library_id=library_id, description=description)
+
+
 def upload_document(
     file_path: str,
     library_id: Optional[str] = None,

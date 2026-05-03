@@ -108,6 +108,13 @@ if backend not in ("mistral", "anthropic"):
     st.error("Sorry, you can't use the chatbot at this moment.")
     st.stop()
 
+# Anthropic is stateless — there's no server-issued conversation id. Use a
+# literal placeholder so the logs distinguish "Anthropic, no id" from a
+# Mistral row where the id never came back. Restart Chat resets to None
+# (see below), and this branch re-stamps it on rerun.
+if backend == "anthropic" and st.session_state[SESSION_CONVERSATION_ID] is None:
+    st.session_state[SESSION_CONVERSATION_ID] = "Not Applicable"
+
 # Show moderation system error if one occurred
 if st.session_state.get(SESSION_MODERATION_ERROR):
     st.warning(

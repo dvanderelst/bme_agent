@@ -41,12 +41,20 @@ def _load_system_prompt() -> Optional[str]:
 
 
 def _build_document_blocks() -> list:
-    """Build document content blocks for all files in the registry."""
+    """Build document content blocks for all files in the registry.
+
+    Each block carries the title and description from the manifest so the
+    model can tell the documents apart and pick the right one — without
+    those, multiple unlabeled blobs tend to get glossed over.
+    """
     registry = load_registry()
     if not registry:
         logging.warning("File registry is empty — no documents will be attached. Run script_configure_agents.py first.")
         return []
-    return [document_block(file_id) for file_id in registry.values()]
+    return [
+        document_block(meta["file_id"], title=meta["title"], context=meta["description"])
+        for meta in registry.values()
+    ]
 
 
 def _build_messages(history: list, user_message: str) -> list:

@@ -1,0 +1,43 @@
+# Document metadata — single source of truth for both backends.
+# Consumed by script_configure_agents.py:
+#   - Anthropic: title + description are baked into per-doc content blocks at runtime.
+#   - Mistral: title is used as the document name on upload; descriptions roll
+#     up into the library description (the SDK has no per-doc description hook).
+#
+# Section name is arbitrary; the `file` field is what's matched against the
+# documents list in script_configure_agents.py.
+
+[robot_details]
+file = "robot_details.md"
+title = "mBot Robot — Hardware, Setup, and Connection Reference"
+description = "Hardware specs (ports, sensors, motors), how to connect the mBot to mBlock, and troubleshooting for cables, motors, and sensor placement."
+
+[programming_blocks]
+file = "programming_blocks.md"
+title = "mBlock Programming Block Reference"
+description = "Reference for the mBlock visual programming blocks BME students use: action, sensor, and control-flow blocks."
+
+[faculty_and_staff]
+file = "faculty_and_staff.md"
+title = "BME Faculty and Staff Directory"
+description = "Who runs the BME program and who to contact about specific issues."
+
+[color_vision]
+file = "color_vision.md"
+title = "Color Vision — Biology and Robot Activities"
+description = "Biology of color vision; the human color-discrimination game; the robot 1-pixel RGB camera challenge."
+
+[olfaction]
+file = "olfaction.md"
+title = "Olfaction and Odor-Guided Behavior"
+description = "Biology of olfaction; termite trail-following observation; robot line-following as a model of odor-guided movement."
+
+[sonar]
+file = "sonar.md"
+title = "Sonar and Echolocation"
+description = "Biology of echolocation; sensor directionality; obstacle-avoidance robot; sonar-cane activity."
+
+[touch_whiskers]
+file = "touch_whiskers.md"
+title = "Touch, Whiskers, and Mechanical Whisker Sensing"
+description = "Biology of touch and whiskers; two-point discrimination test; robot whisker activity using flex sensors; active sensing."
