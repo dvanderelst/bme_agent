@@ -162,4 +162,16 @@ logger.log("  📋 Registry written to anthropic_lib/file_registry.json")
 for doc, entry in uploaded.items():
     logger.log(f"    {doc}: {entry['file_id']}")
 
+# The previous file IDs were deleted from Anthropic above, so the
+# committed registry on the remote is now pointing at IDs that no
+# longer exist. Production won't get the new IDs until the regenerated
+# file_registry.json is committed and pushed.
+logger.log("")
+logger.log("─" * 60)
+logger.log("⚠️  Anthropic file IDs were rewritten.")
+logger.log("    Commit and push anthropic_lib/file_registry.json so the")
+logger.log("    deployed app references the new IDs — the old ones have")
+logger.log("    been deleted from the Anthropic workspace.")
+logger.log("─" * 60)
+
 stop_logging()
