@@ -5,7 +5,6 @@ Streamlit chatbot for the Biology Meets Engineering course. Students log in with
 ```
 streamlit run app.py
 ```
-
 ---
 
 ## FAQ
@@ -82,7 +81,9 @@ python script_configure_students.py            # syncs ./students.ods
 python script_configure_students.py list       # show what's currently in the DB
 ```
 
-The sync wipes the table and re-inserts every row in a single transaction. If anything fails, the old data is unchanged.
+Before destroying anything, the script prints the target host + database, the current row count, and the new row count, then prompts `Proceed? [y/N]`. Type anything other than `y` / `yes` to abort with no changes made — cheap insurance against ever pointing the script at the wrong database. The sync itself runs as a single transaction: if any step fails, the old data is unchanged.
+
+(Running from PyCharm: make sure your run configuration uses an "emulated terminal" / interactive console so the prompt actually accepts input.)
 
 ### Spreadsheet schema
 
@@ -95,13 +96,15 @@ First row is headers. **Required columns** (the script refuses to run if any are
 | `enabled`  | `true/yes/1/y/t`, `false/no/0/n/f`, blank | Blank means enabled |
 | `backend`  | `mistral` or `anthropic`               | Required, must be non-empty |
 
-Any other columns you add (e.g. `full_name`, `challenge`, `cohort`) become `TEXT` columns on the table automatically. Columns present on the table but missing from the spreadsheet are dropped on the next sync (except the reserved system columns: `username`, `password_hash`, `created_at`).
+Any other columns you add (e.g. `full_name`, `challenge`, `cohort`) become `TEXT` columns on the table automatically. Columns present on the table but missing from the spreadsheet are dropped on the next sync (except the reserved system columns: `username`, `password_hash`, `enabled`, `backend`, `created_at`).
 
 The full `student` dict is available in `st.session_state["student"]`, so any extra column you add becomes accessible app-wide without code changes.
 
 ### Backend selection
 
 There is no UI toggle. Each student is pinned to either `mistral` or `anthropic` via the spreadsheet's `backend` column. To change a student's backend, edit the cell and re-sync.
+
+If a row in the `students` table ever ends up with a `backend` value outside `{"mistral", "anthropic"}` (e.g. via a hand-edited row, or as an intentional kill-switch), the chat page hard-stops with a generic *"Sorry, you can't use the chatbot at this moment"* message — it never silently routes to a default backend. The error cause is logged server-side for debugging.
 
 ---
 
@@ -360,4 +363,5 @@ The same keys can also be supplied as environment variables (Railway injects `DA
 | `script_configure_agents.py` | Configure both Mistral and Anthropic agents — set instructions, upload documents, write `file_registry.json` |
 | `script_manage_mistral_libraries.py` | Utility for managing Mistral document libraries |
 | `script_moderation_testing.py` | Test the moderation classifier against a set of sample prompts |
+| `script_test_anthropic.py` | Smoke-test the Anthropic backend end-to-end — API reachability, document grounding, multi-turn history |
 | `script_test_anthropic.py` | Smoke-test the Anthropic conversation flow |
