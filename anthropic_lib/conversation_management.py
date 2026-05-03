@@ -61,13 +61,15 @@ def _build_messages(history: list, user_message: str) -> list:
     """
     Construct the full messages list for the API call.
 
-    Historical messages are sent as plain text.
-    The new user message has document blocks appended.
+    Historical messages are sent as plain text. The new user message has
+    document blocks prepended — Anthropic's guidance is to place documents
+    before the user's text so the model treats them as primary source
+    material rather than appendices to skim after answering.
     """
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
 
     doc_blocks = _build_document_blocks()
-    new_message_content = [{"type": "text", "text": user_message}] + doc_blocks
+    new_message_content = doc_blocks + [{"type": "text", "text": user_message}]
 
     messages.append({"role": "user", "content": new_message_content})
     return messages
