@@ -164,27 +164,35 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 **Q1**
 
-<u>Image:</u> Robot with one bare microphone. Two speakers: speaker 1 at 0°, speaker 2 at 45°.
+<u>Image:</u> Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.
 
-<u>Question text:</u> We play sound from speakers 1 and 2 in succession. What do you predict the sensor readings will be when we play the different speakers? Explain.
+![Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.](images/q1_kinesis.png)
+
+<u>Question text:</u> The robot is equipped with one sound sensor. We play sound from speakers 1 and 2 in succession. What do you predict the sensor readings will be when we play the different speakers? Explain.
 
 **Q2**
 
-<u>Image:</u> Single speaker fixed at 45°. Three panels showing the robot at different body orientations — panel 1: robot faces 0°; panel 2: robot faces 45°; panel 3: robot faces 90°. The external ear is mounted along the robot's forward axis in all panels, so it rotates with the body.
+<u>Image:</u> Single speaker fixed at 45°. Three panels showing the robot at different body orientations — panel 1: robot faces 0°; panel 2: robot faces 45°; panel 3: robot faces 90°. The robot has one external ear, mounted at the center of the body and left/right symmetric. The ear points along the robot's forward axis and rotates with the body.
 
-<u>Question text:</u> What do you predict the sensor readings will be at each of the three orientations? Explain.
+![Three panels showing the robot at body orientations 0°, 45°, and 90°, with a single speaker fixed at compass 45° in all three. The ear is mounted at the front of the robot and rotates with the body.](images/q2_kinesis.png)
+
+<u>Question text:</u> The robot is equipped with one sound sensor in an external ear. What do you predict the sensor readings will be at each of the three orientations? Explain.
 
 **Q3**
 
-<u>Image:</u> Robot with one microphone with an external ear, fixed at 45° relative to the body. Two speakers: speaker 1 at 0°, speaker 2 at 45°.
+<u>Image:</u> Robot with one external ear mounted at the front-center but tilted 45° from the body's forward axis (not pointing forward). The robot's body faces 0°, so the ear points at 45° absolute. Two speakers: speaker 1 at 0° (in front of the body), speaker 2 at 45° (in front of the ear).
 
-<u>Question text:</u> We play sound from speakers 1 and 2 in succession. What do you predict the sensor readings will be when we play the different speakers? Explain.
+![Robot facing east with an external ear mounted at the front-center but tilted 45° from the body's forward axis. Speaker 1 lies in the body's forward direction (east); speaker 2 lies in the ear's pointing direction (SE), at the same distance.](images/q3_kinesis.png)
+
+<u>Question text:</u> The robot is equipped with one sound sensor in an external ear. We play sound from speakers 1 and 2 in succession. Which speaker gives the louder reading? Explain — does the answer depend on where the body is facing, or where the ear is pointing?
 
 **Q4**
 
-<u>Image:</u> Two consecutive panels of the robot with a single directional ear. Panel 1: ear pointing at 0°, reading = 3. The robot rotates clockwise. Panel 2: ear pointing at 45°, reading = 7. The speaker's position is not shown.
+<u>Image:</u> Two consecutive panels of the robot with a single directional ear. Panel 1: ear pointing at 0°, reading = 126. The robot rotates clockwise. Panel 2: ear pointing at 45°, reading = 233. The speaker's position is not shown.
 
-<u>Question text:</u> Based on these two readings, where do you think the speaker is, and which way should the robot rotate next? Explain.
+![Two panels showing the robot with a forward-mounted directional ear. Situation 1: ear at 0° (north), reading = 126. Situation 2: robot rotated 45° clockwise, ear at 45°, reading = 233. The speaker is not shown.](images/q4_kinesis.png)
+
+<u>Question text:</u> The robot is equipped with one sound sensor in an external ear. Based on these two readings, where do you think the speaker is? Explain.
 
 ### Learning rubric: Taxis
 

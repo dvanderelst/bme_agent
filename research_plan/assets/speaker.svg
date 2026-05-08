@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50"
+   height="43.746208"
+   viewBox="0 0 50 43.746208"
+   id="svg2"
+   version="1.1"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="speaker.svg"
+   inkscape:export-filename="/home/qubodup/x22.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   style="shape-rendering:crispEdges"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3880">
+      <stop
+         offset="0"
+         style="stop-color:#57b7ec"
+         id="stop3882" />
+      <stop
+         offset="1"
+         style="stop-color:#066b9d"
+         id="stop3884" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.50000001"
+     inkscape:cx="1094"
+     inkscape:cy="612.99998"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="1734"
+     inkscape:window-height="865"
+     inkscape:window-x="2217"
+     inkscape:window-y="110"
+     inkscape:window-maximized="0"
+     inkscape:snap-bbox="false"
+     inkscape:object-nodes="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-object-midpoints="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-296.17924,-353.91427)">
+    <path
+       style="fill:#343434;fill-opacity:1;stroke:none;stroke-width:0.597696"
+       d="m 296.17924,362.99781 1.9809,2.0507 c 0,0 1.79619,-1.8854 5.65443,-3.82623 3.85824,-1.94084 9.72691,-3.88372 17.70179,-3.88372 7.97497,0 13.69395,1.94675 17.41726,3.88372 3.72376,1.93687 5.39851,3.79748 5.39851,3.79748 l 1.84711,-2.09637 c 0,0 -2.61414,-2.91245 -6.5353,-4.95206 -3.90969,-2.04008 -9.9106,-4.05706 -18.09369,-4.05706 -8.22465,0 -14.33673,2.02083 -18.38373,4.05639 -4.04663,2.03566 -6.95317,5.02648 -6.95317,5.02648 z m 5.64145,6.01306 0.0231,4.2e-4 1.89134,2.22226 c 0,0 1.36988,-1.47498 4.29034,-2.99205 2.92036,-1.51708 7.35974,-3.04953 13.41123,-3.04953 6.05149,0 10.36712,1.53651 13.18392,3.04953 2.8168,1.51303 4.06302,2.96331 4.06302,2.96331 l 1.91973,-2.06764 c 0,0 -2.22748,-2.49747 -5.24404,-4.11765 -3.01647,-1.62019 -7.61312,-3.22221 -13.92219,-3.22221 -6.30944,0 -11.01085,1.60607 -14.12134,3.22221 -3.11121,1.61613 -5.49511,3.99132 -5.49511,3.99132 z m 1.89772,11.3381 c -0.0219,0.26957 0.13147,0.65112 0.49379,1.18711 1.44934,2.14408 9.84113,9.93309 9.84113,9.93309 0,0.0679 0.0239,0.12144 0.031,0.18738 v 6.00393 h 14.74629 v -6.19175 c 0,0 8.42281,-7.65069 9.87215,-9.9331 1.44927,-2.28234 -0.80262,-1.81163 -1.78924,-1.81163 h -30.94292 c -0.74005,0 -2.18613,-0.18393 -2.252,0.62475 z m 3.47174,-4.55101 2.13626,2.31227 c 0,0 3.77918,-5.43734 12.01919,-5.43734 8.23965,0 11.76349,5.4086 11.76349,5.4086 l 2.38689,-2.25457 c 0,0 -5.22911,-6.54868 -14.1495,-6.54868 -8.92103,0 -14.15501,6.51994 -14.15501,6.51994 z"
+       id="path2842"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccssccccscccccccsscccscccccccccsssccccccscccc" />
+  </g>
+</svg>
