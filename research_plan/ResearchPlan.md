@@ -34,12 +34,7 @@ This is impractical because the chatbot toggle and task assignment occur at the 
 
 ## Latin-square reversal across two days
 
-<aside>
-💡
-
-Students will have had experience with the chatbot before we roll out the design below. This gives them some time to get used to using it. We will also have data on their chatbot usage prior to the start of our experimental protocol.
-
-</aside>
+> 💡 Students will have had experience with the chatbot before we roll out the design below. This gives them some time to get used to using it. We will also have data on their chatbot usage prior to the start of our experimental protocol.
 
 We split the class in half and run two modules on two days, flipping which chatbot state comes first across days. Within each day, the two halves of the class complete the tasks in opposite order, so the task order is counterbalanced with respect to chatbot state.
 
