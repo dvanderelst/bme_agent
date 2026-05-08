@@ -112,6 +112,12 @@ st.title("Bme Chat")
 student_id = st.session_state.get(SESSION_STUDENT_ID, None)
 backend = student.get("backend")
 
+# Surface the logged-in username so instructors can eyeball student screens
+# during sessions and confirm everyone is on the right account. Doubles as
+# a data-quality check for the research logs.
+if student_id:
+    st.caption(f"Logged in as: **{student_id}**")
+
 # Diagnostic users get a session-only backend override in the sidebar.
 # Not persisted to the DB — purely for probing live behavior side-by-side.
 if diagnostics_enabled:
