@@ -124,14 +124,93 @@ Reporting is in estimation terms — point estimates with credible intervals —
 4. Is there a mechanism for noise handling (averaging, thresholding)
 5. Can the robot handle multiple different distractor colors, not just one specific one (requires identifying the target by template matching, not by single-channel comparison)
 
-### Learning rubric: Mimic and Approach Color
+### Learning rubric: Mimic Color
 
-*Single shared rubric covering concepts from both color tasks. Delivered as an online survey at the end of Day 1; no chatbot access during the survey.*
+*Delivered as an online survey at the end of the slot in which the student performed Mimic Color. No chatbot access during the survey. The four questions form a scaffold parallel to the sound rubrics: bare light detector (Q1) → one filtered detector (Q2) → two filtered detectors with intensity invariance (Q3) → multi-channel template applied to mimic an unknown target color (Q4). As with the sound rubrics, every question is on a separate page and students cannot revisit earlier ones.*
 
-1. Why can't the robot distinguish colors without the color filters on the sensors?
-2. What would happen if one filter were removed (that sensor exposed to all wavelengths)?
-3. Animal eyes differ in the number of color channels (cones), the wavelengths they respond to, and the shape of the eye. Pick one of these differences and design a robot experiment that would test why it matters.
-4. Animals exhibit many color-vision behaviors that aren't yet present in your robot. Pick one such behavior and explain how you would add it to the robot, and what advantage it would give.
+---
+
+**Q1**
+
+<u>Image:</u> Robot facing forward with one bare light detector (no color filter). Three target LEDs at equal distance: red, green, blue.
+
+![Robot facing east with one bare light detector at the front. Three colored LEDs (red, green, blue) at equal distance, fanned slightly around the forward direction.](images/q1_mimic.png)
+
+<u>Question text:</u> The robot has one light detector without a color filter. We light the three LEDs in succession (one at a time). How (if at all) do you expect the sensor's reading to differ across the three LEDs? Could the robot use this single detector to tell which LED is on? Explain.
+
+---
+
+**Q2**
+
+<u>Image:</u> Same robot, but the single light detector now has a red filter placed in front of it. Same three target LEDs (red, green, blue), lit in succession.
+
+![Robot facing east with one light detector with a red filter at the front. Three colored LEDs (red, green, blue) at equal distance, fanned slightly around the forward direction.](images/q2_mimic.png)
+
+<u>Question text:</u> The robot has one light detector with a red filter. We light the three LEDs in succession. How (if at all) do you expect the sensor's reading to differ across the three LEDs? Explain.
+
+---
+
+**Q3**
+
+<u>Image:</u> Robot with two light detectors at the front — one with a red filter, one with a green filter. A single cyan LED is placed in front of the robot.
+
+![Robot facing east with two light detectors at the front — one with a red filter, one with a green filter. A single cyan LED in front of the robot at equal distance.](images/q3_mimic.png)
+
+<u>Question text:</u> The robot has two light detectors, one with a red filter and one with a green filter. We light a cyan LED in front of the robot. How do you expect the red-filter and green-filter readings to compare? Explain.
+
+---
+
+**Q4**
+
+<u>Image:</u> Robot with three light detectors at the front (red, green, and blue filters). Readings annotated next to each sensor: R = 200, G = 190, B = 50. The target LED is not shown.
+
+![Robot facing east with three light detectors stacked at the front — red, green, and blue filters. Readings annotated next to each sensor: R = 200, G = 190, B = 50. No target LED is shown.](images/q4_mimic.png)
+
+<u>Question text:</u> The robot has three light detectors with red, green, and blue filters. The readings are R = 200, G = 190, B = 50. Two candidate LEDs could be producing this pattern: a dim red LED, or a bright yellow LED. Which of the two matches the observed readings? Explain.
+
+### Learning rubric: Approach Color
+
+*Delivered as an online survey at the end of the slot in which the student performed Approach Color. No chatbot access during the survey. The four questions form a scaffold parallel to the other rubrics, with the student reconstructing the approach algorithm by Q4. As before, every question is on a separate page and students cannot revisit earlier ones.*
+
+---
+
+**Q1**
+
+<u>Image:</u> Two panels. The robot has one bare light detector (no color filter). A red LED and a green LED are placed at fixed positions NW and NE of the robot, at equal distance. Panel 1: robot's body turned toward the green LED. Panel 2: robot's body turned toward the red LED.
+
+![Two panels showing the robot with a single bare light detector (no color filter) and two LEDs (red NW, green NE) at fixed positions. In panel 1 the robot's body is turned toward the green LED; in panel 2 it is turned toward the red LED.](images/q1_approach.png)
+
+<u>Question text:</u> The robot has one light detector without a color filter. A red LED and a green LED are placed in front of it, equally distant. Panel 1 shows the robot turned toward the green LED; panel 2 shows it turned toward the red LED. How (if at all) do you expect the sensor's reading to differ between the two panels? Explain.
+
+---
+
+**Q2**
+
+<u>Image:</u> Same two-panel setup as Q1, but the single light detector now has a red filter instead of being bare.
+
+![Two panels showing the robot with a single red-filter light detector and two LEDs (red NW, green NE) at fixed positions. In panel 1 the robot's body is turned toward the green LED; in panel 2 it is turned toward the red LED.](images/q2_approach.png)
+
+<u>Question text:</u> The robot has one light detector with a red filter. A red LED and a green LED are placed in front of it, equally distant. Panel 1 shows the robot turned toward the green LED; panel 2 shows it turned toward the red LED. How (if at all) do you expect the sensor's reading to differ between the two panels? Explain.
+
+---
+
+**Q3**
+
+<u>Image:</u> Same two-panel layout as Q2, but the robot now has *two* light detectors at the front — one with a red filter, one with a green filter. A red LED and a green LED are placed at fixed positions NW and NE of the robot. Panel 1: robot turned toward the green LED. Panel 2: robot turned toward the red LED.
+
+![Two panels showing the robot with two filtered light detectors at the front (red filter on body's left, green filter on body's right). A red LED and a green LED at fixed NW and NE positions. Panel 1: body turned toward the green LED. Panel 2: body turned toward the red LED.](images/q3_approach.png)
+
+<u>Question text:</u> The robot has two light detectors at the front — one with a red filter and one with a green filter. A red LED and a green LED are placed in front of it, equally distant. Panel 1 shows the robot turned toward the green LED; panel 2 shows it turned toward the red LED. For each panel, how do you expect the red-filter and green-filter readings to compare with each other? Explain.
+
+---
+
+**Q4**
+
+<u>Image:</u> Two panels. The robot has two light detectors at the front — one with a green filter, one with a blue filter. A white LED and a cyan LED are placed at fixed positions, equally distant from the robot. Panel 1: body turned toward the cyan LED, with readings annotated (G = 205, B = 210). Panel 2: body turned toward the white LED, with readings annotated (G = 210, B = 200).
+
+![Two panels showing the robot with two filtered light detectors at the front (green filter on body's left, blue filter on body's right). A white LED at NW, a cyan LED at NE. Panel 1: facing cyan, readings G = 205 / B = 210. Panel 2: facing white, readings G = 210 / B = 200.](images/q4_approach.png)
+
+<u>Question text:</u> The robot's task is to turn toward the cyan LED. It has two light detectors — one with a green filter, one with a blue filter. The two panels show what the robot reads when facing the cyan LED versus the white LED. Can the robot reliably tell which LED it is facing, and use these readings to approach the cyan LED specifically? Explain.
 
 ## Sound localization assessment tools
 
@@ -167,7 +246,7 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 ![Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.](images/q1_kinesis.png)
 
-<u>Question text:</u> The robot is equipped with one sound sensor. We play sound from speakers 1 and 2 in succession. What do you predict the sensor readings will be when we play the different speakers? Explain.
+<u>Question text:</u> The robot is equipped with one sound sensor. We play sound from speakers 1 and 2 in succession. How (if at all) do you expect the sensor's reading to differ between the two speakers? Explain.
 
 ---
 
@@ -177,7 +256,7 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 ![Three panels showing the robot at body orientations 0°, 45°, and 90°, with a single speaker fixed at compass 45° in all three. The ear is mounted at the front of the robot and rotates with the body.](images/q2_kinesis.png)
 
-<u>Question text:</u> The robot is equipped with one sound sensor in an external ear. What do you predict the sensor readings will be at each of the three orientations? Explain.
+<u>Question text:</u> The robot is equipped with one sound sensor in an external ear. How do you expect the sensor's reading to differ across the three orientations? Explain.
 
 ---
 
@@ -211,7 +290,7 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 ![Robot facing east with two bare sound sensors at the front (one upper, one lower). Two speakers at equal distance: speaker 1 directly in front (east), speaker 2 at 45° (SE).](images/q1_taxis.png)
 
-<u>Question text:</u> The robot is equipped with two sound sensors at the front. We play sound from speakers 1 and 2 in succession. What do you predict the left-sensor and right-sensor readings will be when we play the different speakers? Explain.
+<u>Question text:</u> The robot is equipped with two sound sensors at the front. We play sound from speakers 1 and 2 in succession. For each speaker, how do you expect the left-sensor and right-sensor readings to compare with each other? And how do you expect the readings to differ between the two speakers? Explain.
 
 ---
 
@@ -221,7 +300,7 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 ![Three panels showing the robot with two aligned forward-pointing ears. Speaker at 0° (in front), 45° (off to the right), and 90° (perpendicular to forward, aligned with the front of the robot).](images/q2_taxis.png)
 
-<u>Question text:</u> The robot has two sound sensors, each in an external ear, both pointing straight ahead. What do you predict the left-ear and right-ear readings will be at each of the three speaker positions? Explain.
+<u>Question text:</u> The robot has two sound sensors, each in an external ear, both pointing straight ahead. For each of the three speaker positions, how do you expect the left-ear and right-ear readings to compare with each other? And how do the readings differ across the three positions? Explain.
 
 ---
 
@@ -231,7 +310,7 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 ![Two panels showing the robot with two divergent ears: left ear tilted 45° toward the robot's left, right ear tilted 45° toward the robot's right. Panel 1: speaker straight ahead (0°). Panel 2: speaker at 30° to the right of forward.](images/q3_taxis.png)
 
-<u>Question text:</u> The robot has two sound sensors, each in an external ear, with divergent axes (left ear tilted left, right ear tilted right). What do you predict the left-ear and right-ear readings will be in each panel? Explain.
+<u>Question text:</u> The robot has two sound sensors, each in an external ear, with divergent axes (left ear tilted left, right ear tilted right). For each panel, how do you expect the left-ear and right-ear readings to compare with each other? Explain.
 
 ---
 
