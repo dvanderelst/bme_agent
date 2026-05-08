@@ -6,6 +6,12 @@ is CCW from north (PIL convention).
 
 Coordinates are in *base pixels* — pre-SCALE units. Everything you specify in
 a scene (positions, sprite heights) is multiplied by SCALE at render time.
+
+All question images render onto a single standard canvas size so the
+downstream interface can lay them out uniformly. The canvas holds up to
+three panels side-by-side; scenes with fewer panels center their panels
+on the same canvas. Each panel always carries a border and reserves a
+header strip (which may be left empty).
 """
 
 from __future__ import annotations
@@ -18,6 +24,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 ASSETS = Path(__file__).parent / "assets"
 DEFAULT_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+# Standard canvas geometry, in base pixels (pre-SCALE).
+PANEL_W_BASE = 460
+PANEL_H_BASE = 460
+GAP_BASE = 30
+HEADER_H_BASE = 60
+BORDER_W_BASE = 2
+MAX_PANELS = 3
+HEADER_FONT_BASE = 14
+
+CANVAS_W_BASE = MAX_PANELS * PANEL_W_BASE + (MAX_PANELS - 1) * GAP_BASE
+CANVAS_H_BASE = HEADER_H_BASE + PANEL_H_BASE
 
 
 def load_svg(name: str, height_px: int) -> Image.Image:
@@ -75,6 +93,54 @@ def draw_label(
     except OSError:
         font = ImageFont.load_default()
     ImageDraw.Draw(canvas).text((cx, cy), text, fill=color, font=font, anchor="mm")
+
+
+def make_canvas(scale: int) -> Image.Image:
+    """Create a transparent RGBA canvas at the standard size × scale."""
+    return Image.new(
+        "RGBA",
+        (CANVAS_W_BASE * scale, CANVAS_H_BASE * scale),
+        (0, 0, 0, 0),
+    )
+
+
+def panel_left(n_panels: int, panel_index: int) -> int:
+    """Return the base-pixel x of the left edge of panel `panel_index` of
+    `n_panels`, centered horizontally on the standard canvas."""
+    if not 1 <= n_panels <= MAX_PANELS:
+        raise ValueError(f"n_panels must be 1..{MAX_PANELS}, got {n_panels}")
+    total_w = n_panels * PANEL_W_BASE + (n_panels - 1) * GAP_BASE
+    start_x = (CANVAS_W_BASE - total_w) // 2
+    return start_x + panel_index * (PANEL_W_BASE + GAP_BASE)
+
+
+def draw_panel_frame(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    panel_x: int,
+    scale: int,
+    header_text: str | None = None,
+) -> None:
+    """Draw the standard panel border at `panel_x`, and optionally a
+    centered header text in the header strip above it."""
+    draw.rectangle(
+        [
+            panel_x * scale,
+            HEADER_H_BASE * scale,
+            (panel_x + PANEL_W_BASE) * scale,
+            (HEADER_H_BASE + PANEL_H_BASE) * scale,
+        ],
+        outline=(0, 0, 0, 255),
+        width=BORDER_W_BASE * scale,
+    )
+    if header_text:
+        draw_label(
+            canvas,
+            header_text,
+            (panel_x + PANEL_W_BASE // 2, HEADER_H_BASE // 2),
+            scale,
+            HEADER_FONT_BASE,
+        )
 
 
 def speaker_rotation_facing_robot(angle_from_robot_deg: float) -> float:

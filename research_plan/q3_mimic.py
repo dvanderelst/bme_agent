@@ -2,7 +2,8 @@
 
 Single-panel scene: robot facing east with two filtered light detectors
 at the front — one with a red filter (upper), one with a green filter
-(lower). A single cyan LED is placed straight ahead.
+(lower). A single cyan LED is placed straight ahead. Drawn on the
+standard question-image canvas with the panel centered.
 
 Predicted reading pattern: cyan light is roughly green + blue, so the
 red-filter sensor reads low and the green-filter sensor reads high. The
@@ -12,12 +13,17 @@ contrast across two filters is the cue students need to identify color.
 import math
 from pathlib import Path
 
-from PIL import Image
+from PIL import ImageDraw
 
 from render_lib import (
-    crop_to_content,
+    HEADER_H_BASE,
+    PANEL_H_BASE,
+    PANEL_W_BASE,
     draw_label,
+    draw_panel_frame,
     load_svg,
+    make_canvas,
+    panel_left,
     paste_rotated,
     save_on_white,
 )
@@ -25,19 +31,18 @@ from render_lib import (
 OUTPUT = Path(__file__).parent / "images" / "q3_mimic.png"
 
 SCALE = 3
-MARGIN_PX = 30
 LABEL_FONT_BASE = 11
 
 ROBOT_H_BASE = 180
 SENSOR_H_BASE = 40
 LIGHT_H_BASE = 80
 
-ROBOT_CENTER_BASE = (200, 400)
+ROBOT_LOCAL_BASE = (PANEL_W_BASE // 2 - 80, PANEL_H_BASE // 2)
 SENSOR_FORWARD_BASE = 75
 SENSOR_LATERAL_OFFSET_BASE = 25
-LIGHT_DISTANCE_BASE = 290
+LIGHT_DISTANCE_BASE = 240
 
-BODY_COMPASS = 90  # robot faces east
+BODY_COMPASS = 90
 
 
 def polar_offset(distance: float, compass_deg: float) -> tuple[float, float]:
@@ -46,17 +51,19 @@ def polar_offset(distance: float, compass_deg: float) -> tuple[float, float]:
 
 
 def main() -> None:
-    canvas = Image.new("RGBA", (800 * SCALE, 800 * SCALE), (0, 0, 0, 0))
+    canvas = make_canvas(SCALE)
+    draw = ImageDraw.Draw(canvas)
 
-    rx, ry = ROBOT_CENTER_BASE
+    px = panel_left(n_panels=1, panel_index=0)
+    draw_panel_frame(canvas, draw, px, SCALE)
 
-    # Robot facing east.
+    rx = px + ROBOT_LOCAL_BASE[0]
+    ry = HEADER_H_BASE + ROBOT_LOCAL_BASE[1]
+
     robot = load_svg("robot", height_px=ROBOT_H_BASE * SCALE)
     paste_rotated(canvas, robot, center=(rx * SCALE, ry * SCALE), rotation_deg=-BODY_COMPASS)
 
-    # Two filtered sensors at the front, both pointing east. Red on the
-    # robot's left (upper for an east-facing top-down view), green on the
-    # robot's right (lower).
+    # Two filtered sensors at the front, both pointing east.
     sensor_x = rx + SENSOR_FORWARD_BASE
     red_y = ry - SENSOR_LATERAL_OFFSET_BASE
     green_y = ry + SENSOR_LATERAL_OFFSET_BASE
@@ -73,15 +80,13 @@ def main() -> None:
     cyan = load_svg("cyan_light", height_px=LIGHT_H_BASE * SCALE)
     paste_rotated(canvas, cyan, center=(round(lx * SCALE), round(ly * SCALE)), rotation_deg=0)
 
-    # Labels.
-    draw_label(canvas, "Robot",        (rx, ry + 110),                SCALE, LABEL_FONT_BASE)
-    draw_label(canvas, "Red filter",   (sensor_x + 65, red_y - 10),   SCALE, LABEL_FONT_BASE)
-    draw_label(canvas, "Green filter", (sensor_x + 65, green_y + 10), SCALE, LABEL_FONT_BASE)
-    draw_label(canvas, "Cyan LED",     (round(lx), round(ly) - 60),   SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Robot",        (rx, ry + 110),                 SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Red filter",   (sensor_x + 65, red_y - 10),    SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Green filter", (sensor_x + 65, green_y + 10),  SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Cyan LED",     (round(lx), round(ly) - 60),    SCALE, LABEL_FONT_BASE)
 
-    cropped = crop_to_content(canvas, margin=MARGIN_PX * SCALE)
-    save_on_white(cropped, OUTPUT)
-    print(f"wrote {OUTPUT}  ({cropped.width}×{cropped.height})")
+    save_on_white(canvas, OUTPUT)
+    print(f"wrote {OUTPUT}  ({canvas.width}×{canvas.height})")
 
 
 if __name__ == "__main__":

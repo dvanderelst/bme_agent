@@ -6,7 +6,8 @@ left), one with a green filter (offset to the body's right). Both
 sensors rotate with the body and point along the body's forward axis. A
 red LED and a green LED are at fixed positions NW and NE, equally
 distant from the robot. Panel 1: body turned toward the green LED.
-Panel 2: body turned toward the red LED.
+Panel 2: body turned toward the red LED. Drawn on the standard
+question-image canvas.
 
 Predicted reading pattern: the two-filter signature flips across the
 panels — facing red gives (red-filter high, green-filter low), facing
@@ -18,12 +19,17 @@ brightness.
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
 
 from render_lib import (
-    crop_to_content,
+    HEADER_H_BASE,
+    PANEL_H_BASE,
+    PANEL_W_BASE,
     draw_label,
+    draw_panel_frame,
     load_svg,
+    make_canvas,
+    panel_left,
     paste_rotated,
     save_on_white,
 )
@@ -31,20 +37,9 @@ from render_lib import (
 OUTPUT = Path(__file__).parent / "images" / "q3_approach.png"
 
 SCALE = 3
-MARGIN_PX = 30
-HEADER_FONT_BASE = 14
 LABEL_FONT_BASE = 11
 
-# Panel layout
-PANEL_W_BASE = 460
-PANEL_H_BASE = 420
-GAP_BASE = 30
-HEADER_H_BASE = 60
-N_PANELS = 2
-BORDER_W_BASE = 2
-
-# Within each panel
-ROBOT_LOCAL_BASE = (230, 290)
+ROBOT_LOCAL_BASE = (PANEL_W_BASE // 2, PANEL_H_BASE // 2 + 30)
 ROBOT_H_BASE = 180
 SENSOR_H_BASE = 40
 LIGHT_H_BASE = 80
@@ -52,19 +47,14 @@ SENSOR_FORWARD_BASE = 75
 SENSOR_LATERAL_BASE = 25
 LIGHT_DISTANCE_BASE = 220
 
-# LEDs at fixed compass bearings from the robot.
 RED_LED_COMPASS = 315   # NW
 GREEN_LED_COMPASS = 45  # NE
 
-# (header, body compass)
 PANELS = [
     ("Situation 1  (facing green)", GREEN_LED_COMPASS),
     ("Situation 2  (facing red)",   RED_LED_COMPASS),
 ]
-
-
-def panel_left(i: int) -> int:
-    return i * (PANEL_W_BASE + GAP_BASE)
+N_PANELS = 2
 
 
 def polar_offset(distance: float, compass_deg: float) -> tuple[float, float]:
@@ -73,9 +63,8 @@ def polar_offset(distance: float, compass_deg: float) -> tuple[float, float]:
 
 
 def main() -> None:
-    canvas_w = N_PANELS * PANEL_W_BASE + (N_PANELS - 1) * GAP_BASE
-    canvas_h = HEADER_H_BASE + PANEL_H_BASE
-    canvas = Image.new("RGBA", (canvas_w * SCALE, canvas_h * SCALE), (0, 0, 0, 0))
+    canvas = make_canvas(SCALE)
+    draw = ImageDraw.Draw(canvas)
 
     robot = load_svg("robot", height_px=ROBOT_H_BASE * SCALE)
     sensor_red = load_svg("light_sensor_red", height_px=SENSOR_H_BASE * SCALE)
@@ -83,39 +72,18 @@ def main() -> None:
     red_light = load_svg("red_light", height_px=LIGHT_H_BASE * SCALE)
     green_light = load_svg("green_light", height_px=LIGHT_H_BASE * SCALE)
 
-    draw = ImageDraw.Draw(canvas)
-
     for i, (header, body_compass) in enumerate(PANELS):
-        px = panel_left(i)
-
-        draw.rectangle(
-            [
-                px * SCALE,
-                HEADER_H_BASE * SCALE,
-                (px + PANEL_W_BASE) * SCALE,
-                (HEADER_H_BASE + PANEL_H_BASE) * SCALE,
-            ],
-            outline=(0, 0, 0, 255),
-            width=BORDER_W_BASE * SCALE,
-        )
-
-        draw_label(
-            canvas, header,
-            (px + PANEL_W_BASE // 2, HEADER_H_BASE // 2),
-            SCALE, HEADER_FONT_BASE,
-        )
+        px = panel_left(N_PANELS, i)
+        draw_panel_frame(canvas, draw, px, SCALE, header_text=header)
 
         rx = px + ROBOT_LOCAL_BASE[0]
         ry = HEADER_H_BASE + ROBOT_LOCAL_BASE[1]
 
         paste_rotated(canvas, robot, center=(rx * SCALE, ry * SCALE), rotation_deg=-body_compass)
 
-        # Sensor positions: forward of robot center, with a small lateral
-        # offset perpendicular to the body's forward axis. Red sensor on
-        # the body's left, green on the body's right. Both still point
-        # along the forward axis. Filter color is identified by the
-        # colored dot inside each sensor sprite (same convention as
-        # mimic Q3/Q4) — no per-sensor text label.
+        # Two filtered sensors at the front. Red on body's left, green on
+        # body's right. Filter color is conveyed by the colored dot inside
+        # each sensor sprite.
         fdx, fdy = polar_offset(SENSOR_FORWARD_BASE, body_compass)
         left_compass = (body_compass - 90) % 360
         right_compass = (body_compass + 90) % 360
@@ -132,7 +100,6 @@ def main() -> None:
                 rotation_deg=-body_compass,
             )
 
-        # Two LEDs at fixed bearings.
         for sprite, compass, label in [
             (red_light,   RED_LED_COMPASS,   "Red LED"),
             (green_light, GREEN_LED_COMPASS, "Green LED"),
@@ -143,9 +110,8 @@ def main() -> None:
             paste_rotated(canvas, sprite, center=(round(lx * SCALE), round(ly * SCALE)), rotation_deg=0)
             draw_label(canvas, label, (round(lx), round(ly) - 60), SCALE, LABEL_FONT_BASE)
 
-    cropped = crop_to_content(canvas, margin=MARGIN_PX * SCALE)
-    save_on_white(cropped, OUTPUT)
-    print(f"wrote {OUTPUT}  ({cropped.width}×{cropped.height})")
+    save_on_white(canvas, OUTPUT)
+    print(f"wrote {OUTPUT}  ({canvas.width}×{canvas.height})")
 
 
 if __name__ == "__main__":

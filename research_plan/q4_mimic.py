@@ -1,21 +1,27 @@
 """Render the Q4 image for the Mimic Color learning rubric.
 
-Single-panel scene: robot facing east with three filtered light detectors
-stacked at the front — red filter (top), green filter (middle), blue
-filter (bottom). The three readings (R=200, G=190, B=50) are annotated
-next to each sensor. The target LED is not shown — students must reason
-about which of two candidate LEDs (described in the question text) the
-pattern matches.
+Single-panel scene: robot facing east with three filtered light
+detectors stacked at the front — red filter (top), green filter
+(middle), blue filter (bottom). The three readings (R=200, G=190, B=50)
+are annotated next to each sensor. The target LED is not shown —
+students must reason about which of two candidate LEDs (described in
+the question text) the pattern matches. Drawn on the standard
+question-image canvas with the panel centered.
 """
 
 from pathlib import Path
 
-from PIL import Image
+from PIL import ImageDraw
 
 from render_lib import (
-    crop_to_content,
+    HEADER_H_BASE,
+    PANEL_H_BASE,
+    PANEL_W_BASE,
     draw_label,
+    draw_panel_frame,
     load_svg,
+    make_canvas,
+    panel_left,
     paste_rotated,
     save_on_white,
 )
@@ -23,18 +29,17 @@ from render_lib import (
 OUTPUT = Path(__file__).parent / "images" / "q4_mimic.png"
 
 SCALE = 3
-MARGIN_PX = 30
 LABEL_FONT_BASE = 11
 READING_FONT_BASE = 14
 
 ROBOT_H_BASE = 180
 SENSOR_H_BASE = 40
 
-ROBOT_CENTER_BASE = (200, 400)
+ROBOT_LOCAL_BASE = (PANEL_W_BASE // 2 - 60, PANEL_H_BASE // 2)
 SENSOR_FORWARD_BASE = 75
-SENSOR_LATERAL_OFFSET_BASE = 45  # spacing between adjacent sensors
+SENSOR_LATERAL_OFFSET_BASE = 45
 
-BODY_COMPASS = 90  # robot faces east
+BODY_COMPASS = 90
 
 R_READING = 200
 G_READING = 190
@@ -42,18 +47,19 @@ B_READING = 50
 
 
 def main() -> None:
-    canvas = Image.new("RGBA", (800 * SCALE, 800 * SCALE), (0, 0, 0, 0))
+    canvas = make_canvas(SCALE)
+    draw = ImageDraw.Draw(canvas)
 
-    rx, ry = ROBOT_CENTER_BASE
+    px = panel_left(n_panels=1, panel_index=0)
+    draw_panel_frame(canvas, draw, px, SCALE)
 
-    # Robot facing east.
+    rx = px + ROBOT_LOCAL_BASE[0]
+    ry = HEADER_H_BASE + ROBOT_LOCAL_BASE[1]
+
     robot = load_svg("robot", height_px=ROBOT_H_BASE * SCALE)
     paste_rotated(canvas, robot, center=(rx * SCALE, ry * SCALE), rotation_deg=-BODY_COMPASS)
 
     # Three filtered sensors stacked at the front, all pointing east.
-    # Top → bottom: red, green, blue. Reading text sits on the same row as
-    # its sensor; the colored dot inside each sensor sprite already
-    # indicates the filter, so no separate filter label is needed.
     sensor_x = rx + SENSOR_FORWARD_BASE
     rows = [
         ("light_sensor_red",   ry - SENSOR_LATERAL_OFFSET_BASE, f"R = {R_READING}"),
@@ -67,9 +73,8 @@ def main() -> None:
 
     draw_label(canvas, "Robot", (rx, ry + 110), SCALE, LABEL_FONT_BASE)
 
-    cropped = crop_to_content(canvas, margin=MARGIN_PX * SCALE)
-    save_on_white(cropped, OUTPUT)
-    print(f"wrote {OUTPUT}  ({cropped.width}×{cropped.height})")
+    save_on_white(canvas, OUTPUT)
+    print(f"wrote {OUTPUT}  ({canvas.width}×{canvas.height})")
 
 
 if __name__ == "__main__":

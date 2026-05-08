@@ -5,7 +5,8 @@ and target set. The robot has a green-filter and a blue-filter sensor at
 the front. A white LED sits at NW, a cyan LED at NE. Panel 1 shows the
 body turned toward the cyan LED, panel 2 toward the white LED. Each
 panel includes a reading caption with the green-filter and blue-filter
-values for that orientation.
+values for that orientation. Drawn on the standard question-image
+canvas.
 
 Predicted reading pattern: white and cyan both contain green and blue
 components, so the green-filter and blue-filter readings barely differ
@@ -17,12 +18,17 @@ filter pair, so the robot cannot reliably approach cyan.
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
 
 from render_lib import (
-    crop_to_content,
+    HEADER_H_BASE,
+    PANEL_H_BASE,
+    PANEL_W_BASE,
     draw_label,
+    draw_panel_frame,
     load_svg,
+    make_canvas,
+    panel_left,
     paste_rotated,
     save_on_white,
 )
@@ -30,21 +36,10 @@ from render_lib import (
 OUTPUT = Path(__file__).parent / "images" / "q4_approach.png"
 
 SCALE = 3
-MARGIN_PX = 30
-HEADER_FONT_BASE = 14
 LABEL_FONT_BASE = 11
 READING_FONT_BASE = 14
 
-# Panel layout
-PANEL_W_BASE = 460
-PANEL_H_BASE = 460
-GAP_BASE = 30
-HEADER_H_BASE = 60
-N_PANELS = 2
-BORDER_W_BASE = 2
-
-# Within each panel
-ROBOT_LOCAL_BASE = (230, 280)
+ROBOT_LOCAL_BASE = (PANEL_W_BASE // 2, PANEL_H_BASE // 2 + 10)
 ROBOT_H_BASE = 180
 SENSOR_H_BASE = 40
 LIGHT_H_BASE = 80
@@ -52,7 +47,6 @@ SENSOR_FORWARD_BASE = 75
 SENSOR_LATERAL_BASE = 25
 LIGHT_DISTANCE_BASE = 220
 
-# LEDs at fixed compass bearings from the robot.
 WHITE_LED_COMPASS = 315  # NW
 CYAN_LED_COMPASS = 45    # NE
 
@@ -61,10 +55,7 @@ PANELS = [
     ("Situation 1  (facing cyan)",  CYAN_LED_COMPASS,  205, 210),
     ("Situation 2  (facing white)", WHITE_LED_COMPASS, 210, 200),
 ]
-
-
-def panel_left(i: int) -> int:
-    return i * (PANEL_W_BASE + GAP_BASE)
+N_PANELS = 2
 
 
 def polar_offset(distance: float, compass_deg: float) -> tuple[float, float]:
@@ -73,9 +64,8 @@ def polar_offset(distance: float, compass_deg: float) -> tuple[float, float]:
 
 
 def main() -> None:
-    canvas_w = N_PANELS * PANEL_W_BASE + (N_PANELS - 1) * GAP_BASE
-    canvas_h = HEADER_H_BASE + PANEL_H_BASE
-    canvas = Image.new("RGBA", (canvas_w * SCALE, canvas_h * SCALE), (0, 0, 0, 0))
+    canvas = make_canvas(SCALE)
+    draw = ImageDraw.Draw(canvas)
 
     robot = load_svg("robot", height_px=ROBOT_H_BASE * SCALE)
     sensor_green = load_svg("light_sensor_green", height_px=SENSOR_H_BASE * SCALE)
@@ -83,37 +73,15 @@ def main() -> None:
     white_light = load_svg("white_light", height_px=LIGHT_H_BASE * SCALE)
     cyan_light = load_svg("cyan_light", height_px=LIGHT_H_BASE * SCALE)
 
-    draw = ImageDraw.Draw(canvas)
-
     for i, (header, body_compass, g_reading, b_reading) in enumerate(PANELS):
-        px = panel_left(i)
-
-        draw.rectangle(
-            [
-                px * SCALE,
-                HEADER_H_BASE * SCALE,
-                (px + PANEL_W_BASE) * SCALE,
-                (HEADER_H_BASE + PANEL_H_BASE) * SCALE,
-            ],
-            outline=(0, 0, 0, 255),
-            width=BORDER_W_BASE * SCALE,
-        )
-
-        draw_label(
-            canvas, header,
-            (px + PANEL_W_BASE // 2, HEADER_H_BASE // 2),
-            SCALE, HEADER_FONT_BASE,
-        )
+        px = panel_left(N_PANELS, i)
+        draw_panel_frame(canvas, draw, px, SCALE, header_text=header)
 
         rx = px + ROBOT_LOCAL_BASE[0]
         ry = HEADER_H_BASE + ROBOT_LOCAL_BASE[1]
 
         paste_rotated(canvas, robot, center=(rx * SCALE, ry * SCALE), rotation_deg=-body_compass)
 
-        # Two filtered sensors at the front. Green on the body's left,
-        # blue on the body's right. Both rotate with the body and point
-        # along the forward axis. Filter color is conveyed by the
-        # colored dot inside each sensor sprite.
         fdx, fdy = polar_offset(SENSOR_FORWARD_BASE, body_compass)
         left_compass = (body_compass - 90) % 360
         right_compass = (body_compass + 90) % 360
@@ -130,7 +98,6 @@ def main() -> None:
                 rotation_deg=-body_compass,
             )
 
-        # Two LEDs at fixed bearings (same in both panels).
         for sprite, compass, label in [
             (white_light, WHITE_LED_COMPASS, "White LED"),
             (cyan_light,  CYAN_LED_COMPASS,  "Cyan LED"),
@@ -149,9 +116,8 @@ def main() -> None:
             SCALE, READING_FONT_BASE,
         )
 
-    cropped = crop_to_content(canvas, margin=MARGIN_PX * SCALE)
-    save_on_white(cropped, OUTPUT)
-    print(f"wrote {OUTPUT}  ({cropped.width}×{cropped.height})")
+    save_on_white(canvas, OUTPUT)
+    print(f"wrote {OUTPUT}  ({canvas.width}×{canvas.height})")
 
 
 if __name__ == "__main__":

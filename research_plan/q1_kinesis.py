@@ -3,18 +3,22 @@
 Scene: robot with a bare microphone (no external ear), facing east.
 Two speakers at equal distance — speaker 1 directly in front of the robot
 (east), speaker 2 at 45° from front (south-east). Both speakers face the
-robot.
+robot. Drawn on the standard question-image canvas with the panel
+centered.
 """
 
 import math
 from pathlib import Path
 
-from PIL import Image
+from PIL import ImageDraw
 
 from render_lib import (
-    crop_to_content,
+    HEADER_H_BASE,
     draw_label,
+    draw_panel_frame,
     load_svg,
+    make_canvas,
+    panel_left,
     paste_rotated,
     save_on_white,
     speaker_rotation_facing_robot,
@@ -23,23 +27,19 @@ from render_lib import (
 OUTPUT = Path(__file__).parent / "images" / "q1_kinesis.png"
 
 SCALE = 3
-MARGIN_PX = 30
-CANVAS_BASE = (800, 800)
+LABEL_FONT_BASE = 11
 
 ROBOT_H_BASE = 180
 SPEAKER_H_BASE = 90
 MIC_H_BASE = 40
-LABEL_FONT_BASE = 11
 
-ROBOT_CENTER_BASE = (200, 350)
-MIC_CENTER_BASE = (275, 350)   # at the front (east) of the east-facing robot
-SPEAKER_DISTANCE_BASE = 290    # equal radius for both speakers
+# Panel-relative position of the robot center.
+ROBOT_LOCAL_BASE = (110, 170)
+MIC_FORWARD_BASE = 75
+SPEAKER_DISTANCE_BASE = 240
 
 
-def speaker_position(angle_from_north_deg: float) -> tuple[int, int]:
-    """Compass placement (CW from north) at SPEAKER_DISTANCE_BASE from the
-    robot center. North is -y in image coordinates."""
-    rx, ry = ROBOT_CENTER_BASE
+def speaker_position(rx: int, ry: int, angle_from_north_deg: float) -> tuple[int, int]:
     rad = math.radians(angle_from_north_deg)
     x = rx + SPEAKER_DISTANCE_BASE * math.sin(rad)
     y = ry - SPEAKER_DISTANCE_BASE * math.cos(rad)
@@ -47,31 +47,27 @@ def speaker_position(angle_from_north_deg: float) -> tuple[int, int]:
 
 
 def main() -> None:
-    canvas_size = (CANVAS_BASE[0] * SCALE, CANVAS_BASE[1] * SCALE)
-    canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    canvas = make_canvas(SCALE)
+    draw = ImageDraw.Draw(canvas)
 
-    # Robot facing east: clockwise 90° from native north = CCW -90° in PIL.
+    px = panel_left(n_panels=1, panel_index=0)
+    draw_panel_frame(canvas, draw, px, SCALE)
+
+    rx = px + ROBOT_LOCAL_BASE[0]
+    ry = HEADER_H_BASE + ROBOT_LOCAL_BASE[1]
+
+    # Robot facing east.
     robot = load_svg("robot", height_px=ROBOT_H_BASE * SCALE)
-    paste_rotated(
-        canvas, robot,
-        center=(ROBOT_CENTER_BASE[0] * SCALE, ROBOT_CENTER_BASE[1] * SCALE),
-        rotation_deg=-90,
-    )
+    paste_rotated(canvas, robot, center=(rx * SCALE, ry * SCALE), rotation_deg=-90)
 
-    # Bare microphone (the sound_sensor asset), mounted at the front of the
-    # robot, also facing east.
+    # Bare microphone at the front of the robot, also facing east.
     mic = load_svg("sound_sensor", height_px=MIC_H_BASE * SCALE)
-    paste_rotated(
-        canvas, mic,
-        center=(MIC_CENTER_BASE[0] * SCALE, MIC_CENTER_BASE[1] * SCALE),
-        rotation_deg=-90,
-    )
+    paste_rotated(canvas, mic, center=((rx + MIC_FORWARD_BASE) * SCALE, ry * SCALE), rotation_deg=-90)
 
-    # Two speakers at compass 90° (east, in front of the robot) and 135° (SE,
-    # 45° clockwise from in-front), both facing the robot. Equal distances.
+    # Two speakers at compass 90° (east) and 135° (SE), both facing the robot.
     speaker = load_svg("speaker", height_px=SPEAKER_H_BASE * SCALE)
     speaker_compass = {1: 90, 2: 135}
-    speaker_pos = {n: speaker_position(a) for n, a in speaker_compass.items()}
+    speaker_pos = {n: speaker_position(rx, ry, a) for n, a in speaker_compass.items()}
     for n, angle in speaker_compass.items():
         sx, sy = speaker_pos[n]
         paste_rotated(
@@ -81,16 +77,15 @@ def main() -> None:
         )
 
     # Labels.
-    draw_label(canvas, "Robot",      (200, 460), SCALE, LABEL_FONT_BASE)
-    draw_label(canvas, "Sound sensor", (350, 350), SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Robot",        (rx, ry + 110),                 SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Sound sensor", (rx + MIC_FORWARD_BASE + 70, ry), SCALE, LABEL_FONT_BASE)
     s1x, s1y = speaker_pos[1]
     s2x, s2y = speaker_pos[2]
     draw_label(canvas, "Speaker 1", (s1x, s1y - 65), SCALE, LABEL_FONT_BASE)
-    draw_label(canvas, "Speaker 2", (s2x, s2y - 65), SCALE, LABEL_FONT_BASE)
+    draw_label(canvas, "Speaker 2", (s2x, s2y + 65), SCALE, LABEL_FONT_BASE)
 
-    cropped = crop_to_content(canvas, margin=MARGIN_PX * SCALE)
-    save_on_white(cropped, OUTPUT)
-    print(f"wrote {OUTPUT}  ({cropped.width}×{cropped.height})")
+    save_on_white(canvas, OUTPUT)
+    print(f"wrote {OUTPUT}  ({canvas.width}×{canvas.height})")
 
 
 if __name__ == "__main__":
