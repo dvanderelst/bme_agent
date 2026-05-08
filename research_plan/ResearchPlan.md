@@ -9,17 +9,14 @@
 - [x] Way to disable chatbot
 - [x] Enable task awareness in chatbot (subject dependent) and student name aware —> Not really needed
 - [ ] Digitize surveys → task aware?
-- [ ] Note/talk about observations
-- [ ] Better questions
-- [ ] Consider the decline in data quality.
-- [x] Show name at top
+- [ ] Note/talk about observations --> As a control.
 
 # Research question
 
 Does access to an AI chatbot during a robotics programming task improve students' ability to solve the task? We distinguish two possible effects:
 
-- **Performance** — students accomplish more when the chatbot is available in real time.
-- **Learning** — students internalize understanding that persists after the chatbot is removed.
+- **Performance**: students accomplish more when the chatbot is available in real time.
+- **Learning**: students internalize understanding that persists after the chatbot is removed.
 
 The two are not the same, and that is the point. The chatbot could plausibly produce *better robots without better understanding*: students might implement what the chatbot suggests, end up with programs that work, and have little grasp of why. The reverse is also possible — students forced to think hard about the chatbot's suggestions could end up understanding the material better even when the produced artifact is no different. Measuring only one of the two would miss this dissociation. We therefore measure both, treat them as separate constructs, and let the contrast between them be one of the study's main outputs.
 
@@ -162,6 +159,8 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 *Delivered as an online survey at the end of the slot in which the student performed Kinesis. No chatbot access during the survey. The four questions form a scaffold: each builds on what the previous one established, with the student reconstructing the kinesis algorithm by Q4. To measure whether each step is reached on its own, every question appears on a separate page and students cannot revisit earlier ones — otherwise later questions, which reveal setup information, would let them backfill earlier answers in hindsight.*
 
+---
+
 **Q1**
 
 <u>Image:</u> Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.
@@ -169,6 +168,8 @@ Reporting is in estimation terms — point estimates with credible intervals —
 ![Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.](images/q1_kinesis.png)
 
 <u>Question text:</u> The robot is equipped with one sound sensor. We play sound from speakers 1 and 2 in succession. What do you predict the sensor readings will be when we play the different speakers? Explain.
+
+---
 
 **Q2**
 
@@ -178,6 +179,8 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 <u>Question text:</u> The robot is equipped with one sound sensor in an external ear. What do you predict the sensor readings will be at each of the three orientations? Explain.
 
+---
+
 **Q3**
 
 <u>Image:</u> Robot with one external ear mounted at the front-center but tilted 45° from the body's forward axis (not pointing forward). The robot's body faces 0°, so the ear points at 45° absolute. Two speakers: speaker 1 at 0° (in front of the body), speaker 2 at 45° (in front of the ear).
@@ -185,6 +188,8 @@ Reporting is in estimation terms — point estimates with credible intervals —
 ![Robot facing east with an external ear mounted at the front-center but tilted 45° from the body's forward axis. Speaker 1 lies in the body's forward direction (east); speaker 2 lies in the ear's pointing direction (SE), at the same distance.](images/q3_kinesis.png)
 
 <u>Question text:</u> The robot is equipped with one sound sensor in an external ear. We play sound from speakers 1 and 2 in succession. Which speaker gives the louder reading? Explain — does the answer depend on where the body is facing, or where the ear is pointing?
+
+---
 
 **Q4**
 
@@ -196,4 +201,44 @@ Reporting is in estimation terms — point estimates with credible intervals —
 
 ### Learning rubric: Taxis
 
-*To be designed — parallel scaffold to kinesis but built on simultaneous (two-eared) rather than sequential comparison.*
+*Delivered as an online survey at the end of the slot in which the student performed Taxis. No chatbot access during the survey. The four questions form a scaffold parallel to the kinesis rubric, but built on simultaneous (two-eared) rather than sequential comparison: each question features two sensors. By Q4 the student has reconstructed the taxis algorithm. As with the kinesis rubric, every question is on a separate page and students cannot revisit earlier ones.*
+
+---
+
+**Q1**
+
+<u>Image:</u> Robot with two bare sound sensors mounted at the front (one front-left, one front-right). Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.
+
+![Robot facing east with two bare sound sensors at the front (one upper, one lower). Two speakers at equal distance: speaker 1 directly in front (east), speaker 2 at 45° (SE).](images/q1_taxis.png)
+
+<u>Question text:</u> The robot is equipped with two sound sensors at the front. We play sound from speakers 1 and 2 in succession. What do you predict the left-sensor and right-sensor readings will be when we play the different speakers? Explain.
+
+---
+
+**Q2**
+
+<u>Image:</u> Robot with two external ears mounted at the front, both pointing along the body's forward axis. Three panels showing a single speaker at three positions — panel 1: speaker at 0°; panel 2: speaker at 45°; panel 3: speaker at 90°. The two ears are left/right symmetric, and any small reading difference due to their physical separation can be ignored as noise.
+
+![Three panels showing the robot with two aligned forward-pointing ears. Speaker at 0° (in front), 45° (off to the right), and 90° (perpendicular to forward, aligned with the front of the robot).](images/q2_taxis.png)
+
+<u>Question text:</u> The robot has two sound sensors, each in an external ear, both pointing straight ahead. What do you predict the left-ear and right-ear readings will be at each of the three speaker positions? Explain.
+
+---
+
+**Q3**
+
+<u>Image:</u> Robot with two external ears mounted at the front but with divergent axes — the left ear points 45° to the left of forward, the right ear points 45° to the right of forward. Two panels — panel 1: single speaker straight ahead (0°); panel 2: single speaker at 30° to the right of forward.
+
+![Two panels showing the robot with two divergent ears: left ear tilted 45° toward the robot's left, right ear tilted 45° toward the robot's right. Panel 1: speaker straight ahead (0°). Panel 2: speaker at 30° to the right of forward.](images/q3_taxis.png)
+
+<u>Question text:</u> The robot has two sound sensors, each in an external ear, with divergent axes (left ear tilted left, right ear tilted right). What do you predict the left-ear and right-ear readings will be in each panel? Explain.
+
+---
+
+**Q4**
+
+<u>Image:</u> Robot with two external ears with divergent axes (left tilted left, right tilted right). Left-ear reading = 233. Right-ear reading = 126. The speaker's position is not shown.
+
+![Single panel showing the robot with two divergent ears and the readings annotated next to each ear: left = 233, right = 126. No speaker is shown.](images/q4_taxis.png)
+
+<u>Question text:</u> The robot has two sound sensors, each in an external ear, with divergent axes. Based on these two readings, where do you think the speaker is? Explain.
