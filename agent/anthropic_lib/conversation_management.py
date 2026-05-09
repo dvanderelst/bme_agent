@@ -119,4 +119,8 @@ def send_message(
     return {
         "assistant_response": assistant_text,
         "user_message": user_message,
+        # Surfaced so the chat UI can flag truncation. Anthropic returns
+        # "end_turn" on a normal completion and "max_tokens" when the cap
+        # was hit; "stop_sequence", "tool_use", etc. are also possible.
+        "stop_reason": getattr(response, "stop_reason", None),
     }

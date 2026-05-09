@@ -191,6 +191,10 @@ for message in st.session_state[SESSION_MESSAGES]:
             st.text(message["content"])
         else:
             st.markdown(message["content"])
+            if message.get("truncated"):
+                st.caption(
+                    "_Response was cut off — ask me to continue if you'd like more._"
+                )
 
 # React to user input
 if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
@@ -293,10 +297,20 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                 st.warning(f"Logging failed: {log_err}")
 
             # Display assistant response in chat message container
+            truncated = response.get("stop_reason") == "max_tokens"
             with st.chat_message("assistant"):
                 st.markdown(agent_response)
-            # Add assistant response to chat history
-            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
+                if truncated:
+                    st.caption(
+                        "_Response was cut off — ask me to continue if you'd like more._"
+                    )
+            # Add assistant response to chat history. The truncated flag is
+            # presentation-only (the history-render loop reads it) and is
+            # not sent back to the model.
+            message_entry = {"role": "assistant", "content": agent_response}
+            if truncated:
+                message_entry["truncated"] = True
+            st.session_state[SESSION_MESSAGES].append(message_entry)
         except Exception:
             # Log the real exception with traceback for debugging; show the
             # student a generic message so SDK errors (which can carry stack

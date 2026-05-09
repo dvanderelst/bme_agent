@@ -1,4 +1,8 @@
 [anthropic]
 model = "claude-sonnet-4-6"
-max_tokens = 1024
+# Sonnet 4.6 supports up to 64K output tokens; 1024 was truncating answers
+# mid-explanation. 4096 gives the model enough room for a thoughtful reply
+# grounded in the attached docs without being wasteful. Bump higher if
+# students start hitting the cap on the new value.
+max_tokens = 4096
 instructions = "bme_agent_instructions.md"

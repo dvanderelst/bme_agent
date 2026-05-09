@@ -36,7 +36,7 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* Move documents from the latest user message into the `system` parameter (which accepts a list of content blocks) and put `cache_control: {"type": "ephemeral"}` on the last system block.
   *Note (2026-05-09):* The naive fix — `cache_control` on the last doc block in the user message — does **not** produce cache hits in our setup. Anthropic's cache requires an exact prefix match up to the breakpoint, and our user message sits at the end of a `messages` list that grows two entries per turn (one user + one assistant). The doc blocks therefore shift position every turn and the cached prefix is never re-matched; we'd pay the 1.25× write cost without the 0.1× read benefit. The only way to cache the docs is to put them somewhere positionally stable across turns, which means the `system` parameter. That works mechanically but changes Anthropic's framing — system content is "background context" rather than "primary source material" (per the comment currently in `_build_messages`). Deferred because response quality is the higher priority right now; the cost saving (~90% on cached input tokens after the first turn, within the 5-minute ephemeral TTL) is a future-when-we-care-about-cost win.
 
-- [ ] **6. `max_tokens=1024` truncates Sonnet 4.6 mid-answer often.**
+- [x] **6. `max_tokens=1024` truncates Sonnet 4.6 mid-answer often.**
   *Where:* `agent/anthropic_lib/config.toml`
   *Why:* Sonnet 4.6 with rich source documents will frequently hit the cap. Students see cut-off responses with no signal.
   *Fix:* Bump to 4096+; surface `stop_reason == "max_tokens"` in the UI.
