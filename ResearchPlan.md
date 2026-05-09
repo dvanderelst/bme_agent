@@ -91,6 +91,13 @@ We will assess whether the chatbot affects (1) production, (2) learning and unde
 - Observers cannot be blind to chatbot condition (the room is on or off, visibly). Any subjective coding is anchored to a written scheme decided before Day 1, and intercoder agreement is reported on a sampled fraction of slots.
 - Pre-program surveys (administered before Day 1 by the BME program) provide baseline covariates — prior programming experience, prior chatbot use and familiarity, and other student-level fields — available for inclusion in the analysis models as moderators or controls if desired.
 
+**Note on production-rubric blinding.** The procedure for blinding artifacts before they reach the scorer is not fully operationalized yet — to be settled with collaborators. Two features of the current setup already reduce leakage and are worth flagging when we do:
+
+- Code is block-based (Scratch-like), so there are no free-text comments referencing a chatbot to scrub, and stylistic variation between chatbot-aided and self-written code is muted relative to text-based programs.
+- Production-rubric items are direct ("does the code do X", "is sensor Y mounted") rather than interpretive, leaving little room for the scorer to infer condition and have that inference bias the score.
+
+Residual leakage channels to address explicitly before Day 1: file metadata and timestamps (cross-referenceable with the slot schedule, which determines condition once the task is known), and incidental contents of the robot photo (e.g., a chatbot UI visible on a nearby laptop screen).
+
 ### Learning rubric design
 
 The current image-based scaffolded format is a deliberate move away from two alternatives. Earlier versions used generic open-ended prompts (e.g., "explain how the robot decides which way to turn"), which gave students too much room for shallow handwaving. The image plus concrete numerical setup pins down the situation and forces a specific prediction.

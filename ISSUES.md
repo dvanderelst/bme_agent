@@ -219,10 +219,11 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### Low severity
 
-- [ ] **37. Production-rubric blinding is asserted but not operationalized.**
+- [x] **37. Production-rubric blinding is asserted but not operationalized.**
   *Where:* §Methodological safeguards
   *Why:* Robot photos visibly differ between color-vision and sound-localization tasks; condition (chatbot on/off) may leak through code style/comments.
   *Fix:* Describe the blinding procedure (file scrub, ID-only labels).
+  *Resolution (2026-05-09):* Added a "Note on production-rubric blinding" block to §Methodological safeguards. Two leakage-reducing features of the current setup are flagged (block-based code → no free-text comments to scrub and muted stylistic variation; direct rubric items → little room for inference-driven bias). Residual channels named for the eventual operational procedure: file metadata/timestamps (cross-referenceable with the slot schedule), and incidental contents of robot photos.
 
 - [x] **38. Mimic items 2 and 5 need behavioral verification, not just code reading.**
   *Where:* §Production rubric: Mimic Color
