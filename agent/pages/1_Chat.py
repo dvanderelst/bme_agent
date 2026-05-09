@@ -6,6 +6,7 @@ import streamlit as st
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
+from shared_lib.auth import lookup_student
 from shared_lib.postgres_logger import get_postgres_client, log_interaction, log_feedback
 
 # Wait between the failed first moderation call and the retry. Long enough
@@ -82,6 +83,24 @@ except Exception as e:
     logging.error("Database setup failed on chat page: %s", e)
     st.error("The chatbot is temporarily unavailable. Please try again later.")
     st.stop()
+
+# Re-verify the student is still active. session_state.authenticated is set
+# at login and otherwise never re-checked, so an instructor disabling a
+# student mid-session would only take effect on their next login without
+# this guard. Also picks up other column changes (e.g. backend, diagnostics)
+# so they propagate immediately.
+fresh_student = lookup_student(db_config, st.session_state.get(SESSION_STUDENT_ID))
+if fresh_student is None or not fresh_student.get("enabled", True):
+    for k in list(st.session_state.keys()):
+        st.session_state.pop(k, None)
+    st.error("Your account is no longer active. Please contact an instructor.")
+    st.stop()
+st.session_state[SESSION_STUDENT] = fresh_student
+# Refresh locals derived from the early read at the top of the file. The
+# CSS up there used possibly-stale values for one render; from here on we
+# work with the fresh row.
+student = fresh_student
+diagnostics_enabled = _truthy(student.get("diagnostics"))
 
 # Validate required config
 if not agent_id:

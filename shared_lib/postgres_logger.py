@@ -12,6 +12,8 @@ from shared_lib.auth import (
     CREATE_STUDENTS_TABLE_SQL,
     ADD_ENABLED_COLUMN_SQL,
     ADD_BACKEND_COLUMN_SQL,
+    CREATE_LOGIN_FAILURES_TABLE_SQL,
+    CREATE_LOGIN_FAILURES_INDEX_SQL,
 )
 
 
@@ -75,6 +77,8 @@ def get_postgres_client(database_url: str) -> str:
             cur.execute(ADD_BACKEND_COLUMN_SQL)
             cur.execute(ADD_INTERACTIONS_STUDENT_SETTINGS_SQL)
             cur.execute(ADD_FEEDBACK_STUDENT_SETTINGS_SQL)
+            cur.execute(CREATE_LOGIN_FAILURES_TABLE_SQL)
+            cur.execute(CREATE_LOGIN_FAILURES_INDEX_SQL)
 
     return database_url
 

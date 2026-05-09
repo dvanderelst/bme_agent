@@ -43,12 +43,12 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### Medium severity
 
-- [ ] **7. Login throttle is per-attempt, not per-user/IP.**
+- [x] **7. Login throttle is per-attempt, not per-user/IP.**
   *Where:* `agent/app.py:36-53`
   *Why:* `FAILED_LOGIN_DELAY_SECONDS = 0.5` slows a single attempt; no per-username counter or lockout. With 24 known usernames a public deployment invites grinding.
   *Fix:* Add a small `failed_logins` table keyed by `(username, ip)` with rolling lockout.
 
-- [ ] **8. Disabled student keeps access mid-session.**
+- [x] **8. Disabled student keeps access mid-session.**
   *Where:* `agent/pages/1_Chat.py:60-61`
   *Why:* Auth gate is `session_state.authenticated` only; no re-check of `enabled`. An instructor disabling a student takes effect only on next login.
   *Fix:* Re-fetch the student row on a hot path (e.g. before each LLM call) and `st.stop()` if `enabled` is False.

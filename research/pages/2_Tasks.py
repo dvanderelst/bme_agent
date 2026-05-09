@@ -2,6 +2,7 @@ import time
 
 import streamlit as st
 
+from shared_lib.auth import lookup_student
 from rubric_db import get_progress, next_attempt_number, TOTAL_QUESTIONS
 
 WRONG_PASSCODE_DELAY_SECONDS = 0.5
@@ -11,9 +12,18 @@ st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_
 if not st.session_state.get("authenticated"):
     st.switch_page("app.py")
 
-student = st.session_state.get("student", {})
-username = student.get("username")
 database_url = st.session_state.get("database_url")
+
+# Re-verify the student is still active (see 1_Intro.py for rationale).
+fresh_student = lookup_student(database_url, st.session_state.get("student_id"))
+if fresh_student is None or not fresh_student.get("enabled", True):
+    for k in list(st.session_state.keys()):
+        st.session_state.pop(k, None)
+    st.error("Your account is no longer active. Please contact an instructor.")
+    st.stop()
+st.session_state.student = fresh_student
+student = fresh_student
+username = student.get("username")
 
 TASKS = [
     ("mimic", "Mimic Color"),

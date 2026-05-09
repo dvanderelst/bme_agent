@@ -3,6 +3,7 @@ import pathlib
 import streamlit as st
 import yaml
 
+from shared_lib.auth import lookup_student
 from rubric_db import TOTAL_QUESTIONS, get_progress, record_answer
 
 st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
@@ -10,6 +11,17 @@ st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_
 # --- Guards ------------------------------------------------------------------
 if not st.session_state.get("authenticated"):
     st.switch_page("app.py")
+
+# Re-verify the student is still active (see 1_Intro.py for rationale).
+fresh_student = lookup_student(
+    st.session_state.get("database_url"), st.session_state.get("student_id")
+)
+if fresh_student is None or not fresh_student.get("enabled", True):
+    for k in list(st.session_state.keys()):
+        st.session_state.pop(k, None)
+    st.error("Your account is no longer active. Please contact an instructor.")
+    st.stop()
+st.session_state.student = fresh_student
 
 required_keys = ("task", "task_label", "attempt")
 if not all(k in st.session_state for k in required_keys):

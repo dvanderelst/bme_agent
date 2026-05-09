@@ -5,14 +5,26 @@ The students table stores one row per enrolled student. New columns can be
 added at any time (via ALTER TABLE or the management script); authenticate()
 returns every column except password_hash, so app code automatically sees
 new fields in st.session_state["student"].
+
+This module also owns a small login_failures table used by both the chatbot
+and the survey to throttle login attempts.
 """
 
 import logging
-from typing import Optional, Dict, Any
+from datetime import timedelta
+from typing import Optional, Dict, Any, Tuple
 
 import bcrypt
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
+
+# Login throttle. Five failed attempts in a five-minute rolling window
+# block further attempts for that username until enough failures roll out
+# of the window. Lockout is by username only — Railway's proxy means we
+# don't have reliable per-IP info on the chat side.
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_WINDOW_MINUTES = 5
 
 
 CREATE_STUDENTS_TABLE_SQL = """
@@ -36,6 +48,19 @@ ADD_ENABLED_COLUMN_SQL = (
 ADD_BACKEND_COLUMN_SQL = (
     "ALTER TABLE students ADD COLUMN IF NOT EXISTS backend TEXT;"
 )
+
+CREATE_LOGIN_FAILURES_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS login_failures (
+    id            SERIAL PRIMARY KEY,
+    username      TEXT NOT NULL,
+    attempted_at  TIMESTAMPTZ DEFAULT NOW()
+);
+"""
+
+CREATE_LOGIN_FAILURES_INDEX_SQL = """
+CREATE INDEX IF NOT EXISTS idx_login_failures_user_time
+ON login_failures (username, attempted_at);
+"""
 
 
 def ensure_students_table(database_url: str) -> None:
@@ -108,3 +133,101 @@ def authenticate(
     student = dict(row)
     student.pop("password_hash", None)
     return student
+
+
+def lookup_student(database_url: str, username: str) -> Optional[Dict[str, Any]]:
+    """Fetch the student row by username. Returns the row (minus
+    password_hash) or None if not found. No password verification.
+
+    Used by app pages to re-verify "is this account still active?" on
+    every render, so disabling a student in the DB takes effect
+    immediately rather than on next login.
+    """
+    if not username:
+        return None
+
+    lookup = username.strip().lower()
+
+    try:
+        with psycopg2.connect(database_url) as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute("SELECT * FROM students WHERE username = %s", (lookup,))
+                row = cur.fetchone()
+    except psycopg2.Error as e:
+        logging.error("Postgres error during student lookup: %s", e)
+        return None
+
+    if row is None:
+        return None
+
+    student = dict(row)
+    student.pop("password_hash", None)
+    return student
+
+
+def check_login_lockout(database_url: str, username: str) -> Tuple[bool, int]:
+    """Check whether the username is currently rate-limited.
+
+    Returns (locked, seconds_until_unlock). When locked, the caller should
+    refuse the login attempt without running bcrypt. The lockout lifts
+    when enough recent failures roll out of the window.
+
+    Fails open on DB error — better to let students log in during a DB
+    blip than to lock the whole class out.
+    """
+    if not username:
+        return False, 0
+
+    lookup = username.strip().lower()
+    window = timedelta(minutes=LOCKOUT_WINDOW_MINUTES)
+
+    try:
+        with psycopg2.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT attempted_at
+                    FROM login_failures
+                    WHERE username = %s
+                      AND attempted_at > NOW() - %s
+                    ORDER BY attempted_at DESC
+                    LIMIT %s
+                    """,
+                    (lookup, window, LOCKOUT_THRESHOLD),
+                )
+                rows = cur.fetchall()
+                if len(rows) < LOCKOUT_THRESHOLD:
+                    return False, 0
+                # The lockout lifts when the OLDEST of the threshold-most-recent
+                # failures rolls out of the window. rows are sorted DESC, so
+                # the oldest of the top-K is the last one.
+                cur.execute("SELECT NOW()")
+                now = cur.fetchone()[0]
+        oldest_relevant = rows[-1][0]
+        unlock_at = oldest_relevant + window
+        seconds_remaining = max(0, int((unlock_at - now).total_seconds()))
+        return True, seconds_remaining
+    except psycopg2.Error as e:
+        logging.error("Postgres error checking login lockout: %s", e)
+        return False, 0
+
+
+def record_login_failure(database_url: str, username: str) -> None:
+    """Record one failed login attempt. Errors are logged, not raised —
+    a DB blip during login shouldn't compound into a hard failure on
+    top of the wrong-password failure the user already saw.
+    """
+    if not username:
+        return
+
+    lookup = username.strip().lower()
+
+    try:
+        with psycopg2.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO login_failures (username) VALUES (%s)",
+                    (lookup,),
+                )
+    except psycopg2.Error as e:
+        logging.error("Postgres error recording login failure: %s", e)
