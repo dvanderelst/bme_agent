@@ -1,18 +1,23 @@
-# BME Agent Requirements
-# Core dependencies for Streamlit deployment
+# Combined requirements for both Streamlit services. Railpack auto-detects
+# this single file at the repo root for every service in the project, so we
+# keep one union list rather than per-app files.
+
+# Core (used by both apps)
 streamlit
+psycopg2-binary
+toml
+bcrypt
+python-dateutil
+pytz
+
+# Agent only
 python-dotenv
 mistralai
 anthropic
-toml
 requests
-psycopg2-binary
-python-dateutil
-pytz
-bcrypt
 
-# Local-only — needed by script_manage_students.py to read the .ods roster
+# Survey only
+pyyaml
+
+# Local-only — needed by script_configure_students.py to read the .ods roster
 odfpy
-
-# To install: pip install -r requirements.txt
-# For deployment: Ensure all packages are installed in your environment
