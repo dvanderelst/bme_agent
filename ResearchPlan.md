@@ -165,7 +165,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot facing forward with one bare light detector (no color filter). Three target LEDs at equal distance: red, green, blue.
 
-![Robot facing east with one bare light detector at the front. Three colored LEDs (red, green, blue) at equal distance, fanned slightly around the forward direction.](images/q1_mimic.png)
+![Robot facing east with one bare light detector at the front. Three colored LEDs (red, green, blue) at equal distance, fanned slightly around the forward direction.](figures/images/q1_mimic.png)
 
 <u>Question text:</u> The robot has one light detector without a color filter. We light the three LEDs in succession (one at a time). How (if at all) do you expect the sensor's reading to differ across the three LEDs? Could the robot use this single detector to tell which LED is on? Explain.
 
@@ -175,7 +175,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Same robot, but the single light detector now has a red filter placed in front of it. Same three target LEDs (red, green, blue), lit in succession.
 
-![Robot facing east with one light detector with a red filter at the front. Three colored LEDs (red, green, blue) at equal distance, fanned slightly around the forward direction.](images/q2_mimic.png)
+![Robot facing east with one light detector with a red filter at the front. Three colored LEDs (red, green, blue) at equal distance, fanned slightly around the forward direction.](figures/images/q2_mimic.png)
 
 <u>Question text:</u> The robot has one light detector with a red filter. We light the three LEDs in succession. How (if at all) do you expect the sensor's reading to differ across the three LEDs? Explain.
 
@@ -185,7 +185,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with two light detectors at the front — one with a red filter, one with a green filter. A single cyan LED is placed in front of the robot.
 
-![Robot facing east with two light detectors at the front — one with a red filter, one with a green filter. A single cyan LED in front of the robot at equal distance.](images/q3_mimic.png)
+![Robot facing east with two light detectors at the front — one with a red filter, one with a green filter. A single cyan LED in front of the robot at equal distance.](figures/images/q3_mimic.png)
 
 <u>Question text:</u> The robot has two light detectors, one with a red filter and one with a green filter. We light a cyan LED in front of the robot. How do you expect the red-filter and green-filter readings to compare? Explain.
 
@@ -195,7 +195,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with three light detectors at the front (red, green, and blue filters). Readings annotated next to each sensor: R = 200, G = 190, B = 50. The target LED is not shown.
 
-![Robot facing east with three light detectors stacked at the front — red, green, and blue filters. Readings annotated next to each sensor: R = 200, G = 190, B = 50. No target LED is shown.](images/q4_mimic.png)
+![Robot facing east with three light detectors stacked at the front — red, green, and blue filters. Readings annotated next to each sensor: R = 200, G = 190, B = 50. No target LED is shown.](figures/images/q4_mimic.png)
 
 <u>Question text:</u> The robot has three light detectors with red, green, and blue filters. The readings are R = 200, G = 190, B = 50. Two candidate LEDs could be producing this pattern: a dim red LED, or a bright yellow LED. Which of the two matches the observed readings? Explain.
 
@@ -209,7 +209,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Two panels. The robot has one bare light detector (no color filter). A red LED and a green LED are placed at fixed positions NW and NE of the robot, at equal distance. Panel 1: robot's body turned toward the green LED. Panel 2: robot's body turned toward the red LED.
 
-![Two panels showing the robot with a single bare light detector (no color filter) and two LEDs (red NW, green NE) at fixed positions. In panel 1 the robot's body is turned toward the green LED; in panel 2 it is turned toward the red LED.](images/q1_approach.png)
+![Two panels showing the robot with a single bare light detector (no color filter) and two LEDs (red NW, green NE) at fixed positions. In panel 1 the robot's body is turned toward the green LED; in panel 2 it is turned toward the red LED.](figures/images/q1_approach.png)
 
 <u>Question text:</u> The robot has one light detector without a color filter. A red LED and a green LED are placed in front of it, equally distant. Panel 1 shows the robot turned toward the green LED; panel 2 shows it turned toward the red LED. How (if at all) do you expect the sensor's reading to differ between the two panels? Explain.
 
@@ -219,7 +219,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Same two-panel setup as Q1, but the single light detector now has a red filter instead of being bare.
 
-![Two panels showing the robot with a single red-filter light detector and two LEDs (red NW, green NE) at fixed positions. In panel 1 the robot's body is turned toward the green LED; in panel 2 it is turned toward the red LED.](images/q2_approach.png)
+![Two panels showing the robot with a single red-filter light detector and two LEDs (red NW, green NE) at fixed positions. In panel 1 the robot's body is turned toward the green LED; in panel 2 it is turned toward the red LED.](figures/images/q2_approach.png)
 
 <u>Question text:</u> The robot has one light detector with a red filter. A red LED and a green LED are placed in front of it, equally distant. Panel 1 shows the robot turned toward the green LED; panel 2 shows it turned toward the red LED. How (if at all) do you expect the sensor's reading to differ between the two panels? Explain.
 
@@ -229,7 +229,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Same two-panel layout as Q2, but the robot now has *two* light detectors at the front — one with a red filter, one with a green filter. A red LED and a green LED are placed at fixed positions NW and NE of the robot. Panel 1: robot turned toward the green LED. Panel 2: robot turned toward the red LED.
 
-![Two panels showing the robot with two filtered light detectors at the front (red filter on body's left, green filter on body's right). A red LED and a green LED at fixed NW and NE positions. Panel 1: body turned toward the green LED. Panel 2: body turned toward the red LED.](images/q3_approach.png)
+![Two panels showing the robot with two filtered light detectors at the front (red filter on body's left, green filter on body's right). A red LED and a green LED at fixed NW and NE positions. Panel 1: body turned toward the green LED. Panel 2: body turned toward the red LED.](figures/images/q3_approach.png)
 
 <u>Question text:</u> The robot has two light detectors at the front — one with a red filter and one with a green filter. A red LED and a green LED are placed in front of it, equally distant. Panel 1 shows the robot turned toward the green LED; panel 2 shows it turned toward the red LED. For each panel, how do you expect the red-filter and green-filter readings to compare with each other? Explain.
 
@@ -239,7 +239,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Two panels. The robot has two light detectors at the front — one with a green filter, one with a blue filter. A white LED and a cyan LED are placed at fixed positions, equally distant from the robot. Panel 1: body turned toward the cyan LED, with readings annotated (G = 205, B = 210). Panel 2: body turned toward the white LED, with readings annotated (G = 210, B = 200).
 
-![Two panels showing the robot with two filtered light detectors at the front (green filter on body's left, blue filter on body's right). A white LED at NW, a cyan LED at NE. Panel 1: facing cyan, readings G = 205 / B = 210. Panel 2: facing white, readings G = 210 / B = 200.](images/q4_approach.png)
+![Two panels showing the robot with two filtered light detectors at the front (green filter on body's left, blue filter on body's right). A white LED at NW, a cyan LED at NE. Panel 1: facing cyan, readings G = 205 / B = 210. Panel 2: facing white, readings G = 210 / B = 200.](figures/images/q4_approach.png)
 
 <u>Question text:</u> The robot's task is to turn toward the cyan LED. It has two light detectors — one with a green filter, one with a blue filter. The two panels show what the robot reads when facing the cyan LED versus the white LED. Can the robot reliably tell which LED it is facing, and use these readings to approach the cyan LED specifically? Explain.
 
@@ -275,7 +275,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.
 
-![Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.](images/q1_kinesis.png)
+![Robot with one bare sound sensor. Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.](figures/images/q1_kinesis.png)
 
 <u>Question text:</u> The robot is equipped with one sound sensor. We play sound from speakers 1 and 2 in succession. How (if at all) do you expect the sensor's reading to differ between the two speakers? Explain.
 
@@ -285,7 +285,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Single speaker fixed at 45°. Three panels showing the robot at different body orientations — panel 1: robot faces 0°; panel 2: robot faces 45°; panel 3: robot faces 90°. The robot has one external ear, mounted at the center of the body and left/right symmetric. The ear points along the robot's forward axis and rotates with the body.
 
-![Three panels showing the robot at body orientations 0°, 45°, and 90°, with a single speaker fixed at compass 45° in all three. The ear is mounted at the front of the robot and rotates with the body.](images/q2_kinesis.png)
+![Three panels showing the robot at body orientations 0°, 45°, and 90°, with a single speaker fixed at compass 45° in all three. The ear is mounted at the front of the robot and rotates with the body.](figures/images/q2_kinesis.png)
 
 <u>Question text:</u> The robot is equipped with one sound sensor in an external ear. How do you expect the sensor's reading to differ across the three orientations? Explain.
 
@@ -295,7 +295,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with one external ear mounted at the front-center but tilted 45° from the body's forward axis (not pointing forward). The robot's body faces 0°, so the ear points at 45° absolute. Two speakers: speaker 1 at 0° (in front of the body), speaker 2 at 45° (in front of the ear).
 
-![Robot facing east with an external ear mounted at the front-center but tilted 45° from the body's forward axis. Speaker 1 lies in the body's forward direction (east); speaker 2 lies in the ear's pointing direction (SE), at the same distance.](images/q3_kinesis.png)
+![Robot facing east with an external ear mounted at the front-center but tilted 45° from the body's forward axis. Speaker 1 lies in the body's forward direction (east); speaker 2 lies in the ear's pointing direction (SE), at the same distance.](figures/images/q3_kinesis.png)
 
 <u>Question text:</u> The robot is equipped with one sound sensor in an external ear. We play sound from speakers 1 and 2 in succession. Which speaker gives the louder reading? Explain — does the answer depend on where the body is facing, or where the ear is pointing?
 
@@ -305,7 +305,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Two consecutive panels of the robot with a single directional ear. Panel 1: ear pointing at 0°, reading = 126. The robot rotates clockwise. Panel 2: ear pointing at 45°, reading = 233. The speaker's position is not shown.
 
-![Two panels showing the robot with a forward-mounted directional ear. Situation 1: ear at 0° (north), reading = 126. Situation 2: robot rotated 45° clockwise, ear at 45°, reading = 233. The speaker is not shown.](images/q4_kinesis.png)
+![Two panels showing the robot with a forward-mounted directional ear. Situation 1: ear at 0° (north), reading = 126. Situation 2: robot rotated 45° clockwise, ear at 45°, reading = 233. The speaker is not shown.](figures/images/q4_kinesis.png)
 
 <u>Question text:</u> The robot is equipped with one sound sensor in an external ear. Based on these two readings, where do you think the speaker is? Explain.
 
@@ -319,7 +319,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with two bare sound sensors mounted at the front (one front-left, one front-right). Two speakers at equal distance: speaker 1 at 0°, speaker 2 at 45°.
 
-![Robot facing east with two bare sound sensors at the front (one upper, one lower). Two speakers at equal distance: speaker 1 directly in front (east), speaker 2 at 45° (SE).](images/q1_taxis.png)
+![Robot facing east with two bare sound sensors at the front (one upper, one lower). Two speakers at equal distance: speaker 1 directly in front (east), speaker 2 at 45° (SE).](figures/images/q1_taxis.png)
 
 <u>Question text:</u> The robot is equipped with two sound sensors at the front. We play sound from speakers 1 and 2 in succession. For each speaker, how do you expect the left-sensor and right-sensor readings to compare with each other? And how do you expect the readings to differ between the two speakers? Explain.
 
@@ -329,7 +329,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with two external ears mounted at the front, both pointing along the body's forward axis. Three panels showing a single speaker at three positions — panel 1: speaker at 0°; panel 2: speaker at 45°; panel 3: speaker at 90°. The two ears are left/right symmetric, and any small reading difference due to their physical separation can be ignored as noise.
 
-![Three panels showing the robot with two aligned forward-pointing ears. Speaker at 0° (in front), 45° (off to the right), and 90° (perpendicular to forward, aligned with the front of the robot).](images/q2_taxis.png)
+![Three panels showing the robot with two aligned forward-pointing ears. Speaker at 0° (in front), 45° (off to the right), and 90° (perpendicular to forward, aligned with the front of the robot).](figures/images/q2_taxis.png)
 
 <u>Question text:</u> The robot has two sound sensors, each in an external ear, both pointing straight ahead. For each of the three speaker positions, how do you expect the left-ear and right-ear readings to compare with each other? And how do the readings differ across the three positions? Explain.
 
@@ -339,7 +339,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with two external ears mounted at the front but with divergent axes — the left ear points 45° to the left of forward, the right ear points 45° to the right of forward. Two panels — panel 1: single speaker straight ahead (0°); panel 2: single speaker at 30° to the right of forward.
 
-![Two panels showing the robot with two divergent ears: left ear tilted 45° toward the robot's left, right ear tilted 45° toward the robot's right. Panel 1: speaker straight ahead (0°). Panel 2: speaker at 30° to the right of forward.](images/q3_taxis.png)
+![Two panels showing the robot with two divergent ears: left ear tilted 45° toward the robot's left, right ear tilted 45° toward the robot's right. Panel 1: speaker straight ahead (0°). Panel 2: speaker at 30° to the right of forward.](figures/images/q3_taxis.png)
 
 <u>Question text:</u> The robot has two sound sensors, each in an external ear, with divergent axes (left ear tilted left, right ear tilted right). For each panel, how do you expect the left-ear and right-ear readings to compare with each other? Explain.
 
@@ -349,6 +349,6 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 <u>Image:</u> Robot with two external ears with divergent axes (left tilted left, right tilted right). Left-ear reading = 233. Right-ear reading = 126. The speaker's position is not shown.
 
-![Single panel showing the robot with two divergent ears and the readings annotated next to each ear: left = 233, right = 126. No speaker is shown.](images/q4_taxis.png)
+![Single panel showing the robot with two divergent ears and the readings annotated next to each ear: left = 233, right = 126. No speaker is shown.](figures/images/q4_taxis.png)
 
 <u>Question text:</u> The robot has two sound sensors, each in an external ear, with divergent axes. Based on these two readings, where do you think the speaker is? Explain.

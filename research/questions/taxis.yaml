@@ -2,7 +2,7 @@ task: taxis
 title: Taxis Sound Localization
 questions:
   - number: 1
-    image: ../research_plan/images/q1_taxis.png
+    image: ../figures/images/q1_taxis.png
     text: >-
       The robot is equipped with two sound sensors at the front. We play sound
       from speakers 1 and 2 in succession. For each speaker, how do you expect
@@ -10,21 +10,21 @@ questions:
       And how do you expect the readings to differ between the two speakers?
       Explain.
   - number: 2
-    image: ../research_plan/images/q2_taxis.png
+    image: ../figures/images/q2_taxis.png
     text: >-
       The robot has two sound sensors, each in an external ear, both pointing
       straight ahead. For each of the three speaker positions, how do you
       expect the left-ear and right-ear readings to compare with each other?
       And how do the readings differ across the three positions? Explain.
   - number: 3
-    image: ../research_plan/images/q3_taxis.png
+    image: ../figures/images/q3_taxis.png
     text: >-
       The robot has two sound sensors, each in an external ear, with divergent
       axes (left ear tilted left, right ear tilted right). For each panel, how
       do you expect the left-ear and right-ear readings to compare with each
       other? Explain.
   - number: 4
-    image: ../research_plan/images/q4_taxis.png
+    image: ../figures/images/q4_taxis.png
     text: >-
       The robot has two sound sensors, each in an external ear, with divergent
       axes. Based on these two readings, where do you think the speaker is?
