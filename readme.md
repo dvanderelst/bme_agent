@@ -208,7 +208,9 @@ Sends messages to a Mistral agent and manages server-side conversation state. Un
 
 ### `moderation.py`
 
-Classifies user messages using the Mistral moderation classifier before they reach the main agent. Fails closed: API errors block the message and surface a warning in the chat UI.
+Classifies user messages using the Mistral moderation classifier before they reach the main agent. The classifier itself raises on API error; the chat UI wraps the call with **retry-then-fail-open** semantics (`run_moderation` in `pages/1_Chat.py`): on a first error, retry once after a 1-second delay, and if that also fails, log a warning and let the message through to the LLM. Genuine moderation hits — the API succeeded and flagged the message — still block as expected and surface the violated categories in the chat.
+
+The reasoning behind failing open rather than closed: a single dropped packet on classroom wifi shouldn't dead-end a student's conversation, and the moderation classifier is a defense-in-depth layer rather than the only safety mechanism (the LLM has its own training-level guardrails). The cost of a brief gap in the moderation layer during a transient outage is much smaller than the cost of constantly disrupting students' workflow.
 
 #### Active categories
 

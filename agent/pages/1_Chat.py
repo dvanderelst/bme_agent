@@ -1,14 +1,21 @@
-import streamlit as st
 import logging
+import time
+
+import streamlit as st
+
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
 from shared_lib.postgres_logger import get_postgres_client, log_interaction, log_feedback
 
+# Wait between the failed first moderation call and the retry. Long enough
+# for a transient network blip to resolve, short enough that the student
+# barely notices.
+MODERATION_RETRY_DELAY_SECONDS = 1.0
+
 SESSION_AUTHENTICATED = "authenticated"
 SESSION_MESSAGES = "messages"
 SESSION_CONVERSATION_ID = "conversation_id"
-SESSION_MODERATION_ERROR = "moderation_error"
 SESSION_STUDENT = "student"
 SESSION_STUDENT_ID = "student_id"
 SESSION_FEEDBACK_KEY = "feedback_key"
@@ -84,16 +91,24 @@ if not agent_id:
 def run_moderation(message: str) -> tuple[bool, list]:
     """Run message through the Mistral moderation classifier.
 
-    Returns (passed, flagged_categories).
-    Fails closed on API error — blocks the message and logs the incident.
+    Returns (passed, flagged_categories). Retries once on API error; if the
+    retry also fails, fails open (returns passed=True) so a transient blip
+    doesn't dead-end a student's conversation. The LLM has its own
+    training-level guardrails as a second line of defense — see readme.md.
     """
-    try:
-        result = moderate(message)
-        return result.passed, result.flagged_categories
-    except Exception as e:
-        logging.error(f"Moderation API call failed: {e}")
-        st.session_state[SESSION_MODERATION_ERROR] = message
-        return False, []
+    for attempt in (1, 2):
+        try:
+            result = moderate(message)
+            return result.passed, result.flagged_categories
+        except Exception as e:
+            if attempt == 1:
+                logging.warning("Moderation API call failed (retrying once): %s", e)
+                time.sleep(MODERATION_RETRY_DELAY_SECONDS)
+            else:
+                logging.warning(
+                    "Moderation API call failed after retry; failing open: %s", e
+                )
+    return True, []
 
 # Initialize session state
 if SESSION_MESSAGES not in st.session_state:
@@ -167,18 +182,6 @@ if st.session_state.get(SESSION_LAST_BACKEND) != backend:
 if backend == "anthropic" and st.session_state[SESSION_CONVERSATION_ID] is None:
     st.session_state[SESSION_CONVERSATION_ID] = "Not Applicable"
 
-# Show moderation system error if one occurred
-if st.session_state.get(SESSION_MODERATION_ERROR):
-    st.warning(
-        "Something went wrong processing your message. "
-        "Please restart the chat and try again."
-    )
-    if st.button("Restart Chat"):
-        st.session_state[SESSION_MESSAGES] = []
-        st.session_state[SESSION_CONVERSATION_ID] = None
-        st.session_state[SESSION_MODERATION_ERROR] = None
-        st.rerun()
-
 # Display chat messages from history on app rerun
 for message in st.session_state[SESSION_MESSAGES]:
     with st.chat_message(message["role"]):
@@ -202,14 +205,14 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     moderation_passed, flagged_categories = run_moderation(prompt)
 
     if not moderation_passed:
-        if not st.session_state.get(SESSION_MODERATION_ERROR):
-            # Message was rejected — tell the student which categories were violated
-            categories_str = ", ".join(flagged_categories) if flagged_categories else "content policy"
-            agent_response = f"I'm sorry, I can't process that request. Violated categories: **{categories_str}**."
-            with st.chat_message("assistant"):
-                st.markdown(agent_response)
-            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
-        # If SESSION_MODERATION_ERROR is set, the warning box above handles the messaging
+        # Message was rejected — tell the student which categories were violated.
+        # (run_moderation fails open on API errors, so reaching this branch
+        # means the classifier really did flag the message.)
+        categories_str = ", ".join(flagged_categories) if flagged_categories else "content policy"
+        agent_response = f"I'm sorry, I can't process that request. Violated categories: **{categories_str}**."
+        with st.chat_message("assistant"):
+            st.markdown(agent_response)
+        st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
     else:
         # Get response from the configured backend
         try:

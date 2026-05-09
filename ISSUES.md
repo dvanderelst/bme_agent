@@ -25,7 +25,7 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* If the call raises mid-flight, `SESSION_CONVERSATION_ID` may not update; on retry the same prompt may be sent against `None` or a stale id, producing duplicate or context-mismatched server-side conversations.
   *Fix:* Update `conversation_id` only on confirmed success; clear local state on failure.
 
-- [ ] **4. Moderation failure leaves a dead-end.**
+- [x] **4. Moderation failure leaves a dead-end.**
   *Where:* `agent/pages/1_Chat.py:84-96, 171-180`
   *Why:* A transient moderation API blip flips `SESSION_MODERATION_ERROR` until full chat restart. On flaky wifi this means a forced reset for every dropped moderation call.
   *Fix:* Clear the flag on the next successful turn; treat moderation API errors as soft (retry once, fail open with a logged warning) rather than hard.
