@@ -14,8 +14,8 @@ database_url = st.session_state.get("database_url")
 TASKS = [
     ("mimic", "Mimic Color"),
     ("approach", "Approach Color"),
-    ("kinesis", "Kinesis"),
-    ("taxis", "Taxis"),
+    ("kinesis", "Kinesis Sound Localization"),
+    ("taxis", "Taxis Sound Localization"),
 ]
 
 

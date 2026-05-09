@@ -1,5 +1,5 @@
 task: taxis
-title: Taxis
+title: Taxis Sound Localization
 questions:
   - number: 1
     image: ../research_plan/images/q1_taxis.png
