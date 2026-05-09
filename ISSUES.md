@@ -119,27 +119,27 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### Medium severity
 
-- [ ] **20. Restart-allocation race.**
+- [x] **20. Restart-allocation race.**
   *Where:* `research/rubric_db.py:90-93`
   *Why:* `next_attempt_number` reads `max+1` outside any transaction; two near-simultaneous restarts can both decide on the same N+1 then collide on the UNIQUE constraint at Q1.
   *Fix:* Allocate atomically — e.g. `INSERT ... ON CONFLICT DO NOTHING RETURNING attempt`, bump and retry on miss.
 
-- [ ] **21. `completed` is computed from `MAX(question_no)`, not `COUNT(*)`.**
+- [x] **21. `completed` is computed from `MAX(question_no)`, not `COUNT(*)`.**
   *Where:* `research/rubric_db.py:63-87`
   *Why:* If rows ever land non-contiguously (multi-tab race; future code change), `{1, 3, 5}` shows as completed and Q2/Q4 silently absent.
   *Fix:* `COUNT(*) = TOTAL_QUESTIONS` for completion; base the next-question pointer on the smallest gap.
 
-- [ ] **22. `note` denormalization relies on `MAX(note)`.**
+- [x] **22. `note` denormalization relies on `MAX(note)`.**
   *Where:* `research/rubric_db.py:68`
   *Why:* Works only because every row of an attempt currently has the same value. Fragile if a future code change writes per-question notes.
   *Fix:* Pull the note from `question_no = 1` only, or move it to a per-attempt table.
 
-- [ ] **23. Image-not-found falls through to a still-submittable form.**
+- [x] **23. Image-not-found falls through to a still-submittable form.**
   *Where:* `research/pages/3_Survey.py:87-90`
   *Why:* A path typo silently degrades to a yellow warning while answers continue saving. If figures move or get renamed, students answer questions they can't see.
   *Fix:* Disable submit (or `st.stop()`) when the image is missing; log the failure to Postgres.
 
-- [ ] **24. `record_answer` collapses three error classes into one user-visible message.**
+- [x] **24. `record_answer` collapses three error classes into one user-visible message.**
   *Where:* `research/rubric_db.py:96-137`
   *Why:* UNIQUE collision, transient connection errors, and malformed JSON all surface as "Could not save your answer." Hides actionable cases (e.g. "another tab already saved this").
   *Fix:* Branch on SQLSTATE; surface duplicates differently.

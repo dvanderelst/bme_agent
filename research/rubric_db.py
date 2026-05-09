@@ -55,8 +55,16 @@ def get_progress(database_url: str, username: str, task: str) -> Dict[str, Any]:
     Return progress on the most recent attempt for (username, task).
 
     No rows yet → {"attempt": 0, "last_question": 0, "completed": False, "note": None}.
-    Otherwise the latest attempt's state is returned. "completed" is True when
-    the latest attempt has all four questions answered.
+    Otherwise the latest attempt's state is returned.
+
+    Notes:
+        - `completed` is True only when the count of answered questions equals
+          TOTAL_QUESTIONS. Using COUNT(*) rather than MAX(question_no) means a
+          gap in the row set (e.g. {1, 3, 5}) doesn't get reported as completed.
+        - `note` is read from the question_no = 1 row of the latest attempt.
+          The schema currently denormalizes the same note onto every row of
+          an attempt, but FILTER (WHERE question_no = 1) means a future change
+          that writes per-question notes won't silently pick an arbitrary one.
     """
     with psycopg2.connect(database_url) as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -64,8 +72,9 @@ def get_progress(database_url: str, username: str, task: str) -> Dict[str, Any]:
                 """
                 SELECT
                     attempt,
-                    MAX(question_no) AS last_question,
-                    MAX(note)        AS note
+                    MAX(question_no)                            AS last_question,
+                    COUNT(*)                                    AS answered_count,
+                    MAX(note) FILTER (WHERE question_no = 1)    AS note
                 FROM rubric_responses
                 WHERE username = %s AND task = %s
                 GROUP BY attempt
@@ -82,7 +91,7 @@ def get_progress(database_url: str, username: str, task: str) -> Dict[str, Any]:
     return {
         "attempt": row["attempt"],
         "last_question": row["last_question"],
-        "completed": row["last_question"] >= TOTAL_QUESTIONS,
+        "completed": row["answered_count"] == TOTAL_QUESTIONS,
         "note": row["note"],
     }
 
@@ -102,12 +111,23 @@ def record_answer(
     answer_text: Optional[str] = None,
     answer_json: Optional[Dict[str, Any]] = None,
     note: Optional[str] = None,
-) -> bool:
+) -> Dict[str, Any]:
     """
-    Insert one answer row. Returns True on success.
+    Insert one answer row.
 
     Provide answer_text for Q1–Q4 (free text) and answer_json for Q5
     (structured wrap-up). At least one of the two must be supplied.
+
+    Returns:
+        {"ok": True}                            — row was inserted.
+        {"ok": False, "reason": "duplicate"}    — UNIQUE constraint violation.
+                                                  In normal flow our submit-time
+                                                  re-check should catch this
+                                                  case first, but the explicit
+                                                  branch lets the caller surface
+                                                  a clearer message if a race
+                                                  ever slips through.
+        {"ok": False, "reason": "error"}        — any other DB error.
     """
     if answer_text is None and answer_json is None:
         raise ValueError("Either answer_text or answer_json must be provided")
@@ -131,7 +151,10 @@ def record_answer(
                         note,
                     ),
                 )
-        return True
+        return {"ok": True}
+    except psycopg2.errors.UniqueViolation as e:
+        logging.warning("Duplicate rubric_responses row: %s", e)
+        return {"ok": False, "reason": "duplicate"}
     except psycopg2.Error as e:
         logging.error("Postgres error recording rubric answer: %s", e)
-        return False
+        return {"ok": False, "reason": "error"}

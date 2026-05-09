@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 import streamlit as st
@@ -109,10 +110,20 @@ if 1 <= current_question <= 4:
     q = task_data["questions"][current_question - 1]
 
     img_path = (QUESTIONS_DIR.parent / q["image"]).resolve()
-    if img_path.exists():
-        st.image(str(img_path))
-    else:
-        st.warning(f"(Image not found: {q['image']})")
+    if not img_path.exists():
+        # The student can't meaningfully answer a figure-grounded question
+        # without seeing the figure. Halt with an instructor-actionable
+        # message rather than letting them submit blind.
+        logging.error(
+            "Survey image missing for %s Q%d: %s",
+            task, current_question, img_path,
+        )
+        st.error(
+            "The image for this question is missing. Please ask an "
+            "instructor to look at the deployment."
+        )
+        st.stop()
+    st.image(str(img_path))
 
     st.markdown(q["text"])
 
@@ -134,14 +145,19 @@ if 1 <= current_question <= 4:
                 # captured (attempt, current_question) is stale and we
                 # mustn't write under those keys.
                 live = get_progress(database_url, username, task)
-                expected_q = (live["last_question"] + 1) if live["attempt"] == attempt else 1
-                if live["attempt"] != attempt or expected_q != current_question:
+                if live["attempt"] > attempt:
+                    expected_q = None  # stale tab
+                elif live["attempt"] == attempt:
+                    expected_q = live["last_question"] + 1
+                else:
+                    expected_q = 1  # fresh attempt; no rows yet
+                if expected_q != current_question:
                     st.error(
                         "This task changed in another tab while you were "
                         "answering. Reload the page to continue."
                     )
                 else:
-                    ok = record_answer(
+                    result = record_answer(
                         database_url,
                         username,
                         task,
@@ -150,9 +166,15 @@ if 1 <= current_question <= 4:
                         answer_text=answer.strip(),
                         note=restart_note,
                     )
-                    if ok:
+                    if result["ok"]:
                         st.toast(f"Q{current_question} saved", icon="✅")
                         st.rerun()
+                    elif result.get("reason") == "duplicate":
+                        st.error(
+                            "Looks like this answer was already saved "
+                            "(probably from another tab). Reload the page "
+                            "to continue."
+                        )
                     else:
                         st.error(
                             "Could not save your answer — please try again. "
@@ -230,7 +252,13 @@ elif current_question == 5:
                 # Re-check progress at submit time (same race-protection
                 # logic as the Q1–Q4 path).
                 live = get_progress(database_url, username, task)
-                if live["attempt"] != attempt or (live["last_question"] + 1) != 5:
+                if live["attempt"] > attempt:
+                    expected_q = None
+                elif live["attempt"] == attempt:
+                    expected_q = live["last_question"] + 1
+                else:
+                    expected_q = 1
+                if expected_q != 5:
                     st.error(
                         "This task changed in another tab while you were "
                         "answering. Reload the page to continue."
@@ -243,7 +271,7 @@ elif current_question == 5:
                         "specifics": specifics.strip() or None,
                         "comments": comments.strip() or None,
                     }
-                    ok = record_answer(
+                    result = record_answer(
                         database_url,
                         username,
                         task,
@@ -252,9 +280,14 @@ elif current_question == 5:
                         answer_json=answer_json,
                         note=restart_note,
                     )
-                    if ok:
+                    if result["ok"]:
                         st.toast("Q5 saved", icon="✅")
                         st.rerun()
+                    elif result.get("reason") == "duplicate":
+                        st.error(
+                            "Looks like Q5 was already saved (probably from "
+                            "another tab). Reload the page to continue."
+                        )
                     else:
                         st.error(
                             "Could not save your answers — please try again. "
