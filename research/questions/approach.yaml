@@ -1,0 +1,36 @@
+task: approach
+title: Approach Color
+questions:
+  - number: 1
+    image: ../research_plan/images/q1_approach.png
+    text: >-
+      The robot has one light detector without a color filter. A red LED and a
+      green LED are placed in front of it, equally distant. Panel 1 shows the
+      robot turned toward the green LED; panel 2 shows it turned toward the
+      red LED. How (if at all) do you expect the sensor's reading to differ
+      between the two panels? Explain.
+  - number: 2
+    image: ../research_plan/images/q2_approach.png
+    text: >-
+      The robot has one light detector with a red filter. A red LED and a
+      green LED are placed in front of it, equally distant. Panel 1 shows the
+      robot turned toward the green LED; panel 2 shows it turned toward the
+      red LED. How (if at all) do you expect the sensor's reading to differ
+      between the two panels? Explain.
+  - number: 3
+    image: ../research_plan/images/q3_approach.png
+    text: >-
+      The robot has two light detectors at the front — one with a red filter
+      and one with a green filter. A red LED and a green LED are placed in
+      front of it, equally distant. Panel 1 shows the robot turned toward the
+      green LED; panel 2 shows it turned toward the red LED. For each panel,
+      how do you expect the red-filter and green-filter readings to compare
+      with each other? Explain.
+  - number: 4
+    image: ../research_plan/images/q4_approach.png
+    text: >-
+      The robot's task is to turn toward the cyan LED. It has two light
+      detectors — one with a green filter, one with a blue filter. The two
+      panels show what the robot reads when facing the cyan LED versus the
+      white LED. Can the robot reliably tell which LED it is facing, and use
+      these readings to approach the cyan LED specifically? Explain.

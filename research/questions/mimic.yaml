@@ -1,0 +1,29 @@
+task: mimic
+title: Mimic Color
+questions:
+  - number: 1
+    image: ../research_plan/images/q1_mimic.png
+    text: >-
+      The robot has one light detector without a color filter. We light the
+      three LEDs in succession (one at a time). How (if at all) do you expect
+      the sensor's reading to differ across the three LEDs? Could the robot
+      use this single detector to tell which LED is on? Explain.
+  - number: 2
+    image: ../research_plan/images/q2_mimic.png
+    text: >-
+      The robot has one light detector with a red filter. We light the three
+      LEDs in succession. How (if at all) do you expect the sensor's reading
+      to differ across the three LEDs? Explain.
+  - number: 3
+    image: ../research_plan/images/q3_mimic.png
+    text: >-
+      The robot has two light detectors, one with a red filter and one with a
+      green filter. We light a cyan LED in front of the robot. How do you
+      expect the red-filter and green-filter readings to compare? Explain.
+  - number: 4
+    image: ../research_plan/images/q4_mimic.png
+    text: >-
+      The robot has three light detectors with red, green, and blue filters.
+      The readings are R = 200, G = 190, B = 50. Two candidate LEDs could be
+      producing this pattern: a dim red LED, or a bright yellow LED. Which of
+      the two matches the observed readings? Explain.

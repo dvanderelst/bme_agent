@@ -2,5 +2,6 @@ streamlit
 psycopg2-binary
 bcrypt
 toml
+pyyaml
 python-dateutil
 pytz

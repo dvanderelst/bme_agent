@@ -1,0 +1,27 @@
+task: kinesis
+title: Kinesis
+questions:
+  - number: 1
+    image: ../research_plan/images/q1_kinesis.png
+    text: >-
+      The robot is equipped with one sound sensor. We play sound from speakers
+      1 and 2 in succession. How (if at all) do you expect the sensor's reading
+      to differ between the two speakers? Explain.
+  - number: 2
+    image: ../research_plan/images/q2_kinesis.png
+    text: >-
+      The robot is equipped with one sound sensor in an external ear. How do
+      you expect the sensor's reading to differ across the three orientations?
+      Explain.
+  - number: 3
+    image: ../research_plan/images/q3_kinesis.png
+    text: >-
+      The robot is equipped with one sound sensor in an external ear. We play
+      sound from speakers 1 and 2 in succession. Which speaker gives the louder
+      reading? Explain — does the answer depend on where the body is facing, or
+      where the ear is pointing?
+  - number: 4
+    image: ../research_plan/images/q4_kinesis.png
+    text: >-
+      The robot is equipped with one sound sensor in an external ear. Based on
+      these two readings, where do you think the speaker is? Explain.
