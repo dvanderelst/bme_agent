@@ -88,6 +88,7 @@ We will assess whether the chatbot affects (1) production, (2) learning and unde
 - Scoring of production rubrics should be blinded to condition and day.
 - Instructors are present in all four slots, including the chatbot-on slots; chatbot availability changes, instructor availability does not. Otherwise interaction-frequency differences would confound chatbot use with instructor presence.
 - Observers cannot be blind to chatbot condition (the room is on or off, visibly). Any subjective coding is anchored to a written scheme decided before Day 1, and intercoder agreement is reported on a sampled fraction of slots.
+- Pre-program surveys (administered before Day 1 by the BME program) provide baseline covariates — prior programming experience, prior chatbot use and familiarity, and other student-level fields — available for inclusion in the analysis models as moderators or controls if desired.
 
 ### Learning rubric design
 
@@ -95,9 +96,16 @@ The current image-based scaffolded format is a deliberate move away from two alt
 
 Multiple-choice was also considered and rejected. MC would require designing distractor options that anticipate every interesting wrong answer — work the image-based scaffolding does without losing the depth signal that open-ended responses preserve.
 
+**Q5 — structured per-task wrap-up.** Following the four scaffolded free-text questions, each task ends with a Q5 page capturing additional structured items. The currently deployed placeholder asks whether the student used the chatbot for this task, how useful it was, plus open comments. The intent is to settle the final set with collaborators before Day 1. Candidate additional items include:
+
+- *Student self-rating on the production rubric* — same five items as the instructor-/AI-scored production rubric, asked of the student. The contrast between self-rating and the actual production score is itself a substantive output: students who believe their robot is fine vs. students who recognise what's still missing.
+- *Outstanding problems* — a short prompt asking what the student thinks is still wrong with their robot or where they got stuck.
+
+Q5 is treated as descriptive — it does not enter the BT-aggregated learning score, since its widgets aren't pairwise-comparable text answers. Where a Q5 widget needs to distinguish "answered" from "didn't touch" (radios, sliders, …), the survey app enforces this so an unanswered question never looks in the data like a deliberate neutral response — the design rule lives as a comment block in `research/pages/3_Survey.py`.
+
 ### Scoring plan
 
-- **Production rubrics.** Each item 0–3: absent/rudimentary/partial/clearly present.
+- **Production rubrics.** Each item 0–3: absent/rudimentary/partial/clearly present. Scored from the student's robot code plus a photo of their robot. Scoring is **theoretical** — does the code, in principle, implement the rubric item — rather than behavioural. Whether the robot actually completes the task at the moment the photo is taken depends on parameter tuning, lighting, distance, and exact setup, none of which we want to penalise; what we want to capture is whether the student wrote code that *could* solve the task. Q5 (above) gives us the student's own rating on the same items as a complementary signal of self-perceived success.
 - **Learning rubrics.** Pairwise comparison of anonymized answers. Adaptive Comparative Judgment (ACJ) to pick informative pairs — stable ranking in ~10–15×N comparisons rather than full pairwise. Multiple rounds / multiple AI models as judges; aggregate via Bradley-Terry to get interval scores.
 - **Instructor-interaction observations.** Counts (and topic codes, if adopted) compiled directly from observer logs; no additional scoring step.
 

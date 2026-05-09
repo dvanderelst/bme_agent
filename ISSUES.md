@@ -182,10 +182,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* Halves A/B share within-slot task order, so task order is a half-level treatment with n=2 clusters. Without `(1|half)` or a half fixed effect, between-half variance is mis-attributed to students.
   *Fix:* Add half as a random or fixed effect; acknowledge n=2 limits identifiability.
 
-- [ ] **31. Q5 isn't in the plan.**
+- [x] **31. Q5 isn't in the plan.**
   *Where:* §Learning rubric design
   *Why:* The deployed survey has a Q5 structured JSON wrap-up, but the plan only describes Q1–Q4. ACJ scoring is specified over "answers" without saying whether Q5 is included.
   *Fix:* State explicitly how Q5 enters the BT score (or doesn't); add a description of its current placeholder fields and noted-as-TBD status.
+  *Resolution (2026-05-09):* Added a "Q5 — structured per-task wrap-up" paragraph to §Learning rubric design listing the current placeholder fields and candidate additional items (student self-rating on the production rubric; outstanding-problems prompt). Stated that Q5 is descriptive only — not BT-aggregated. Pointed at the design-comment block in `research/pages/3_Survey.py` for the "answered vs untouched" rule.
 
 - [ ] **32. No priors or likelihoods specified.**
   *Where:* §Analysis plan
@@ -194,15 +195,17 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### Medium severity
 
-- [ ] **33. No baseline confounders collected.**
+- [x] **33. No baseline confounders collected.**
   *Where:* (missing throughout)
   *Why:* Prior programming experience, prior chatbot familiarity, native language are obvious moderators of both production and learning, and of differential chatbot benefit.
   *Fix:* Add a one-time baseline survey before Day 1.
+  *Resolution (2026-05-09):* Already addressed by the BME program's existing pre-program surveys, one of which explicitly asks about prior experience with and use of chatbots. Added a bullet to §Methodological safeguards noting that pre-program survey fields are available as covariates / moderators in the analysis models if desired.
 
-- [ ] **34. No IRB/consent, data-sharing, dropout, or pre-registration plan.**
+- [~] **34. No IRB/consent, data-sharing, dropout, or pre-registration plan.** *(out of scope for ResearchPlan.md)*
   *Where:* (missing throughout)
   *Why:* Identifiable usernames in chatbot/observation logs and AI-judged answers — not optional. Reviewers will block on this.
   *Fix:* Add §Ethics and §Pre-registration sections.
+  *Resolution (2026-05-09):* Acknowledged as needed but not in scope for `ResearchPlan.md`, which is the study-design document. IRB / consent / data-sharing / pre-registration live in separate documents managed outside this repo.
 
 - [ ] **35. Exclusion / partial-data rules undefined.**
   *Where:* (missing throughout)
@@ -221,7 +224,8 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* Robot photos visibly differ between color-vision and sound-localization tasks; condition (chatbot on/off) may leak through code style/comments.
   *Fix:* Describe the blinding procedure (file scrub, ID-only labels).
 
-- [ ] **38. Mimic items 2 and 5 need behavioral verification, not just code reading.**
+- [x] **38. Mimic items 2 and 5 need behavioral verification, not just code reading.**
   *Where:* §Production rubric: Mimic Color
   *Why:* "Does the robot produce the correct output color" and "can the robot mimic more than two distinct colors" require running the code, not inspecting it.
   *Fix:* Specify whether the scorer runs the code or judges from inspection.
+  *Resolution (2026-05-09):* Production rubric is intentionally **theoretical** — does the code, in principle, implement the rubric item — rather than behavioural. Whether the robot actually completes the task at the moment of the photo depends on parameter tuning, lighting, distance, and exact setup, none of which we want to penalise. Clarified this in §Scoring plan. Behavioural / self-perception data is captured separately via Q5 — added "student self-rating on the production rubric" as a candidate Q5 item, plus an outstanding-problems prompt; the contrast between self-rating and the actual production score is itself a substantive output.
