@@ -7,9 +7,7 @@ and prints results so we can assess thresholds and coverage.
 import pathlib
 import sys
 
-_HERE = pathlib.Path(__file__).resolve()
-sys.path.insert(0, str(_HERE.parents[1]))   # agent/
-sys.path.insert(0, str(_HERE.parents[2]))   # repo root
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "agent"))
 
 from mistral_lib.moderation import moderate_batch
 from mistral_lib.config import get as mistral_config

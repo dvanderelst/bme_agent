@@ -22,12 +22,9 @@ Usage:
 
 import argparse
 import os
-import pathlib
 import sys
 from typing import Any, Dict, List
 from urllib.parse import urlparse
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # repo root
 
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values

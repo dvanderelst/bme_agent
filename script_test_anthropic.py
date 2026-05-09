@@ -7,9 +7,7 @@ and multi-turn history works correctly.
 import pathlib
 import sys
 
-_HERE = pathlib.Path(__file__).resolve()
-sys.path.insert(0, str(_HERE.parents[1]))   # agent/
-sys.path.insert(0, str(_HERE.parents[2]))   # repo root
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "agent"))
 
 from anthropic_lib.conversation_management import send_message
 

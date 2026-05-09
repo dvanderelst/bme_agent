@@ -10,9 +10,7 @@ import pathlib
 import re
 import sys
 
-_HERE = pathlib.Path(__file__).resolve()
-sys.path.insert(0, str(_HERE.parents[1]))   # agent/
-sys.path.insert(0, str(_HERE.parents[2]))   # repo root
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "agent"))
 
 import toml
 
