@@ -14,8 +14,13 @@ Usage:
     python script_chat.py mistral
 """
 
+import pathlib
 import sys
 from typing import Optional
+
+_HERE = pathlib.Path(__file__).resolve()
+sys.path.insert(0, str(_HERE.parents[1]))   # agent/
+sys.path.insert(0, str(_HERE.parents[2]))   # repo root
 
 BACKEND_ALIASES = {
     "anthropic": "anthropic", "a": "anthropic",

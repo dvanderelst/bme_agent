@@ -4,6 +4,13 @@ Runs a set of prompts through the Mistral moderation classifier
 and prints results so we can assess thresholds and coverage.
 """
 
+import pathlib
+import sys
+
+_HERE = pathlib.Path(__file__).resolve()
+sys.path.insert(0, str(_HERE.parents[1]))   # agent/
+sys.path.insert(0, str(_HERE.parents[2]))   # repo root
+
 from mistral_lib.moderation import moderate_batch
 from mistral_lib.config import get as mistral_config
 

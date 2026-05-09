@@ -4,6 +4,13 @@ Cleanup script to remove duplicate or unwanted libraries.
 Helps manage libraries created during testing.
 """
 import os
+import pathlib
+import sys
+
+_HERE = pathlib.Path(__file__).resolve()
+sys.path.insert(0, str(_HERE.parents[1]))   # agent/
+sys.path.insert(0, str(_HERE.parents[2]))   # repo root
+
 from shared_lib.config_manager import config
 from mistral_lib.library_management import list_libraries, delete_library, get_library, list_all_libraries
 

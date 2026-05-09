@@ -6,8 +6,13 @@ Available modules: color_vision.md, sonar.md, olfaction.md, touch_whiskers.md
 """
 
 import os
+import pathlib
 import re
 import sys
+
+_HERE = pathlib.Path(__file__).resolve()
+sys.path.insert(0, str(_HERE.parents[1]))   # agent/
+sys.path.insert(0, str(_HERE.parents[2]))   # repo root
 
 import toml
 
