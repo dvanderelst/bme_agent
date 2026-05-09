@@ -134,6 +134,30 @@ if 1 <= current_question <= 4:
                     )
 
 # --- Q5: structured wrap-up --------------------------------------------------
+#
+# DESIGN PRINCIPLE for every Q5 widget — read this before adding or
+# replacing fields below.
+#
+# Each input must distinguish a real answer from "didn't touch". A
+# student who clicks straight through Q5 must not look in the data like
+# they actively answered with whatever value was the widget's default.
+#
+# Concrete rules:
+#   - st.radio / st.selectbox: pass `index=None` so nothing is preselected;
+#     reject the submit if the value is still None and the question is
+#     required.
+#   - Avoid st.slider for ordinal ratings — sliders default to a midpoint
+#     that looks indistinguishable from a deliberate neutral answer. Use
+#     a horizontal `st.radio` over a small integer range instead. If a
+#     slider really is needed, pair it with a separate "didn't rate"
+#     checkbox.
+#   - Free-text (st.text_area / st.text_input): an empty string IS the
+#     "didn't touch" answer — store it as None on submit so that's explicit.
+#
+# The widgets below are placeholders; the actual Q5 questions are TBD.
+# Whatever they end up being, they must follow these same rules so the
+# analysis layer can tell skipped questions from neutral answers.
+#
 elif current_question == 5:
     st.markdown(
         "A few short questions about the task you just did. "
@@ -144,15 +168,16 @@ elif current_question == 5:
         used_chatbot = st.radio(
             "Did you use the chatbot for this task?",
             options=["Yes", "No"],
+            index=None,
             horizontal=True,
             key="q5_used_chatbot",
         )
-        usefulness = st.slider(
-            "If yes — how useful was the chatbot? (Skip if you didn't use it.)",
-            min_value=1,
-            max_value=5,
-            value=3,
-            step=1,
+        usefulness = st.radio(
+            "If yes — how useful was the chatbot? "
+            "(1 = not useful, 5 = very useful. Leave blank if you didn't use it.)",
+            options=[1, 2, 3, 4, 5],
+            index=None,
+            horizontal=True,
             key="q5_usefulness",
         )
         specifics = st.text_area(
@@ -167,27 +192,36 @@ elif current_question == 5:
         )
         submitted = st.form_submit_button("Submit and finish", type="primary")
         if submitted:
-            used_chatbot_bool = used_chatbot == "Yes"
-            answer_json = {
-                "used_chatbot": used_chatbot_bool,
-                "usefulness": usefulness if used_chatbot_bool else None,
-                "specifics": specifics.strip() or None,
-                "comments": comments.strip() or None,
-            }
-            ok = record_answer(
-                database_url,
-                username,
-                task,
-                attempt,
-                5,
-                answer_json=answer_json,
-                note=restart_note,
-            )
-            if ok:
-                st.toast("Q5 saved", icon="✅")
-                st.rerun()
-            else:
+            if used_chatbot is None:
                 st.error(
-                    "Could not save your answers — please try again. "
-                    "If this keeps happening, ask an instructor."
+                    "Please answer whether you used the chatbot for this task."
                 )
+            elif used_chatbot == "Yes" and usefulness is None:
+                st.error(
+                    "You said you used the chatbot — please rate how useful it was."
+                )
+            else:
+                used_chatbot_bool = used_chatbot == "Yes"
+                answer_json = {
+                    "used_chatbot": used_chatbot_bool,
+                    "usefulness": usefulness if used_chatbot_bool else None,
+                    "specifics": specifics.strip() or None,
+                    "comments": comments.strip() or None,
+                }
+                ok = record_answer(
+                    database_url,
+                    username,
+                    task,
+                    attempt,
+                    5,
+                    answer_json=answer_json,
+                    note=restart_note,
+                )
+                if ok:
+                    st.toast("Q5 saved", icon="✅")
+                    st.rerun()
+                else:
+                    st.error(
+                        "Could not save your answers — please try again. "
+                        "If this keeps happening, ask an instructor."
+                    )

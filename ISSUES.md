@@ -101,12 +101,12 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* Tab A on Q3 of attempt 1; Tab B restarts → attempt 2. Tab A's next submit silently upgrades `attempt` to 2 in-place; the textarea contents land on the wrong (attempt, question_no) row.
   *Fix:* If `progress["attempt"] != session_state.attempt`, abort the form, show "this task was restarted in another tab; reload" and force a rerun.
 
-- [ ] **17. `q5_used_chatbot` defaults to "Yes".**
+- [x] **17. `q5_used_chatbot` defaults to "Yes".**
   *Where:* `research/pages/3_Survey.py:132-137`
   *Why:* `st.radio` defaults to the first option, so any student who clicks straight through Q5 records `used_chatbot=true`. Pollutes the headline join `answer_json->>'used_chatbot'`.
   *Fix:* Pass `index=None`; reject submit if still None.
 
-- [ ] **18. Q5 `usefulness` slider stores `3` (middle) as if it were a real answer.**
+- [x] **18. Q5 `usefulness` slider stores `3` (middle) as if it were a real answer.**
   *Where:* `research/pages/3_Survey.py:138-145, 161`
   *Why:* Default value=3 is stored verbatim when `used_chatbot=True`. Middle-of-range looks like a deliberate neutral rating.
   *Fix:* Add a separate "I didn't rate it" option, or use a 0/None sentinel and a "no rating" radio.
