@@ -53,7 +53,7 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* Auth gate is `session_state.authenticated` only; no re-check of `enabled`. An instructor disabling a student takes effect only on next login.
   *Fix:* Re-fetch the student row on a hot path (e.g. before each LLM call) and `st.stop()` if `enabled` is False.
 
-- [ ] **9. Empty file registry fails silently.**
+- [x] **9. Empty file registry fails silently.**
   *Where:* `agent/anthropic_lib/conversation_management.py:50-57`
   *Why:* If the registry is empty, the model still answers (without docs) and the student gets generic answers with no indication the RAG layer is broken.
   *Fix:* At minimum surface to diagnostics users; consider failing closed when registry is unexpectedly empty.

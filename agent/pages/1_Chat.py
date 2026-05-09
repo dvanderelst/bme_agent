@@ -6,6 +6,7 @@ import streamlit as st
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
+from anthropic_lib.file_registry import load as load_registry
 from shared_lib.auth import lookup_student
 from shared_lib.postgres_logger import get_postgres_client, log_interaction, log_feedback
 
@@ -185,6 +186,25 @@ if backend not in ("mistral", "anthropic"):
     logging.error("Student %s has invalid backend: %r", student_id, backend)
     st.error("Sorry, you can't use the chatbot at this moment.")
     st.stop()
+
+# Anthropic relies on the local file registry — populated by
+# script_configure_agents.py — to attach the BME knowledge base to every
+# turn. An empty registry means the model would silently degrade to a
+# generic Claude with no docs, and neither the student nor the instructor
+# would see a signal. Fail closed instead, with an instructor-actionable
+# message. (Mistral keeps its docs server-side in a library, so this
+# check doesn't apply.)
+if backend == "anthropic":
+    if not load_registry():
+        logging.error(
+            "Anthropic file registry is empty for student %s; aborting chat",
+            student_id,
+        )
+        st.error(
+            "The chatbot's knowledge base is currently unavailable. "
+            "Please contact an instructor."
+        )
+        st.stop()
 
 # Diagnostic users can flip backends mid-session via the sidebar radio.
 # A conversation id from one backend has no meaning in the other (Mistral
@@ -397,3 +417,12 @@ if diagnostics_enabled:
                 st.write("(no turns yet)")
         with st.expander("Student row"):
             st.json(student)
+        # Anthropic-only — Mistral keeps documents server-side in its
+        # library and we can't introspect that from here.
+        if backend == "anthropic":
+            registry = load_registry()
+            with st.expander(f"Anthropic registry ({len(registry)} docs)"):
+                if registry:
+                    st.json({k: v.get("title") for k, v in registry.items()})
+                else:
+                    st.write("(empty — chat is blocked above)")
