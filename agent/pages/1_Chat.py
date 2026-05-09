@@ -226,7 +226,18 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                         conversation_id=st.session_state[SESSION_CONVERSATION_ID],
                         display=False,
                     )
-                    st.session_state[SESSION_CONVERSATION_ID] = response.get('conversation_id')
+                    # Only update on a non-None id. If the response shape ever
+                    # changes and conversation_id is missing, overwriting with
+                    # None would silently start a fresh server-side
+                    # conversation on the next turn.
+                    new_conv_id = response.get('conversation_id')
+                    if new_conv_id is not None:
+                        st.session_state[SESSION_CONVERSATION_ID] = new_conv_id
+                    else:
+                        logging.warning(
+                            "Mistral response missing conversation_id for student %s; "
+                            "keeping previous value", student_id
+                        )
             agent_response = response.get('assistant_response', 'No response from agent')
 
             # Capture a diagnostic snapshot of what was just sent/received,
@@ -283,11 +294,27 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                 st.markdown(agent_response)
             # Add assistant response to chat history
             st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
-        except Exception as e:
-            error_msg = f"Error getting agent response: {str(e)}"
-            with st.chat_message("assistant"):
-                st.markdown(error_msg)
-            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": error_msg})
+        except Exception:
+            # Log the real exception with traceback for debugging; show the
+            # student a generic message so SDK errors (which can carry stack
+            # traces, internal IDs, or keys) don't leak to the chat.
+            logging.exception(
+                "Backend %s failed for student %s", backend, student_id
+            )
+            # Drop the user message that was queued for this turn. The API
+            # call didn't succeed so the model never saw it, and persisting
+            # it (or an error placeholder) into SESSION_MESSAGES would re-send
+            # it as part of history on the next turn — bad for Anthropic
+            # especially, where every replay re-renders the failed turn.
+            if (
+                st.session_state[SESSION_MESSAGES]
+                and st.session_state[SESSION_MESSAGES][-1].get("role") == "user"
+            ):
+                st.session_state[SESSION_MESSAGES].pop()
+            st.error(
+                "Sorry, something went wrong on my end. Please try sending "
+                "your message again."
+            )
 
 # Feedback widget — only shown once there is something to rate
 if st.session_state[SESSION_MESSAGES]:

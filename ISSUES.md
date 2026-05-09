@@ -10,17 +10,17 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### High severity
 
-- [ ] **1. Raw API errors leak to students.**
+- [x] **1. Raw API errors leak to students.**
   *Where:* `agent/pages/1_Chat.py:286-290`
   *Why:* Exception strings are rendered as Markdown in the chat. SDK errors can carry stack traces, internal IDs, or even keys.
   *Fix:* Catch and show a generic message; log the real one.
 
-- [ ] **2. Failed assistant turns persist into history and get re-sent.**
+- [x] **2. Failed assistant turns persist into history and get re-sent.**
   *Where:* `agent/pages/1_Chat.py:286-290` (same block)
   *Why:* On exception, the error string is appended with `role: assistant` and re-rendered every rerun, plus re-sent to the model on the next turn (Anthropic).
   *Fix:* Don't append on failure; show the error transiently.
 
-- [ ] **3. Mistral `conversation_id` can drift on partial failure.**
+- [x] **3. Mistral `conversation_id` can drift on partial failure.**
   *Where:* `agent/pages/1_Chat.py:223-229`
   *Why:* If the call raises mid-flight, `SESSION_CONVERSATION_ID` may not update; on retry the same prompt may be sent against `None` or a stale id, producing duplicate or context-mismatched server-side conversations.
   *Fix:* Update `conversation_id` only on confirmed success; clear local state on failure.
