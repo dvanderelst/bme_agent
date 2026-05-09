@@ -11,6 +11,7 @@
 - [ ] Digitize surveys → task aware?
 - [ ] Settle observer protocol for student↔instructor interactions (granularity, topic coding) — discuss with collaborators. Treated as a third outcome, not a control.
 - [ ] Build observer-log app: third Streamlit service alongside the chatbot and survey, reusing the same auth and Postgres.
+- [ ] Finalize Q5 items. At minimum add (a) student self-rating on the production rubric — same five items as the instructor/AI rubric, so the contrast between self-rating and actual score becomes its own output, and (b) an outstanding-problems prompt. Update `research/pages/3_Survey.py` plus §Learning rubric design in this file.
 
 # Research question
 
