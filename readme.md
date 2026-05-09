@@ -1,20 +1,52 @@
 # BME Agent
 
-Streamlit chatbot for the Biology Meets Engineering course. Students log in with credentials from a roster you manage locally; the app forwards their questions to either Mistral or Anthropic and logs every interaction to Postgres.
+Two Streamlit apps deployed together for the Biology Meets Engineering course:
+
+- **`agent/`** — chatbot that answers student questions using either Mistral or Anthropic, grounded in the BME knowledge base.
+- **`research/`** — survey app that walks a student through Q1–Q5 of a learning rubric for whichever lab task they just completed.
+
+Both share the same student authentication (bcrypt-hashed passwords in a Postgres `students` table) and the same Postgres database. They deploy as two separate services in a single Railway project, each with its own `railway.toml` and `start.sh`. Locally they're run via `dev_agent.sh` / `dev_research.sh`.
+
+The study design these apps support is `ResearchPlan.md` at the repo root. Open issues are tracked in `ISSUES.md`.
+
+---
+
+## Local development
+
+Both apps need a local `.env` at the repo root with the secrets they expect (`.env` is gitignored). Minimum:
 
 ```
-streamlit run app.py
+DATABASE_URL=postgres://...
+
+# Chatbot only
+MISTRAL_KEY=...
+ANTHROPIC_KEY=...
+BME_AGENT=...                      # Mistral agent ID
+BME_AGENT_LIBRARY=...              # Mistral library ID
+
+# Survey only
+RESTART_PASSCODE=...               # instructor passcode for restarting a survey attempt
 ```
+
+Then run either app from the repo root:
+
+```
+bash dev_agent.sh                  # chatbot at http://localhost:8501
+bash dev_research.sh               # survey   at http://localhost:8502
+```
+
+Both wrapper scripts source `.env`, prepend the project venv (`.venv/`) to `PATH`, and delegate to the per-app `start.sh` — the same script Railway runs in production. Each `start.sh` generates its own `.streamlit/secrets.toml` from environment variables, `cd`s into its app directory, exports `PYTHONPATH=<repo_root>` so `from shared_lib...` resolves, and `exec`s `streamlit run app.py`.
+
 ---
 
 ## FAQ
 
 ### How are documents handled by Mistral vs Anthropic?
 
-Both backends are fed from the same source folder (`agent_files/documents/`) by the same script (`script_configure_agents.py`), which wipes the existing state on each run and re-uploads everything. Per-document metadata (title + description) lives in **`agent_files/documents/manifest.toml`** — a single source of truth that both backends consume. What happens at chat time differs:
+Both backends are fed from the same source folder (`agent/agent_files/documents/`) by the same script (`script_configure_agents.py` at the repo root), which wipes the existing state on each run and re-uploads everything. Per-document metadata (title + description) lives in **`agent/agent_files/documents/manifest.toml`** — a single source of truth that both backends consume. What happens at chat time differs:
 
 - **Mistral** stores documents in a server-side *library* (`bme_agent_library`). The library is attached to the agent via a `document_library` tool. On each turn, the agent searches the library (RAG) and only pulls in relevant snippets — you don't pay tokens for documents the model doesn't consult. The manifest's per-doc descriptions are rolled up into a single library description (Mistral's SDK has no per-doc description hook), and each doc's title becomes its `document_name` on upload.
-- **Anthropic** stores documents in the workspace-level Files API as individual `file_id`s. `anthropic_lib/file_registry.json` (tracked in git so production picks it up) maps filenames to `{file_id, title, description}`. `conversation_management._build_document_blocks()` attaches **every** registered file as a content block to **every** new user message, with title and context pulled from the manifest — the model sees the whole document set on each turn, with each doc clearly labelled. No search step, but token cost grows with the library.
+- **Anthropic** stores documents in the workspace-level Files API as individual `file_id`s. `agent/anthropic_lib/file_registry.json` (tracked in git so production picks it up) maps filenames to `{file_id, title, description}`. `conversation_management._build_document_blocks()` attaches **every** registered file as a content block to **every** new user message, with title and context pulled from the manifest — the model sees the whole document set on each turn, with each doc clearly labelled. No search step, but token cost grows with the library.
   - Document blocks are placed **before** the user's text per Anthropic's guidance, so the model treats the docs as primary source material rather than appendices to skim after answering.
   - Only the file IDs go over the wire (a few hundred bytes); Anthropic resolves them server-side. But the model processes each file's full contents on every turn, so token cost scales with `document size × turn count` — the small request body does not reflect the actual cost.
   - Historical turns are sent as plain text only — document blocks are attached to the latest user message, not duplicated across history.
@@ -25,8 +57,8 @@ Practical implication: Anthropic is simpler (no relevance issues, model always h
 
 The two backends work very differently:
 
-- **Mistral**: We talk to a server-side *Agent* resource (the `bme_agent` ID in secrets). The agent owns its own model, instructions, libraries, tools, and description — all stored on Mistral's side. Change the model in Mistral's web console; it takes effect immediately, no redeploy. `script_configure_agents.py` only touches instructions and the library; the model selection lives entirely on the console.
-- **Anthropic**: No agent abstraction in our usage — we call `client.beta.messages.create()` directly with `model` as a parameter. The model name comes from `anthropic_lib/config.toml` (currently `claude-sonnet-4-6`); the system prompt is loaded each call from `agent_files/instructions/bme_agent_instructions.md`. To swap models (e.g. Sonnet → Opus), edit `anthropic_lib/config.toml` and redeploy on Railway.
+- **Mistral**: We talk to a server-side *Agent* resource (the `bme_agent` ID in secrets). The agent owns its own model, instructions, libraries, tools, description, and `completion_args` (including `max_tokens`) — all stored on Mistral's side. Change the model or `max_tokens` in Mistral's web console; it takes effect immediately, no redeploy. `script_configure_agents.py` only touches instructions and the library; everything else lives on the console.
+- **Anthropic**: No agent abstraction in our usage — we call `client.beta.messages.create()` directly with `model` as a parameter. The model name comes from `agent/anthropic_lib/config.toml` (currently `claude-sonnet-4-6`); the system prompt is loaded each call from `agent/agent_files/instructions/bme_agent_instructions.md`. To swap models (e.g. Sonnet → Opus) or change `max_tokens`, edit `agent/anthropic_lib/config.toml` and redeploy on Railway.
 
 Anthropic does have a *Managed Agents* API that mirrors Mistral's server-side-agent setup, but we're not using it.
 
@@ -49,29 +81,63 @@ Practical implication: every student message that hits either backend is real mo
 ## Project structure
 
 ```
-app.py                                    Streamlit login page
-pages/1_Chat.py                           Chat UI (post-login)
-mistral_lib/                              Mistral — conversations, agents, libraries, moderation
-anthropic_lib/                            Anthropic Claude — conversations, file management
-shared_lib/                               Shared utilities — config, auth, logging, Postgres
-agent_files/                              Documents and instructions uploaded to the agents
-agent_files/documents/manifest.toml       Per-doc title + description; consumed by both backends
+agent/                                    Chatbot service (deployed)
+  app.py                                    Login page
+  pages/1_Chat.py                           Chat UI (post-login)
+  mistral_lib/                              Mistral — conversations, agents, libraries, moderation
+  anthropic_lib/                            Anthropic Claude — conversations, file management, registry
+  agent_files/                              Documents + instructions uploaded to the backends
+  agent_files/documents/manifest.toml       Per-doc title + description; consumed by both backends
+  start.sh                                  Generates secrets.toml, launches streamlit
+  railway.toml                              Railway service config (this app)
+
+research/                                 Survey service (deployed)
+  app.py                                    Login page
+  pages/1_Intro.py                          Welcome / instructions
+  pages/2_Tasks.py                          Task picker + continue/restart UI
+  pages/3_Survey.py                         Q1–Q5 flow, saves to rubric_responses
+  questions/{kinesis,taxis,mimic,approach}.yaml   Q1–Q4 text + image refs per task
+  rubric_db.py                              rubric_responses schema + access functions
+  start.sh                                  Generates secrets.toml, launches streamlit
+  railway.toml                              Railway service config (this app)
+
+shared_lib/                               Shared by both apps — auth, Postgres logging, config
+
+figures/                                  Question-image generation pipeline
+  q{1..4}_{kinesis,taxis,mimic,approach}.py    Per-question render scripts
+  images/                                       Rendered PNGs (consumed by ResearchPlan.md and the survey)
+  assets/                                       SVG sources
+  render_lib.py                                 Shared rendering primitives
+
+ResearchPlan.md                           Study design document
+ISSUES.md                                 Open issue punch list
+
+# Repo-root scripts (run from the repo root):
+dev_agent.sh                              Local-dev wrapper for the chatbot
+dev_research.sh                           Local-dev wrapper for the survey
 script_configure_students.py              Sync local students.ods → Railway Postgres
 script_configure_agents.py                Configure both Mistral and Anthropic agents
 script_chat.py                            Interactive REPL for probing either backend with diagnostics
+script_manage_mistral_libraries.py        Cleanup / inspection for Mistral document libraries
+script_moderation_testing.py              Test the moderation classifier against a set of prompts
+script_test_anthropic.py                  Non-interactive regression suite for Anthropic
 students.ods                              Local student roster (gitignored — contains plaintext passwords)
+.env                                      Local secrets sourced by dev_*.sh (gitignored)
 ```
 
 ---
 
 ## Authentication & students
 
-### How login works
+Both apps share the same login code path:
 
-1. The student opens the app and sees a username + password form (`app.py`).
-2. `shared_lib.auth.authenticate()` looks up the row in the `students` Postgres table and verifies the password with `bcrypt`.
-3. On success the full row (minus `password_hash`) is stored in `st.session_state["student"]`. The chat page (`pages/1_Chat.py`) reads that dict to determine which backend to use and to tag every logged interaction with the student's username.
-4. If the student exists but `enabled = false`, login is refused with a generic "no access" message.
+1. The student opens the app and sees a username + password form (`agent/app.py` or `research/app.py`).
+2. Before bcrypt, `shared_lib.auth.check_login_lockout()` checks for recent failed attempts on this username. Five failures in a five-minute rolling window blocks further attempts on that username with a generic "Too many failed attempts" message until enough failures roll out of the window. Disabled-account attempts deliberately do *not* count — a legitimately disabled student shouldn't get throttled for trying.
+3. Otherwise `shared_lib.auth.authenticate()` looks up the row in the `students` table and verifies the password with `bcrypt`. Wrong-password attempts are recorded by `record_login_failure()` for the throttle.
+4. On success the full row (minus `password_hash`) is stored in `st.session_state["student"]`. The chatbot (`agent/pages/1_Chat.py`) reads that dict to determine which backend to use and to tag every logged interaction with the student's username; the survey reads the username for `rubric_responses`.
+5. If the student exists but `enabled = false`, login is refused with a generic "no access" message.
+
+**Mid-session re-verify.** Every page render of every protected page re-fetches the student row via `shared_lib.auth.lookup_student()` and `st.stop()`s with "Your account is no longer active" if the row is gone or `enabled` flipped to false. Without this, an instructor disabling a student would only take effect on the student's next login. Side benefit: changes to `backend`, `diagnostics`, etc. propagate without requiring a re-login.
 
 Username matching is case-insensitive — usernames are lowercased on both write and lookup.
 
@@ -127,7 +193,7 @@ Logs of diagnostic sessions record the **effective** backend (i.e. whatever the 
 
 ## Database tables (Postgres on Railway)
 
-All three tables are auto-created / migrated on app startup by `shared_lib.postgres_logger.get_postgres_client()`.
+Both apps share one Postgres database. `shared_lib.postgres_logger.get_postgres_client()` (called on every app startup) creates and migrates the four shared tables idempotently. The survey app additionally calls `research/rubric_db.py::ensure_rubric_table()` to create its own `rubric_responses` table on startup.
 
 ### `students`
 ```
@@ -167,11 +233,58 @@ note             TEXT
 student_settings JSONB     -- snapshot of the student row at log time
 ```
 
+### `login_failures`
+Used by the login-throttle helpers in `shared_lib.auth`. One row per failed login attempt; the rolling-window query counts entries to decide lockout.
+```
+id            SERIAL PRIMARY KEY
+username      TEXT NOT NULL
+attempted_at  TIMESTAMPTZ DEFAULT NOW()
+```
+
+### `rubric_responses` (survey only)
+Created by `research/rubric_db.py::ensure_rubric_table()`. One row per (student, task, attempt, question). Multiple attempts per (student, task) are allowed and preserved — the analysis layer decides how to aggregate.
+```
+id            SERIAL PRIMARY KEY
+username      TEXT NOT NULL                    -- no FK; survives students-table TRUNCATE on re-sync
+task          TEXT NOT NULL                    -- 'mimic' | 'approach' | 'kinesis' | 'taxis'
+attempt       INT NOT NULL DEFAULT 1
+question_no   INT NOT NULL CHECK (BETWEEN 1 AND 5)
+answer_text   TEXT                             -- Q1–Q4 free text
+answer_json   JSONB                            -- Q5 structured wrap-up (used_chatbot, usefulness, …)
+submitted_at  TIMESTAMPTZ DEFAULT NOW()
+note          TEXT                             -- denormalized: instructor note for the attempt; same on every row of an attempt
+UNIQUE (username, task, attempt, question_no)
+CHECK (answer_text IS NOT NULL OR answer_json IS NOT NULL)
+```
+
+---
+
+## Survey app (`research/`)
+
+A second Streamlit app that captures the **learning rubric** for the chatbot study — what students actually *understood* about each task, independent of whether they got their robot working. Reuses `shared_lib.auth` for login (same students, same passwords).
+
+### Flow
+
+1. **Login** → `research/app.py`. Same form as the chatbot.
+2. **Intro** → `research/pages/1_Intro.py`. Placeholder page; will eventually carry full instructions and the data-use reminder.
+3. **Task picker** → `research/pages/2_Tasks.py`. Four buttons (Mimic Color, Approach Color, Kinesis Sound Localization, Taxis Sound Localization) with per-task progress hints ("not started" / "in progress — last answered Q*n*" / "completed"). Clicking an in-progress task offers Continue/Cancel; clicking a completed task offers a passcode-gated Restart.
+4. **Survey** → `research/pages/3_Survey.py`. Walks Q1 → Q5, one question per page, no back button. The current question is re-derived from the DB on every render — refreshing or reopening the tab resumes at the next unanswered question.
+   - **Q1–Q4** are free-text answers grounded in a per-task figure. Question text + image refs live in `research/questions/{kinesis,taxis,mimic,approach}.yaml`; figures come from `figures/images/`.
+   - **Q5** is a structured wrap-up (chatbot use, usefulness, free-text comments) saved as a JSON blob in `answer_json`.
+
+### Restart with passcode
+
+Clicking a completed (or in-progress) task surfaces an "instructor passcode" form. On a correct passcode plus a required note, `next_attempt_number()` increments the attempt counter and the survey starts fresh at Q1 of the new attempt. The note is denormalized onto every row of the new attempt so analysis can see *why* it was restarted. The passcode comes from `RESTART_PASSCODE` (env var → `secrets.toml`); leaving it empty disables the restart feature.
+
+### Question source
+
+`research/questions/{task}.yaml` is the source of truth for what a student sees. Each file lists Q1–Q4 with `text` and `image` (path relative to `research/`, currently `../figures/images/qN_TASK.png`). Q5 is hardcoded in `3_Survey.py` because its widgets aren't representable as plain text — change Q5 by editing that file.
+
 ---
 
 ## mistral_lib
 
-### Configuration — `mistral_lib/config.toml`
+### Configuration — `agent/mistral_lib/config.toml`
 
 Non-secret Mistral settings.
 
@@ -208,7 +321,7 @@ Sends messages to a Mistral agent and manages server-side conversation state. Un
 
 ### `moderation.py`
 
-Classifies user messages using the Mistral moderation classifier before they reach the main agent. The classifier itself raises on API error; the chat UI wraps the call with **retry-then-fail-open** semantics (`run_moderation` in `pages/1_Chat.py`): on a first error, retry once after a 1-second delay, and if that also fails, log a warning and let the message through to the LLM. Genuine moderation hits — the API succeeded and flagged the message — still block as expected and surface the violated categories in the chat.
+Classifies user messages using the Mistral moderation classifier before they reach the main agent. The classifier itself raises on API error; the chat UI wraps the call with **retry-then-fail-open** semantics (`run_moderation` in `agent/pages/1_Chat.py`): on a first error, retry once after a 1-second delay, and if that also fails, log a warning and let the message through to the LLM. Genuine moderation hits — the API succeeded and flagged the message — still block as expected and surface the violated categories in the chat.
 
 The reasoning behind failing open rather than closed: a single dropped packet on classroom wifi shouldn't dead-end a student's conversation, and the moderation classifier is a defense-in-depth layer rather than the only safety mechanism (the LLM has its own training-level guardrails). The cost of a brief gap in the moderation layer during a transient outage is much smaller than the cost of constantly disrupting students' workflow.
 
@@ -244,7 +357,7 @@ Manages Mistral agent configuration. Used by `script_configure_agents.py`.
 
 | Function | Description |
 |----------|-------------|
-| `agent_instructions(agent_id, new_instructions)` | Get or update agent instructions. Pass a filename to load from `agent_files/instructions/` |
+| `agent_instructions(agent_id, new_instructions)` | Get or update agent instructions. Pass a filename to load from `agent/agent_files/instructions/` |
 | `set_agent_description(agent_id, description)` | Set the agent's description string |
 | `assign_library_to_agent(agent_id, library_id)` | Attach a document library to an agent |
 | `unassign_all_libraries_from_agent(agent_id)` | Remove all libraries from an agent |
@@ -260,7 +373,7 @@ Manages Mistral document libraries. Used by `script_configure_agents.py` and `sc
 | `get_library(library_id)` | Get metadata for a specific library |
 | `update_library_description(library_id, description)` | Update an existing library's description (used to push the rolled-up manifest overview) |
 | `delete_library(library_id)` | Delete a library and all its contents |
-| `upload_document(file_path, library_id, document_name)` | Upload a document. Bare filenames look in `agent_files/documents/` |
+| `upload_document(file_path, library_id, document_name)` | Upload a document. Bare filenames look in `agent/agent_files/documents/` |
 | `upload_document_and_wait(library_id, file_path)` | Upload and poll until processing completes |
 | `list_library_documents(library_id)` | List all documents in a library |
 | `remove_all_documents_from_library(library_id)` | Delete all documents from a library |
@@ -269,15 +382,15 @@ Manages Mistral document libraries. Used by `script_configure_agents.py` and `sc
 
 ## anthropic_lib
 
-### Configuration — `anthropic_lib/config.toml`
+### Configuration — `agent/anthropic_lib/config.toml`
 
 Non-secret Anthropic settings.
 
 | Key | Default | Description |
 |-----|---------|-------------|
 | `model` | `claude-sonnet-4-6` | Claude model to use |
-| `max_tokens` | `1024` | Maximum tokens in the response |
-| `instructions` | `bme_agent_instructions.md` | Instructions filename, loaded from `agent_files/instructions/` |
+| `max_tokens` | `4096` | Maximum tokens in the response. Sonnet 4.6 supports up to 64K — 4096 is conservative for chat answers. The chat UI shows a small caption when the model hits this cap so the student knows to ask for continuation. |
+| `instructions` | `bme_agent_instructions.md` | Instructions filename, loaded from `agent/agent_files/instructions/` |
 
 ### `conversation_management.py`
 
@@ -299,10 +412,11 @@ BME reference documents (from the file registry) are attached as content blocks 
 {
     "assistant_response": str,
     "user_message":       str,
+    "stop_reason":        str | None,   # "end_turn", "max_tokens", "stop_sequence", ...
 }
 ```
 
-No `conversation_id` is returned since Anthropic does not maintain server-side state.
+No `conversation_id` is returned since Anthropic does not maintain server-side state. The chat UI uses `stop_reason == "max_tokens"` to render a "response was cut off" caption beneath the message.
 
 ### `file_management.py`
 
@@ -325,7 +439,7 @@ Limits: 500 MB per file, 500 GB per organisation. File operations are free; toke
 
 | Function | Description |
 |----------|-------------|
-| `upload_file(file_path)` | Upload a file, returns `file_id`. Bare filenames look in `agent_files/documents/` |
+| `upload_file(file_path)` | Upload a file, returns `file_id`. Bare filenames look in `agent/agent_files/documents/` |
 | `list_files()` | List all files in the workspace |
 | `get_file(file_id)` | Get metadata for a specific file |
 | `delete_file(file_id)` | Delete a file, returns `True` |
@@ -341,7 +455,7 @@ Used when building message payloads manually.
 
 ### `file_registry.py`
 
-Maps document filenames to their current Anthropic `file_id` plus the title and description from `agent_files/documents/manifest.toml`. Generated by `script_configure_agents.py` — do not edit by hand. Stored in `anthropic_lib/file_registry.json` (tracked in git so production deploys carry the same file_ids the configure script wrote locally; commit and push the regenerated registry whenever you re-run the configure script).
+Maps document filenames to their current Anthropic `file_id` plus the title and description from `agent/agent_files/documents/manifest.toml`. Generated by `script_configure_agents.py` — do not edit by hand. Stored in `agent/anthropic_lib/file_registry.json` (tracked in git so production deploys carry the same file_ids the configure script wrote locally; commit and push the regenerated registry whenever you re-run the configure script).
 
 Shape:
 ```json
@@ -364,10 +478,12 @@ Shape:
 
 ## shared_lib
 
+Imported by both apps. Lives at the repo root so each app reaches it via `PYTHONPATH=<repo_root>` (set by `start.sh`).
+
 | Module | Description |
 |--------|-------------|
-| `auth.py` | Students table DDL, bcrypt hashing, `authenticate(url, username, password)` |
-| `postgres_logger.py` | Connection setup + `log_interaction()` / `log_feedback()`. Creates and migrates all three tables on startup |
+| `auth.py` | `students` and `login_failures` table DDL, bcrypt hashing, `authenticate(url, username, password)`, `lookup_student(url, username)` (no-password row fetch — used by every protected page to re-verify `enabled` on every render), `check_login_lockout(url, username)` and `record_login_failure(url, username)` (5-failures-in-5-min rolling lockout) |
+| `postgres_logger.py` | Connection setup + `log_interaction()` / `log_feedback()`. Creates and migrates all four shared tables on startup (`students`, `interactions`, `feedback`, `login_failures`). The survey adds its own `rubric_responses` table via `research/rubric_db.py`. |
 | `config_manager.py` | Loads `secrets.toml` and environment variables. Use `config.get("key")` |
 | `lib_config.py` | TOML config loader used by `mistral_lib` / `anthropic_lib` |
 | `logger.py` | Centralised logging wrapper around Python's `logging` module |
@@ -375,17 +491,31 @@ Shape:
 
 ---
 
-## Secrets — `.streamlit/secrets.toml`
+## Secrets
+
+Each app generates its own `.streamlit/secrets.toml` at startup from environment variables (gitignored, never committed):
+
+- `agent/.streamlit/secrets.toml` — written by `agent/start.sh`
+- `research/.streamlit/secrets.toml` — written by `research/start.sh`
+
+In production, Railway injects the env vars into each service. Locally, `dev_agent.sh` / `dev_research.sh` source `.env` at the repo root, which then flows into the `start.sh` invocation.
+
+**Chatbot keys** (set on the agent service / in `.env`):
 
 | Key | Description |
 |-----|-------------|
-| `mistral_key` | Mistral API key |
-| `anthropic_key` | Anthropic API key |
-| `bme_agent` | Mistral agent ID for the BME specialist |
-| `bme_agent_library` | Mistral library ID for BME documents |
-| `database_url` | Postgres connection URL (Railway-provided) |
+| `MISTRAL_KEY` | Mistral API key |
+| `ANTHROPIC_KEY` | Anthropic API key |
+| `BME_AGENT` | Mistral agent ID for the BME specialist |
+| `BME_AGENT_LIBRARY` | Mistral library ID for BME documents |
+| `DATABASE_URL` | Postgres connection URL (Railway-provided) |
 
-The same keys can also be supplied as environment variables (Railway injects `DATABASE_URL` automatically).
+**Survey keys** (set on the research service / in `.env`):
+
+| Key | Description |
+|-----|-------------|
+| `DATABASE_URL` | Same Postgres URL as the chatbot — both apps share one DB |
+| `RESTART_PASSCODE` | Instructor passcode for restarting an in-progress or completed survey attempt. Empty = restart disabled. |
 
 ---
 
