@@ -10,6 +10,7 @@
 - [x] Enable task awareness in chatbot (subject dependent) and student name aware —> Not really needed
 - [ ] Digitize surveys → task aware?
 - [ ] Settle observer protocol for student↔instructor interactions (granularity, topic coding) — discuss with collaborators. Treated as a third outcome, not a control.
+- [ ] Build observer-log app: third Streamlit service alongside the chatbot and survey, reusing the same auth and Postgres.
 
 # Research question
 
@@ -129,6 +130,8 @@ Two design decisions are still open and will be settled with collaborators befor
 - *Free-text notes.* A short note per interaction; coding is done after the fact. Richer but slower and harder to standardize across observers.
 
 Independent of the choices above, we plan to tag each interaction by *initiator* — student-asked vs instructor-approached. The two answer different questions (felt need for help vs allocation of instructor attention) and should not be pooled.
+
+**Tooling.** Observation will be done through a third Streamlit app deployed in the same Railway project as the chatbot and survey, sharing the same Postgres database and student authentication. Each tap by an observer writes one row to an `observations` table — student username, slot, timestamp, topic code (whichever scheme is adopted), initiator. Building this as an app rather than a paper tally keeps timestamps precise (so observation rows can be cross-referenced with chatbot interaction logs from the same slot to see, for example, whether instructor questions cluster around moments when the chatbot was *not* used), and removes the post-session transcription step. The infrastructure cost is small: the auth, Postgres, and Railway plumbing are already in place from the other two apps.
 
 ## Color vision assessment tools
 
