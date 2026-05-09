@@ -9,16 +9,19 @@
 - [x] Way to disable chatbot
 - [x] Enable task awareness in chatbot (subject dependent) and student name aware —> Not really needed
 - [ ] Digitize surveys → task aware?
-- [ ] Note/talk about observations --> As a control.
+- [ ] Settle observer protocol for student↔instructor interactions (granularity, topic coding) — discuss with collaborators. Treated as a third outcome, not a control.
 
 # Research question
 
-Does access to an AI chatbot during a robotics programming task improve students' ability to solve the task? We distinguish two possible effects:
+Does access to an AI chatbot during a robotics programming task improve students' ability to solve the task? We distinguish three possible effects:
 
 - **Performance**: students accomplish more when the chatbot is available in real time.
 - **Learning**: students internalize understanding that persists after the chatbot is removed.
+- **Instructor interaction**: students consult the human instructors differently — more, less, or about different things — when the chatbot is available.
 
-The two are not the same, and that is the point. The chatbot could plausibly produce *better robots without better understanding*: students might implement what the chatbot suggests, end up with programs that work, and have little grasp of why. The reverse is also possible — students forced to think hard about the chatbot's suggestions could end up understanding the material better even when the produced artifact is no different. Measuring only one of the two would miss this dissociation. We therefore measure both, treat them as separate constructs, and let the contrast between them be one of the study's main outputs.
+The first two are not the same, and that is the point. The chatbot could plausibly produce *better robots without better understanding*: students might implement what the chatbot suggests, end up with programs that work, and have little grasp of why. The reverse is also possible — students forced to think hard about the chatbot's suggestions could end up understanding the material better even when the produced artifact is no different. Measuring only one of the two would miss this dissociation. We therefore measure both, treat them as separate constructs, and let the contrast between them be one of the study's main outputs.
+
+The third effect is one a reviewer will reasonably press on, and is a substantive outcome in its own right. If students seek out the instructor far less when the chatbot is available, the chatbot is substituting for human help. If interaction is unchanged, the chatbot is supplementing rather than replacing it. If students ask *different kinds* of questions in the two conditions, the chatbot is reshaping where human help is most needed. Each of these is a real result, and not measuring it would leave an obvious question open.
 
 # Study design
 
@@ -70,17 +73,20 @@ Students will have had experience with the chatbot before we roll out the design
 
 # Assessment
 
-We will assess whether the chatbot improves (1) production and (2) learning and understanding.  
+We will assess whether the chatbot affects (1) production, (2) learning and understanding, and (3) student-initiated interaction with the human instructors.
 
-| Construct  | Scored by                 | Scored from               |
-| ---------- | ------------------------- | ------------------------- |
-| Production | Instructor / AI           | Code + robot photo        |
-| Learning   | AI (pairwise comparisons) | Student's written answers |
+| Construct              | Scored by                 | Scored from                                       |
+| ---------------------- | ------------------------- | ------------------------------------------------- |
+| Production             | Instructor / AI           | Code + robot photo                                |
+| Learning               | AI (pairwise comparisons) | Student's written answers                         |
+| Instructor interaction | Live observers            | Tally of student↔instructor interactions per slot |
 
 ### Methodological safeguards
 
 - Students answer the learning rubric questions without chatbot access, in both conditions. Otherwise the learning track collapses into another performance measurement.
 - Scoring of production rubrics should be blinded to condition and day.
+- Instructors are present in all four slots, including the chatbot-on slots; chatbot availability changes, instructor availability does not. Otherwise interaction-frequency differences would confound chatbot use with instructor presence.
+- Observers cannot be blind to chatbot condition (the room is on or off, visibly). Any subjective coding is anchored to a written scheme decided before Day 1, and intercoder agreement is reported on a sampled fraction of slots.
 
 ### Learning rubric design
 
@@ -92,15 +98,37 @@ Multiple-choice was also considered and rejected. MC would require designing dis
 
 - **Production rubrics.** Each item 0–3: absent/rudimentary/partial/clearly present.
 - **Learning rubrics.** Pairwise comparison of anonymized answers. Adaptive Comparative Judgment (ACJ) to pick informative pairs — stable ranking in ~10–15×N comparisons rather than full pairwise. Multiple rounds / multiple AI models as judges; aggregate via Bradley-Terry to get interval scores.
+- **Instructor-interaction observations.** Counts (and topic codes, if adopted) compiled directly from observer logs; no additional scoring step.
 
 ### Analysis plan
 
-Two Bayesian mixed models, same predictors, different outcomes:
+Three Bayesian mixed models, same predictors, different outcomes:
 
 - **Production:** `sum score (0–15) ~ chatbot + day + position + task + (1|student)`
 - **Learning:** `z-scored BT score ~ chatbot + day + position + task + (1|student) + (1|question)`
+- **Instructor interaction:** `student-initiated interaction count ~ chatbot + day + position + task + (1|student)` with a Poisson or negative binomial likelihood. This model is contingent on per-student observation granularity; if we end up with per-half or per-slot counts, the third track collapses to a descriptive comparison rather than a fitted model.
 
-Reporting is in estimation terms — point estimates with credible intervals — not null-hypothesis testing. We do not threshold on p-values. The dissociation between the chatbot's production and learning effects is reported as a posterior contrast across the two models, with its own credible interval.
+Reporting is in estimation terms — point estimates with credible intervals — not null-hypothesis testing. We do not threshold on p-values. The dissociations between the chatbot's production, learning, and instructor-interaction effects are reported as posterior contrasts across the three models, each with its own credible interval.
+
+## Interaction assessment
+
+*Across all four slots, live observers (not the lead instructor) record student-initiated interactions with any instructor present. The observation regime is identical across slots — instructors remain present and available throughout, including in the chatbot-on slots — so any difference in interaction reflects students' choice, not instructor availability.*
+
+Two design decisions are still open and will be settled with collaborators before Day 1.
+
+**Granularity — how finely interactions are tallied.**
+
+- *Per-student counts.* Each interaction is identified to a student. ~96 data points (24 students × 4 slots), parallels the per-student structure of production and learning, supports a mixed model with student random effects. Most demanding on observers.
+- *Per-half counts.* Tally per 12-student half per slot. 8 data points. Cheaper to collect, no per-student structure, much weaker statistical power.
+- *Per-slot aggregate only.* One total count per slot — 4 numbers across the study. Easiest to collect; descriptive only.
+
+**Topic coding — what gets recorded about each interaction.**
+
+- *Fixed small scheme.* ~5 categories agreed before Day 1, e.g., {programming/syntax, robot mechanics, biology concept, task interpretation, off-task}. Observers trained on the scheme; intercoder agreement reported on jointly-coded slots.
+- *Counts only, no topic.* How many interactions, not what they were about. Loses the question of whether the chatbot displaces a *type* of help.
+- *Free-text notes.* A short note per interaction; coding is done after the fact. Richer but slower and harder to standardize across observers.
+
+Independent of the choices above, we plan to tag each interaction by *initiator* — student-asked vs instructor-approached. The two answer different questions (felt need for help vs allocation of instructor attention) and should not be pooled.
 
 ## Color vision assessment tools
 
