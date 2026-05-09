@@ -1,6 +1,10 @@
+import time
+
 import streamlit as st
 
-from rubric_db import get_progress, TOTAL_QUESTIONS
+from rubric_db import get_progress, next_attempt_number, TOTAL_QUESTIONS
+
+WRONG_PASSCODE_DELAY_SECONDS = 0.5
 
 st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
 
@@ -31,15 +35,48 @@ def progress_label(progress: dict) -> str:
     )
 
 
-def enter_survey(task_key: str, task_label: str, attempt: int) -> None:
+def enter_survey(task_key: str, task_label: str, attempt: int, note: str = None) -> None:
     """Stash the bits 3_Survey.py needs and route there. current_question is
-    re-derived from the DB on the survey page itself."""
+    re-derived from the DB on the survey page itself. The note (if any) is
+    carried in session state so 3_Survey.py can attach it to every row of
+    the new attempt."""
     st.session_state.task = task_key
     st.session_state.task_label = task_label
     st.session_state.attempt = attempt
+    if note:
+        st.session_state.restart_note = note
+    else:
+        st.session_state.pop("restart_note", None)
     for k in ("selected_task", "selected_progress"):
         st.session_state.pop(k, None)
     st.switch_page("pages/3_Survey.py")
+
+
+def render_restart_section(selected_task: str, task_label: str) -> None:
+    """Passcode-gated restart UI. Shared between the in-progress and the
+    completed branches. On valid submit, increments the attempt and routes
+    into 3_Survey.py."""
+    correct_passcode = st.secrets.get("RESTART_PASSCODE", "") or ""
+    with st.form(f"restart_form_{selected_task}"):
+        passcode = st.text_input("Instructor passcode", type="password")
+        note = st.text_area(
+            "Note (why are you restarting?)",
+            placeholder="e.g. student picked the wrong task",
+        )
+        submitted = st.form_submit_button("Restart from Q1", type="primary")
+        if submitted:
+            if not correct_passcode:
+                st.error("Restart is currently disabled (no passcode configured).")
+            elif not passcode:
+                st.error("Passcode required.")
+            elif passcode != correct_passcode:
+                time.sleep(WRONG_PASSCODE_DELAY_SECONDS)
+                st.error("Incorrect passcode.")
+            elif not note.strip():
+                st.error("Please add a note explaining the restart.")
+            else:
+                new_attempt = next_attempt_number(database_url, username, selected_task)
+                enter_survey(selected_task, task_label, new_attempt, note=note.strip())
 
 
 # --- Confirmation flow for an already-touched task ---------------------------
@@ -57,9 +94,11 @@ if selected_task is not None:
             f"You've already completed this task (attempt {progress['attempt']})."
         )
         st.caption(
-            "Restart with an instructor passcode will be added in the next "
-            "iteration. For now, pick a different task."
+            "Restart requires an instructor passcode and a note. The previous "
+            "attempt's answers are preserved."
         )
+        render_restart_section(selected_task, task_label)
+        st.divider()
         if st.button("Back to task list"):
             for k in ("selected_task", "selected_progress"):
                 st.session_state.pop(k, None)
@@ -79,6 +118,14 @@ if selected_task is not None:
                 for k in ("selected_task", "selected_progress"):
                     st.session_state.pop(k, None)
                 st.rerun()
+
+        with st.expander("Restart from Q1 (instructor passcode required)"):
+            st.caption(
+                "Use this if the student picked the wrong task or otherwise "
+                "needs a fresh start. The current attempt's answers are "
+                "preserved; a new attempt is created."
+            )
+            render_restart_section(selected_task, task_label)
     st.stop()
 
 # --- Default view: list of tasks ---------------------------------------------

@@ -40,6 +40,14 @@ if progress["attempt"] < attempt:
 else:
     current_question = progress["last_question"] + 1
 
+# A restart writes the same instructor note onto every row of the new
+# attempt. Prefer the value carried in session state (set by 2_Tasks.py
+# when restart was authorized); fall back to whatever's on disk so a
+# refresh mid-attempt doesn't drop the note.
+restart_note = st.session_state.get("restart_note")
+if not restart_note and attempt > 1:
+    restart_note = progress.get("note")
+
 # --- Completion screen -------------------------------------------------------
 if current_question > TOTAL_QUESTIONS:
     st.title("Thank you")
@@ -50,7 +58,7 @@ if current_question > TOTAL_QUESTIONS:
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Back to tasks", use_container_width=True):
-            for k in ("task", "task_label", "attempt"):
+            for k in ("task", "task_label", "attempt", "restart_note"):
                 st.session_state.pop(k, None)
             st.switch_page("pages/2_Tasks.py")
     with col2:
@@ -102,6 +110,7 @@ if 1 <= current_question <= 4:
                     attempt,
                     current_question,
                     answer_text=answer.strip(),
+                    note=restart_note,
                 )
                 if ok:
                     st.toast(f"Q{current_question} saved", icon="✅")
@@ -160,6 +169,7 @@ elif current_question == 5:
                 attempt,
                 5,
                 answer_json=answer_json,
+                note=restart_note,
             )
             if ok:
                 st.toast("Q5 saved", icon="✅")

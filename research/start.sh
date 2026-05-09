@@ -11,6 +11,9 @@ cat > "$SCRIPT_DIR/.streamlit/secrets.toml" << EOF
 
 # Postgres (provided by Railway)
 DATABASE_URL = "$DATABASE_URL"
+
+# Instructor passcode required to restart a task. Empty = restart disabled.
+RESTART_PASSCODE = "$RESTART_PASSCODE"
 EOF
 
 echo "secrets.toml written to: $SCRIPT_DIR/.streamlit/"
