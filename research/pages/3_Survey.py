@@ -61,7 +61,11 @@ if current_question > TOTAL_QUESTIONS:
     st.stop()
 
 # --- Header ------------------------------------------------------------------
-st.title(f"{task_label} — Question {current_question} of {TOTAL_QUESTIONS}")
+st.progress(
+    current_question / TOTAL_QUESTIONS,
+    text=f"Question {current_question} of {TOTAL_QUESTIONS}",
+)
+st.title(task_label)
 st.caption(
     "Answer each question as best you can. Once submitted, you can't return "
     "to a previous question."
@@ -100,6 +104,7 @@ if 1 <= current_question <= 4:
                     answer_text=answer.strip(),
                 )
                 if ok:
+                    st.toast(f"Q{current_question} saved", icon="✅")
                     st.rerun()
                 else:
                     st.error(
@@ -157,6 +162,7 @@ elif current_question == 5:
                 answer_json=answer_json,
             )
             if ok:
+                st.toast("Q5 saved", icon="✅")
                 st.rerun()
             else:
                 st.error(
