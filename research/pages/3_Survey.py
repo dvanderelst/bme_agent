@@ -42,10 +42,23 @@ with open(QUESTIONS_DIR / f"{task}.yaml") as f:
 # The DB is the source of truth; session state only carries (task, attempt).
 # Refreshing the page or coming back from a tab close still works.
 progress = get_progress(database_url, username, task)
+
+# If the DB is ahead of the attempt we have in session state, this tab is
+# stale — most likely another tab (or the instructor on a shared screen)
+# restarted the same task with the passcode. Refuse to render the form
+# rather than silently rewriting the attempt number on submit, which would
+# park the typed text under the wrong (attempt, question_no) row.
 if progress["attempt"] > attempt:
-    # DB is ahead of our session (e.g. another tab submitted) — sync.
-    attempt = progress["attempt"]
-    st.session_state.attempt = attempt
+    st.warning(
+        "This task was advanced in another tab or window — possibly a "
+        "restart with the instructor passcode. Reload to pick up where "
+        "it stands now. Anything you started typing here will not be saved."
+    )
+    if st.button("Reload", type="primary"):
+        for k in ("task", "task_label", "attempt", "restart_note"):
+            st.session_state.pop(k, None)
+        st.switch_page("pages/2_Tasks.py")
+    st.stop()
 
 if progress["attempt"] < attempt:
     current_question = 1  # No rows for this attempt yet
@@ -115,23 +128,36 @@ if 1 <= current_question <= 4:
             if not answer.strip():
                 st.error("Please write an answer before submitting.")
             else:
-                ok = record_answer(
-                    database_url,
-                    username,
-                    task,
-                    attempt,
-                    current_question,
-                    answer_text=answer.strip(),
-                    note=restart_note,
-                )
-                if ok:
-                    st.toast(f"Q{current_question} saved", icon="✅")
-                    st.rerun()
-                else:
+                # Re-check progress at submit time. Closes the race window
+                # between page render and form submit — if another tab moved
+                # this task forward between the render and now, the form's
+                # captured (attempt, current_question) is stale and we
+                # mustn't write under those keys.
+                live = get_progress(database_url, username, task)
+                expected_q = (live["last_question"] + 1) if live["attempt"] == attempt else 1
+                if live["attempt"] != attempt or expected_q != current_question:
                     st.error(
-                        "Could not save your answer — please try again. "
-                        "If this keeps happening, ask an instructor."
+                        "This task changed in another tab while you were "
+                        "answering. Reload the page to continue."
                     )
+                else:
+                    ok = record_answer(
+                        database_url,
+                        username,
+                        task,
+                        attempt,
+                        current_question,
+                        answer_text=answer.strip(),
+                        note=restart_note,
+                    )
+                    if ok:
+                        st.toast(f"Q{current_question} saved", icon="✅")
+                        st.rerun()
+                    else:
+                        st.error(
+                            "Could not save your answer — please try again. "
+                            "If this keeps happening, ask an instructor."
+                        )
 
 # --- Q5: structured wrap-up --------------------------------------------------
 #
@@ -201,27 +227,36 @@ elif current_question == 5:
                     "You said you used the chatbot — please rate how useful it was."
                 )
             else:
-                used_chatbot_bool = used_chatbot == "Yes"
-                answer_json = {
-                    "used_chatbot": used_chatbot_bool,
-                    "usefulness": usefulness if used_chatbot_bool else None,
-                    "specifics": specifics.strip() or None,
-                    "comments": comments.strip() or None,
-                }
-                ok = record_answer(
-                    database_url,
-                    username,
-                    task,
-                    attempt,
-                    5,
-                    answer_json=answer_json,
-                    note=restart_note,
-                )
-                if ok:
-                    st.toast("Q5 saved", icon="✅")
-                    st.rerun()
-                else:
+                # Re-check progress at submit time (same race-protection
+                # logic as the Q1–Q4 path).
+                live = get_progress(database_url, username, task)
+                if live["attempt"] != attempt or (live["last_question"] + 1) != 5:
                     st.error(
-                        "Could not save your answers — please try again. "
-                        "If this keeps happening, ask an instructor."
+                        "This task changed in another tab while you were "
+                        "answering. Reload the page to continue."
                     )
+                else:
+                    used_chatbot_bool = used_chatbot == "Yes"
+                    answer_json = {
+                        "used_chatbot": used_chatbot_bool,
+                        "usefulness": usefulness if used_chatbot_bool else None,
+                        "specifics": specifics.strip() or None,
+                        "comments": comments.strip() or None,
+                    }
+                    ok = record_answer(
+                        database_url,
+                        username,
+                        task,
+                        attempt,
+                        5,
+                        answer_json=answer_json,
+                        note=restart_note,
+                    )
+                    if ok:
+                        st.toast("Q5 saved", icon="✅")
+                        st.rerun()
+                    else:
+                        st.error(
+                            "Could not save your answers — please try again. "
+                            "If this keeps happening, ask an instructor."
+                        )

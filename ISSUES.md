@@ -96,7 +96,7 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### High severity
 
-- [ ] **16. Cross-tab restart silently rewrites attempt number.**
+- [x] **16. Cross-tab restart silently rewrites attempt number.**
   *Where:* `research/pages/3_Survey.py:33-41`
   *Why:* Tab A on Q3 of attempt 1; Tab B restarts → attempt 2. Tab A's next submit silently upgrades `attempt` to 2 in-place; the textarea contents land on the wrong (attempt, question_no) row.
   *Fix:* If `progress["attempt"] != session_state.attempt`, abort the form, show "this task was restarted in another tab; reload" and force a rerun.
