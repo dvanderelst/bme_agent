@@ -111,10 +111,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* Default value=3 is stored verbatim when `used_chatbot=True`. Middle-of-range looks like a deliberate neutral rating.
   *Fix:* Add a separate "I didn't rate it" option, or use a 0/None sentinel and a "no rating" radio.
 
-- [ ] **19. Passcode form has no brute-force protection.**
+- [ ] **19. Passcode form has no brute-force protection.** *(deferred — see note)*
   *Where:* `research/pages/2_Tasks.py:55-79`
   *Why:* 0.5s sleep slows but doesn't stop a logged-in student. A 4-digit numeric passcode = ~83 min worst case. No per-user/IP counter, no lockout.
   *Fix:* Small failed-attempts table + lockout; use `hmac.compare_digest` for the comparison.
+  *Note (2026-05-09):* Deferred. The threat model is "a logged-in student spamming the restart form to brute-force the instructor passcode" — implausible in a 24-student classroom where (a) the instructor is physically present, (b) the student has nothing to gain from a successful restart that they couldn't get by asking the instructor directly, and (c) any successful brute-force is logged in `rubric_responses` with a username and timestamp. Revisit if the survey gets used outside a supervised setting.
 
 ### Medium severity
 
