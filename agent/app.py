@@ -8,7 +8,7 @@ from shared_lib.auth import (
     check_login_lockout,
     record_login_failure,
 )
-from shared_lib.postgres_logger import get_postgres_client
+from shared_lib.streamlit_helpers import setup_postgres
 
 # Penalty added to every failed login. Equalises timing between unknown-user
 # and wrong-password paths and slows brute-force attempts to a crawl.
@@ -28,7 +28,7 @@ except (AttributeError, KeyError):
     database_url = config.get("database_url")
 
 try:
-    db_config = get_postgres_client(database_url)
+    db_config = setup_postgres(database_url)
 except Exception as e:
     logging.error("Database setup failed: %s", e)
     st.error("The chatbot is temporarily unavailable. Please try again later.")

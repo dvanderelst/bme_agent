@@ -20,12 +20,14 @@ Note: uploaded files cannot be downloaded back. Only files created
 by the code execution tool are downloadable.
 """
 
+import logging
 import mimetypes
 import os
 from typing import Optional
 
 import anthropic
 
+from anthropic_lib.file_registry import load as load_registry
 from shared_lib.config_manager import config
 
 # ---------------------------------------------------------------------------
@@ -127,6 +129,43 @@ def delete_file(file_id: str, api_key: Optional[str] = None) -> bool:
     """
     _client(api_key).beta.files.delete(file_id)
     return True
+
+
+def validate_registry(api_key: Optional[str] = None) -> list:
+    """
+    Check every file_id in the local registry against the Anthropic workspace.
+
+    Returns a list of `{"filename": str, "file_id": str}` for entries whose
+    file_ids no longer exist (404 from the API), or that have an empty
+    file_id field. Returns an empty list when the registry is empty or
+    every file is valid.
+
+    API errors other than 404 (network blip, rate limit, etc.) are logged
+    and skipped — we treat them as "couldn't determine" rather than
+    "missing", so a transient issue doesn't trigger a false positive that
+    blocks the chat.
+    """
+    registry = load_registry()
+    if not registry:
+        return []
+
+    client = _client(api_key)
+    missing = []
+    for filename, meta in registry.items():
+        file_id = (meta or {}).get("file_id")
+        if not file_id:
+            missing.append({"filename": filename, "file_id": file_id or ""})
+            continue
+        try:
+            client.beta.files.retrieve_metadata(file_id)
+        except anthropic.NotFoundError:
+            missing.append({"filename": filename, "file_id": file_id})
+        except anthropic.APIError as e:
+            logging.warning(
+                "Could not validate file_id %s for %s: %s",
+                file_id, filename, e,
+            )
+    return missing
 
 
 # ---------------------------------------------------------------------------

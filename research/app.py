@@ -8,7 +8,7 @@ from shared_lib.auth import (
     check_login_lockout,
     record_login_failure,
 )
-from shared_lib.postgres_logger import get_postgres_client
+from shared_lib.streamlit_helpers import setup_postgres
 
 from rubric_db import ensure_rubric_table
 
@@ -30,7 +30,7 @@ except (AttributeError, KeyError):
     database_url = config.get("database_url")
 
 try:
-    db_config = get_postgres_client(database_url)
+    db_config = setup_postgres(database_url)
     ensure_rubric_table(database_url)
 except Exception as e:
     logging.error("Database setup failed: %s", e)

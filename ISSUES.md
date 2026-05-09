@@ -58,12 +58,12 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* If the registry is empty, the model still answers (without docs) and the student gets generic answers with no indication the RAG layer is broken.
   *Fix:* At minimum surface to diagnostics users; consider failing closed when registry is unexpectedly empty.
 
-- [ ] **10. `_build_document_blocks` doesn't validate `file_id`s.**
+- [x] **10. `_build_document_blocks` doesn't validate `file_id`s.**
   *Where:* `agent/anthropic_lib/conversation_management.py:54-57`
   *Why:* If a `file_id` has been deleted from the Anthropic workspace, every subsequent message 400s — currently leaks via issue 1.
   *Fix:* Validate at startup or catch the specific error and degrade gracefully.
 
-- [ ] **11. `get_postgres_client` re-runs CREATE/ALTER on every page render.**
+- [x] **11. `get_postgres_client` re-runs CREATE/ALTER on every page render.**
   *Where:* `agent/app.py:27`, `agent/pages/1_Chat.py:73`
   *Why:* Idempotent but adds latency and DB churn (~24 students × N reruns/min).
   *Fix:* Wrap in `@st.cache_resource`.

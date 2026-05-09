@@ -6,9 +6,19 @@ import streamlit as st
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
+from anthropic_lib.file_management import validate_registry
 from anthropic_lib.file_registry import load as load_registry
 from shared_lib.auth import lookup_student
-from shared_lib.postgres_logger import get_postgres_client, log_interaction, log_feedback
+from shared_lib.postgres_logger import log_interaction, log_feedback
+from shared_lib.streamlit_helpers import setup_postgres
+
+
+@st.cache_resource
+def _validate_registry_cached() -> list:
+    """Run validate_registry() once per app process (it's ~N API calls).
+    The result is cached for the process lifetime; restart the deploy if a
+    file is re-uploaded and the cache needs to invalidate."""
+    return validate_registry()
 
 # Wait between the failed first moderation call and the retry. Long enough
 # for a transient network blip to resolve, short enough that the student
@@ -79,7 +89,7 @@ except (AttributeError, KeyError):
     database_url = config.get("database_url")
 
 try:
-    db_config = get_postgres_client(database_url)
+    db_config = setup_postgres(database_url)
 except Exception as e:
     logging.error("Database setup failed on chat page: %s", e)
     st.error("The chatbot is temporarily unavailable. Please try again later.")
@@ -203,6 +213,25 @@ if backend == "anthropic":
         st.error(
             "The chatbot's knowledge base is currently unavailable. "
             "Please contact an instructor."
+        )
+        st.stop()
+
+    # Make sure every registered file_id still exists in the Anthropic
+    # workspace. A file deleted out from under us would otherwise 400 on
+    # every turn — the user would just see "something went wrong" with
+    # no actionable signal. Validation is cached (one batch of API calls
+    # per process); a re-upload requires a deploy restart to invalidate.
+    missing = _validate_registry_cached()
+    if missing:
+        names = ", ".join(m["filename"] for m in missing)
+        logging.error(
+            "Anthropic registry has stale file_ids for student %s: %s",
+            student_id, names,
+        )
+        st.error(
+            f"Some knowledge-base documents are no longer available "
+            f"({names}). Please ask an instructor to re-run the configure "
+            f"script."
         )
         st.stop()
 
