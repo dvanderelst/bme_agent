@@ -6,6 +6,7 @@ import streamlit as st
 from mistral_lib import conversation_management as mistral_conversation
 from mistral_lib.moderation import moderate
 from anthropic_lib import conversation_management as anthropic_conversation
+from anthropic_lib.config import get as anthropic_config
 from anthropic_lib.file_management import validate_registry
 from anthropic_lib.file_registry import load as load_registry
 from shared_lib.auth import lookup_student
@@ -24,15 +25,6 @@ def _validate_registry_cached() -> list:
 # for a transient network blip to resolve, short enough that the student
 # barely notices.
 MODERATION_RETRY_DELAY_SECONDS = 1.0
-
-# Cap on the total number of messages we send to Anthropic per turn (history
-# + the new user message). Anthropic's API is stateless, so the full history
-# is on us — without a cap, input cost and request size grow unboundedly.
-# Older messages are silently dropped from what the model sees but remain
-# visible to the student in the chat panel. Bump if 20 turns out to be too
-# tight in practice. Mistral keeps state server-side, so this doesn't apply
-# there.
-MAX_MESSAGES_TO_ANTHROPIC = 20
 
 SESSION_AUTHENTICATED = "authenticated"
 SESSION_MESSAGES = "messages"
@@ -316,10 +308,12 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
             # Anthropic is stateless — every call sends the full history. Cap it
             # so input cost and request size don't grow unboundedly with long
             # sessions. The chat panel still shows the full transcript to the
-            # student; only what goes to the model is trimmed.
+            # student; only what goes to the model is trimmed. Cap lives in
+            # agent/anthropic_lib/config.toml as `max_history_messages`. The
+            # -1 leaves room for the new user message that's passed separately.
             anthropic_history = _trim_history_for_anthropic(
                 st.session_state[SESSION_MESSAGES][:-1],
-                MAX_MESSAGES_TO_ANTHROPIC - 1,
+                anthropic_config("max_history_messages") - 1,
             )
             with st.spinner("Thinking..."):
                 if backend == "anthropic":
@@ -359,7 +353,6 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                 if backend == "anthropic":
                     try:
                         from anthropic_lib.conversation_management import _build_messages
-                        from anthropic_lib.config import get as anthropic_config
                         msgs = _build_messages(
                             history=anthropic_history,
                             user_message=prompt,

@@ -5,4 +5,11 @@ model = "claude-sonnet-4-6"
 # grounded in the attached docs without being wasteful. Bump higher if
 # students start hitting the cap on the new value.
 max_tokens = 4096
+# Anthropic's API is stateless — the full history goes over the wire on
+# every turn. This caps the number of past messages (history + current
+# user message combined) sent to the model so input cost and request size
+# don't grow unboundedly. Older messages are silently dropped from what
+# the model sees; the chat panel still shows the full transcript to the
+# student. Mistral keeps state server-side and doesn't use this.
+max_history_messages = 20
 instructions = "bme_agent_instructions.md"

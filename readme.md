@@ -58,7 +58,7 @@ Practical implication: Anthropic is simpler (no relevance issues, model always h
 The two backends store conversation state in opposite places, with practical implications for how we manage history client-side:
 
 - **Mistral** keeps the full conversation server-side, addressed by a `conversation_id`. Each turn we send the new user message plus the `conversation_id`; Mistral concatenates the history, applies any context-window limits, and returns the response. From our side there's nothing to bound — and conversely, no direct visibility into how (or whether) Mistral trims history at very long sessions.
-- **Anthropic's** Messages API is stateless. Every call must include the full message history. The client-side store (`st.session_state.messages`) is the source of truth, and the chat page sends a slice of it on each turn. To keep input cost and request size from growing unboundedly, the chat page caps what's sent to Anthropic at the most recent `MAX_MESSAGES_TO_ANTHROPIC` messages (currently 20, about 10 back-and-forth turns). Older history is silently dropped from what the model sees, but stays visible to the student in the chat panel. The cap lives at the top of `agent/pages/1_Chat.py` if it needs to change.
+- **Anthropic's** Messages API is stateless. Every call must include the full message history. The client-side store (`st.session_state.messages`) is the source of truth, and the chat page sends a slice of it on each turn. To keep input cost and request size from growing unboundedly, the chat page caps what's sent to Anthropic at the most recent `max_history_messages` messages (currently 20, about 10 back-and-forth turns). Older history is silently dropped from what the model sees, but stays visible to the student in the chat panel. The cap lives in `agent/anthropic_lib/config.toml` alongside `model` and `max_tokens`.
 
 ### How do I change the model used by each backend?
 
@@ -397,6 +397,7 @@ Non-secret Anthropic settings.
 |-----|---------|-------------|
 | `model` | `claude-sonnet-4-6` | Claude model to use |
 | `max_tokens` | `4096` | Maximum tokens in the response. Sonnet 4.6 supports up to 64K — 4096 is conservative for chat answers. The chat UI shows a small caption when the model hits this cap so the student knows to ask for continuation. |
+| `max_history_messages` | `20` | Cap on the number of past messages (history + the new user message) sent to Anthropic each turn. Older messages are silently dropped from what the model sees; the chat panel still shows the full transcript. Bump if 20 turns out to be too tight in practice. |
 | `instructions` | `bme_agent_instructions.md` | Instructions filename, loaded from `agent/agent_files/instructions/` |
 
 ### `conversation_management.py`
