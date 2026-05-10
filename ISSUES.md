@@ -212,10 +212,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* Add §Ethics and §Pre-registration sections.
   *Resolution (2026-05-09):* Acknowledged as needed but not in scope for `ResearchPlan.md`, which is the study-design document. IRB / consent / data-sharing / pre-registration live in separate documents managed outside this repo.
 
-- [ ] **35. Exclusion / partial-data rules undefined.**
+- [x] **35. Exclusion / partial-data rules undefined.**
   *Where:* (missing throughout)
   *Why:* A student absent on Day 2 breaks Latin-square balance. What's the ITT vs per-protocol rule and minimum-data threshold?
   *Fix:* Pre-specify before Day 1.
+  *Resolution (2026-05-10):* Added a "Note on missing data and exclusion" to §Analysis plan. Pre-specifies: (a) headline analysis includes every student with ≥1 observed slot, since mixed-effects models handle unbalanced data natively and listwise dropping would also discard incomplete students' *complete* slots; (b) soft minimum of ≥2 observed slots per student; (c) a missingness table reported before results; (d) a complete-case sensitivity re-fit as the safeguard against the missing-at-random assumption being wrong (e.g., struggling students dropping out — MNAR — which mixed models can't auto-correct).
 
 - [ ] **36. AI-judge non-independence in ACJ.**
   *Where:* §Scoring plan
