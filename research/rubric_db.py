@@ -41,13 +41,35 @@ CREATE INDEX IF NOT EXISTS idx_rubric_responses_user_task
 ON rubric_responses (username, task, attempt);
 """
 
+# Records each restart authorization: one row per (username, task, attempt)
+# created at the moment the passcode form is submitted, before Q1 of the new
+# attempt is answered. Persists the instructor note durably so that if the
+# student closes the tab between authorization and Q1 (where session_state
+# carrying the note would be lost), the note can still be reattached on
+# resume. rubric_responses still denormalizes the note on every row of an
+# attempt; this table is the authoritative source the response rows fall
+# back to.
+CREATE_RUBRIC_ATTEMPTS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS rubric_attempts (
+    id         SERIAL PRIMARY KEY,
+    username   TEXT NOT NULL,
+    task       TEXT NOT NULL CHECK (task IN ('mimic', 'approach', 'kinesis', 'taxis')),
+    attempt    INT NOT NULL,
+    note       TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (username, task, attempt)
+);
+"""
+
 
 def ensure_rubric_table(database_url: str) -> None:
-    """Create the rubric_responses table and its index if missing."""
+    """Create the rubric_responses and rubric_attempts tables (and the
+    rubric_responses index) if any are missing."""
     with psycopg2.connect(database_url) as conn:
         with conn.cursor() as cur:
             cur.execute(CREATE_RUBRIC_RESPONSES_SQL)
             cur.execute(CREATE_RUBRIC_INDEX_SQL)
+            cur.execute(CREATE_RUBRIC_ATTEMPTS_TABLE_SQL)
 
 
 def get_progress(database_url: str, username: str, task: str) -> Dict[str, Any]:
@@ -97,9 +119,83 @@ def get_progress(database_url: str, username: str, task: str) -> Dict[str, Any]:
 
 
 def next_attempt_number(database_url: str, username: str, task: str) -> int:
-    """Return the next attempt number to use when restarting (existing max + 1, or 1)."""
-    progress = get_progress(database_url, username, task)
-    return (progress["attempt"] or 0) + 1
+    """Return the next attempt number to use when restarting (existing max + 1, or 1).
+
+    Considers both rubric_responses (answered rows) and rubric_attempts
+    (authorizations without responses yet) so an in-flight restart that hasn't
+    saved Q1 yet still consumes its number rather than colliding on a retry.
+    """
+    with psycopg2.connect(database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT COALESCE(MAX(attempt), 0) AS max_attempt FROM (
+                    SELECT attempt FROM rubric_responses WHERE username = %s AND task = %s
+                    UNION ALL
+                    SELECT attempt FROM rubric_attempts  WHERE username = %s AND task = %s
+                ) AS combined
+                """,
+                (username, task, username, task),
+            )
+            (max_attempt,) = cur.fetchone()
+    return (max_attempt or 0) + 1
+
+
+def record_attempt_start(
+    database_url: str, username: str, task: str, note: str
+) -> Optional[int]:
+    """Atomically allocate the next attempt number and record the note in
+    rubric_attempts. Returns the allocated number, or None on error.
+
+    Retries up to 5 times if a race against another tab causes a UNIQUE
+    collision on the chosen attempt number.
+    """
+    if not note:
+        return None
+    for _ in range(5):
+        attempt = next_attempt_number(database_url, username, task)
+        try:
+            with psycopg2.connect(database_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO rubric_attempts (username, task, attempt, note)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (username, task, attempt, note),
+                    )
+            return attempt
+        except psycopg2.errors.UniqueViolation:
+            continue  # another tab took our number; retry with the next one
+        except psycopg2.Error as e:
+            logging.error("Postgres error recording attempt start: %s", e)
+            return None
+    logging.error("Could not allocate an attempt number after 5 retries")
+    return None
+
+
+def get_attempt_note(
+    database_url: str, username: str, task: str, attempt: int
+) -> Optional[str]:
+    """Look up the note recorded for an attempt in rubric_attempts. Used as
+    the recovery fallback when session_state.restart_note is gone and no
+    rubric_responses row for the attempt has been written yet (so
+    get_progress can't see the denormalized note either)."""
+    try:
+        with psycopg2.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT note FROM rubric_attempts
+                    WHERE username = %s AND task = %s AND attempt = %s
+                    """,
+                    (username, task, attempt),
+                )
+                row = cur.fetchone()
+    except psycopg2.Error as e:
+        logging.error("Postgres error looking up attempt note: %s", e)
+        return None
+    return row[0] if row else None
 
 
 def record_answer(

@@ -3,7 +3,7 @@ import time
 import streamlit as st
 
 from shared_lib.auth import lookup_student
-from rubric_db import get_progress, next_attempt_number, TOTAL_QUESTIONS
+from rubric_db import get_progress, record_attempt_start, TOTAL_QUESTIONS
 
 WRONG_PASSCODE_DELAY_SECONDS = 0.5
 
@@ -85,8 +85,20 @@ def render_restart_section(selected_task: str, task_label: str) -> None:
             elif not note.strip():
                 st.error("Please add a note explaining the restart.")
             else:
-                new_attempt = next_attempt_number(database_url, username, selected_task)
-                enter_survey(selected_task, task_label, new_attempt, note=note.strip())
+                # Atomically allocate the next attempt number and persist the
+                # note in rubric_attempts. The note becomes durable here, before
+                # Q1 is answered — so a tab close between this point and Q1
+                # submit doesn't strip it out of the new attempt's rows.
+                new_attempt = record_attempt_start(
+                    database_url, username, selected_task, note.strip()
+                )
+                if new_attempt is None:
+                    st.error(
+                        "Could not start the restart — database error. "
+                        "Please try again or ask an instructor."
+                    )
+                else:
+                    enter_survey(selected_task, task_label, new_attempt, note=note.strip())
 
 
 # --- Confirmation flow for an already-touched task ---------------------------

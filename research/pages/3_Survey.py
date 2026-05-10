@@ -5,7 +5,7 @@ import streamlit as st
 import yaml
 
 from shared_lib.auth import lookup_student
-from rubric_db import TOTAL_QUESTIONS, get_progress, record_answer
+from rubric_db import TOTAL_QUESTIONS, get_attempt_note, get_progress, record_answer
 
 st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
 
@@ -72,7 +72,17 @@ else:
 # refresh mid-attempt doesn't drop the note.
 restart_note = st.session_state.get("restart_note")
 if not restart_note and attempt > 1:
-    restart_note = progress.get("note")
+    # Fallback chain for recovering the note after session_state has been
+    # dropped (tab close + reopen, etc.):
+    #   1. progress["note"] reads MAX(note) FILTER (WHERE question_no = 1)
+    #      from rubric_responses — works once any answer for this attempt
+    #      has been written.
+    #   2. rubric_attempts holds the note from the moment the restart was
+    #      authorized, before Q1 was answered — covers the tab-close-
+    #      between-authorization-and-Q1 case.
+    restart_note = progress.get("note") or get_attempt_note(
+        database_url, username, task, attempt
+    )
 
 # --- Completion screen -------------------------------------------------------
 if current_question > TOTAL_QUESTIONS:

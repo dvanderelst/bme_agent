@@ -200,7 +200,7 @@ Logs of diagnostic sessions record the **effective** backend (i.e. whatever the 
 
 ## Database tables (Postgres on Railway)
 
-Both apps share one Postgres database. `shared_lib.postgres_logger.get_postgres_client()` (called on every app startup) creates and migrates the four shared tables idempotently. The survey app additionally calls `research/rubric_db.py::ensure_rubric_table()` to create its own `rubric_responses` table on startup.
+Both apps share one Postgres database. `shared_lib.postgres_logger.get_postgres_client()` (called on every app startup) creates and migrates the four shared tables idempotently. The survey app additionally calls `research/rubric_db.py::ensure_rubric_table()` to create its own `rubric_responses` and `rubric_attempts` tables on startup.
 
 ### `students`
 ```
@@ -262,6 +262,18 @@ submitted_at  TIMESTAMPTZ DEFAULT NOW()
 note          TEXT                             -- denormalized: instructor note for the attempt; same on every row of an attempt
 UNIQUE (username, task, attempt, question_no)
 CHECK (answer_text IS NOT NULL OR answer_json IS NOT NULL)
+```
+
+### `rubric_attempts` (survey only)
+Created alongside `rubric_responses`. One row per restart authorization — written when an instructor enters the passcode + note in the survey's restart form, before Q1 of the new attempt is answered. Makes the note durable so that closing the tab between authorization and the first answer doesn't lose it; the recovery path in `3_Survey.py` falls back to this table when session state and `rubric_responses.note` are both unavailable.
+```
+id          SERIAL PRIMARY KEY
+username    TEXT NOT NULL
+task        TEXT NOT NULL                      -- 'mimic' | 'approach' | 'kinesis' | 'taxis'
+attempt     INT NOT NULL
+note        TEXT
+created_at  TIMESTAMPTZ DEFAULT NOW()
+UNIQUE (username, task, attempt)
 ```
 
 ---

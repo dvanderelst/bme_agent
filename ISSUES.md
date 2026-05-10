@@ -146,10 +146,11 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### Low severity
 
-- [ ] **25. Tab-close mid-restart-attempt strips `restart_note` until Q1 is in the DB.**
+- [x] **25. Tab-close mid-restart-attempt strips `restart_note` until Q1 is in the DB.**
   *Where:* `research/pages/3_Survey.py:47-49`
   *Why:* Fallback `progress.get("note")` only works once Q1 is written. Restart → land on Q1 → close tab → log back in → Q1 is recorded with `note=NULL`; later rows inherit NULL.
   *Fix:* Persist the note to a small `rubric_attempts` table at restart-authorization time.
+  *Resolution (2026-05-10):* New `rubric_attempts` table writes `(username, task, attempt, note)` at the moment the passcode form is submitted, before Q1 is answered. `next_attempt_number` now considers both `rubric_responses` and `rubric_attempts` so an authorization-without-responses still consumes its number. `record_attempt_start` allocates atomically with up to 5 retries on UNIQUE collision (race between two simultaneous restarts). The fallback chain in `3_Survey.py` now reads `session_state.restart_note` → `progress["note"]` from `rubric_responses` → `get_attempt_note` from `rubric_attempts`, covering the tab-close-before-Q1 case.
 
 - [ ] **26. `mimic.yaml` Q4 content question.**
   *Where:* `research/questions/mimic.yaml`
