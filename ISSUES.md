@@ -179,10 +179,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* Restate the contrast in centered/sum-coded form; explicitly acknowledge day×chatbot is unidentifiable from the main effect at the room level.
   *Resolution (2026-05-10):* Substituted "orthogonal to" → "uncorrelated with (zero sample covariance)" in the cancellation argument. The original "orthogonal" wording was technically ambiguous — a reader computing a raw dot product on the listed vectors gets a non-zero number, even though the design-level cancellation property does hold (covariance is what matters, and covariance is invariant to centering and to coding choice). "Uncorrelated" is the same condition stated in language that's intuitively clear and matches what a regression actually does. The day×chatbot identifiability concern raised by the reviewer is now moot since `day` was dropped from the model under issue 28.
 
-- [ ] **30. Half (cluster) is unmodeled.**
+- [x] **30. Half (cluster) is unmodeled.**
   *Where:* §Analysis plan
   *Why:* Halves A/B share within-slot task order, so task order is a half-level treatment with n=2 clusters. Without `(1|half)` or a half fixed effect, between-half variance is mis-attributed to students.
   *Fix:* Add half as a random or fixed effect; acknowledge n=2 limits identifiability.
+  *Resolution (2026-05-10):* Added `half` as a fixed-effect indicator to all three model formulas. Did not use `(1|half)` because n=2 clusters doesn't admit a variance estimate. Added a "Note on `half`" paragraph in §Analysis plan explaining why we use a fixed effect (absorbs the mean shift between halves) and noting the residual limitation: the pooled chatbot main effect is robust to between-half differences by Latin-square construction, but task-specific chatbot contrasts are not.
 
 - [x] **31. Q5 isn't in the plan.**
   *Where:* §Learning rubric design
