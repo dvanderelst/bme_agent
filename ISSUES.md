@@ -218,10 +218,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* Pre-specify before Day 1.
   *Resolution (2026-05-10):* Added a "Note on missing data and exclusion" to §Analysis plan. Pre-specifies: (a) headline analysis includes every student with ≥1 observed slot, since mixed-effects models handle unbalanced data natively and listwise dropping would also discard incomplete students' *complete* slots; (b) soft minimum of ≥2 observed slots per student; (c) a missingness table reported before results; (d) a complete-case sensitivity re-fit as the safeguard against the missing-at-random assumption being wrong (e.g., struggling students dropping out — MNAR — which mixed models can't auto-correct).
 
-- [ ] **36. AI-judge non-independence in ACJ.**
+- [x] **36. AI-judge non-independence in ACJ.**
   *Where:* §Scoring plan
   *Why:* Multiple LLM judges treated as independent raters in BT — but if all are LLMs trained on overlapping data, judgements are correlated, deflating BT standard errors.
   *Fix:* Report inter-judge agreement; consider a hierarchical BT with judge random effect.
+  *Resolution (2026-05-10):* Expanded the §Scoring plan "Learning rubrics" bullet with two new sub-paragraphs. **Judge pool and prompt variation:** 4–6 LLM judges spanning different training lineages (Anthropic, OpenAI, Google, Mistral, plus at least one substantively different mix such as DeepSeek/Qwen) via OpenRouter, with 2–3 prompt phrasings each → ~12–18 effective configurations; pairs routed randomly across configurations; model versions pinned and recorded. **Independence diagnostics and residual limit:** explicitly states the BT-independence assumption and where it breaks for LLM judges, mitigates with (i) inter-judge agreement reporting and (ii) hierarchical BT with a per-judge-configuration random effect. The residual concern — bias shared across the entire judge pool — is acknowledged as a limitation rather than modelled away.
 
 ### Low severity
 
