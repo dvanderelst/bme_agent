@@ -167,10 +167,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Why:* N=24 × 4 slots × three Bayesian models with four fixed effects + random intercepts will give credible intervals so wide that null and large effects are indistinguishable.
   *Fix:* Run a prior-predictive / SBC power analysis; state the smallest effect the design can resolve.
 
-- [ ] **28. `task` is collinear with `day` — model is rank-deficient.**
+- [x] **28. `task` is collinear with `day` — model is rank-deficient.**
   *Where:* §Analysis plan, line 108 (`chatbot + day + position + task + (1|student)`)
   *Why:* Mimic/Approach happen only on Day 1; Kinesis/Taxis only on Day 2. `day` is a deterministic function of `task`.
   *Fix:* Drop `day`, or recode `task` as the within-day task (2 levels) nested in day.
+  *Resolution (2026-05-10):* Dropped `day` from all three model formulas; kept `task` as the more granular label. Added a "Note on `day` vs `task`" paragraph directly under the formulas explaining the equivalence — design-level prose still uses "day" freely (it's the natural way to talk about the schedule), the model uses `task`. The note concentrates the rationale in one place so a future reader of the formulas doesn't unwittingly add `day` back.
 
 - [ ] **29. The [1, 0, 0, 1] orthogonality argument needs to be stated in centered form.**
   *Where:* §"What this layout buys us"

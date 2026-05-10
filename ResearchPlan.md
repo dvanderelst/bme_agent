@@ -121,9 +121,11 @@ Q5 is treated as descriptive — it does not enter the BT-aggregated learning sc
 
 Three Bayesian mixed models, same predictors, different outcomes:
 
-- **Production:** `sum score (0–15) ~ chatbot + day + position + task + (1|student)`
-- **Learning:** `z-scored BT score ~ chatbot + day + position + task + (1|student) + (1|question)`
-- **Instructor interaction:** `student-initiated interaction count ~ chatbot + day + position + task + (1|student)` with a Poisson or negative binomial likelihood. This model is contingent on per-student observation granularity; if we end up with per-half or per-slot counts, the third track collapses to a descriptive comparison rather than a fitted model.
+- **Production:** `sum score (0–15) ~ chatbot + position + task + (1|student)`
+- **Learning:** `z-scored BT score ~ chatbot + position + task + (1|student) + (1|question)`
+- **Instructor interaction:** `student-initiated interaction count ~ chatbot + position + task + (1|student)` with a Poisson or negative binomial likelihood. This model is contingent on per-student observation granularity; if we end up with per-half or per-slot counts, the third track collapses to a descriptive comparison rather than a fitted model.
+
+*Note on `day` vs `task`.* Day and task carry **identical** information in this design — Mimic and Approach happen only on Day 1; Kinesis and Taxis happen only on Day 2. The two are perfectly collinear, and including both as predictors would make the design matrix rank-deficient. We keep `task` (the more granular label) and drop `day` from the model. "Day" still appears throughout the rest of this document as the natural way to talk about the schedule, and any "day-level effect" referenced in the design discussion is captured by the contrast between the two color tasks (Day 1) and the two sound tasks (Day 2) on the `task` factor.
 
 Reporting is in estimation terms — point estimates with credible intervals — not null-hypothesis testing. We do not threshold on p-values. The dissociations between the chatbot's production, learning, and instructor-interaction effects are reported as posterior contrasts across the three models, each with its own credible interval.
 
