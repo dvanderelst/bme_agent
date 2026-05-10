@@ -53,6 +53,13 @@ Both backends are fed from the same source folder (`agent/agent_files/documents/
 
 Practical implication: Anthropic is simpler (no relevance issues, model always has full context) but more expensive per turn as the document set grows. Mistral is cheaper at scale but answer quality depends on its search picking the right documents — which is why the rolled-up library description is important: it tells the agent what's in the library so it knows when to consult it.
 
+### How is conversation history handled by each backend?
+
+The two backends store conversation state in opposite places, with practical implications for how we manage history client-side:
+
+- **Mistral** keeps the full conversation server-side, addressed by a `conversation_id`. Each turn we send the new user message plus the `conversation_id`; Mistral concatenates the history, applies any context-window limits, and returns the response. From our side there's nothing to bound — and conversely, no direct visibility into how (or whether) Mistral trims history at very long sessions.
+- **Anthropic's** Messages API is stateless. Every call must include the full message history. The client-side store (`st.session_state.messages`) is the source of truth, and the chat page sends a slice of it on each turn. To keep input cost and request size from growing unboundedly, the chat page caps what's sent to Anthropic at the most recent `MAX_MESSAGES_TO_ANTHROPIC` messages (currently 20, about 10 back-and-forth turns). Older history is silently dropped from what the model sees, but stays visible to the student in the chat panel. The cap lives at the top of `agent/pages/1_Chat.py` if it needs to change.
+
 ### How do I change the model used by each backend?
 
 The two backends work very differently:

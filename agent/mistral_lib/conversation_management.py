@@ -177,7 +177,11 @@ def send_message_to_agent(
 
         conversation_data['assistant_response'] = assistant_text
 
-        # Display the conversation if requested
+        # Display the conversation if requested. The print() calls here are
+        # only fired when this function is called interactively (script_chat.py
+        # and similar REPL/CLI tools) — the chat page passes display=False, so
+        # in production these don't run. Kept as plain print() rather than
+        # routed through logging because their consumer is a human at a terminal.
         if display:
             print("\n" + "="*80)
             print("💬 CONVERSATION")

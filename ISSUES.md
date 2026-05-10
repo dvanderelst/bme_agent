@@ -70,22 +70,22 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### Low severity
 
-- [ ] **12. Unbounded conversation history sent on every turn.**
+- [x] **12. Unbounded conversation history sent on every turn.**
   *Where:* `agent/pages/1_Chat.py:219`, `agent/anthropic_lib/conversation_management.py:69`
   *Why:* Long sessions hit the `max_tokens=1024` output cap (issue 6) plus growing input cost; eventually context limits.
   *Fix:* Add a sliding window or summarization.
 
-- [ ] **13. `student_settings` dict mutation across `Json()` calls.**
+- [x] **13. `student_settings` dict mutation across `Json()` calls.**
   *Where:* `agent/pages/1_Chat.py:141-145`
   *Why:* Same dict object is passed to every `log_*` call; in-place mutation could affect any pending writes. Low risk in practice.
   *Fix:* `dict(student_settings)` per call.
 
-- [ ] **14. Feedback Submit button is double-clickable.**
+- [x] **14. Feedback Submit button is double-clickable.**
   *Where:* `agent/pages/1_Chat.py:307-323`
   *Why:* On a slow Postgres write, fast double-click can log twice.
   *Fix:* Disable the button after first click or check for in-flight state.
 
-- [ ] **15. Leftover `print()`s in `mistral_lib/conversation_management.py`.**
+- [x] **15. Leftover `print()`s in `mistral_lib/conversation_management.py`.**
   *Where:* `agent/mistral_lib/conversation_management.py:182-193`
   *Why:* Module was written for scripting; `print()` calls and emojis are dead in production but indicate it hasn't been hardened.
   *Fix:* Replace with `logging`.

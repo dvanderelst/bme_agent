@@ -25,6 +25,15 @@ def _validate_registry_cached() -> list:
 # barely notices.
 MODERATION_RETRY_DELAY_SECONDS = 1.0
 
+# Cap on the total number of messages we send to Anthropic per turn (history
+# + the new user message). Anthropic's API is stateless, so the full history
+# is on us — without a cap, input cost and request size grow unboundedly.
+# Older messages are silently dropped from what the model sees but remain
+# visible to the student in the chat panel. Bump if 20 turns out to be too
+# tight in practice. Mistral keeps state server-side, so this doesn't apply
+# there.
+MAX_MESSAGES_TO_ANTHROPIC = 20
+
 SESSION_AUTHENTICATED = "authenticated"
 SESSION_MESSAGES = "messages"
 SESSION_CONVERSATION_ID = "conversation_id"
@@ -117,6 +126,22 @@ diagnostics_enabled = _truthy(student.get("diagnostics"))
 if not agent_id:
     st.error("Missing required configuration: bme_agent. Check your secrets.toml.")
     st.stop()
+
+def _trim_history_for_anthropic(messages: list, max_count: int) -> list:
+    """Keep at most max_count messages from the tail of the list, then drop
+    any leading assistant messages so the first one is a user role.
+
+    Anthropic requires the conversation to start with a user message and
+    alternate from there; a naive tail-slice could land on an assistant
+    message if the list length is even.
+    """
+    if len(messages) <= max_count:
+        return messages
+    trimmed = messages[-max_count:]
+    while trimmed and trimmed[0].get("role") != "user":
+        trimmed = trimmed[1:]
+    return trimmed
+
 
 def run_moderation(message: str) -> tuple[bool, list]:
     """Run message through the Mistral moderation classifier.
@@ -288,10 +313,18 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
     else:
         # Get response from the configured backend
         try:
+            # Anthropic is stateless — every call sends the full history. Cap it
+            # so input cost and request size don't grow unboundedly with long
+            # sessions. The chat panel still shows the full transcript to the
+            # student; only what goes to the model is trimmed.
+            anthropic_history = _trim_history_for_anthropic(
+                st.session_state[SESSION_MESSAGES][:-1],
+                MAX_MESSAGES_TO_ANTHROPIC - 1,
+            )
             with st.spinner("Thinking..."):
                 if backend == "anthropic":
                     response = anthropic_conversation.send_message(
-                        history=st.session_state[SESSION_MESSAGES][:-1],
+                        history=anthropic_history,
                         user_message=prompt,
                     )
                 elif backend == "mistral":
@@ -328,7 +361,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                         from anthropic_lib.conversation_management import _build_messages
                         from anthropic_lib.config import get as anthropic_config
                         msgs = _build_messages(
-                            history=st.session_state[SESSION_MESSAGES][:-1],
+                            history=anthropic_history,
                             user_message=prompt,
                         )
                         blocks = msgs[-1]["content"]
@@ -357,7 +390,10 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     agent_response=agent_response,
                     user_id=student_id,
                     llm=backend,
-                    student_settings=student_settings,
+                    # Defensive copy — student_settings is the same dict
+                    # passed to every log_* call; copying keeps a later
+                    # in-place mutation from leaking into earlier writes.
+                    student_settings=dict(student_settings) if student_settings else None,
                 )
                 if not log_success:
                     st.warning("Logging to database failed")
@@ -416,7 +452,14 @@ if st.session_state[SESSION_MESSAGES]:
             "Add a note (optional)",
             key=f"feedback_note_{st.session_state[SESSION_FEEDBACK_KEY]}",
         )
-        if st.button("Submit feedback"):
+        # Dedup marker keyed by the current feedback_key. A double-click on
+        # the submit button can fire two reruns before the first completes;
+        # the marker makes the second one a no-op so we don't log twice.
+        # The marker is per-feedback_key, so a fresh feedback session (with
+        # the incremented key) is unaffected.
+        submitted_marker = f"_submitted_fb_{st.session_state[SESSION_FEEDBACK_KEY]}"
+        if st.button("Submit feedback") and not st.session_state.get(submitted_marker):
+            st.session_state[submitted_marker] = True
             try:
                 log_success = log_feedback(
                     client_config=db_config,
@@ -424,7 +467,7 @@ if st.session_state[SESSION_MESSAGES]:
                     sentiment=sentiment,
                     note=note,
                     user_id=student_id,
-                    student_settings=student_settings,
+                    student_settings=dict(student_settings) if student_settings else None,
                 )
                 if not log_success:
                     st.warning("Saving your feedback failed — please try again.")
