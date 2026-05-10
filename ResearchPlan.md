@@ -57,7 +57,7 @@ Within those constraints we adopt the following layout. We split the class in ha
 
 Each slot in the schedule ends with two pieces of data collection. For the production rubric we collect each student's robot program and a photo of their robot. For the learning rubric, students answer the rubric questions for that slot's task via an online survey, without chatbot access.
 
-**What this layout buys us.** Reading the chatbot column top to bottom, the chatbot manipulation in temporal order of slots is the vector **[1, 0, 0, 1]**. Any confound whose 4-slot pattern is orthogonal to this vector cancels in the chatbot contrast. Concretely, that includes:
+**What this layout buys us.** Reading the chatbot column top to bottom, the chatbot manipulation in temporal order of slots is the vector **[1, 0, 0, 1]**. Any confound whose 4-slot pattern is uncorrelated with this vector (zero sample covariance) cancels in the chatbot contrast. Concretely, that includes:
 
 - Monotonic time-on-robot effects (pattern [1, 2, 3, 4]) — students get better with practice across slots.
 - Within-day position effects that repeat across days (pattern [1, 0, 1, 0]) — e.g., students always perform a bit worse on the second task of the day.

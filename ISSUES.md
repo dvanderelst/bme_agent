@@ -173,10 +173,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* Drop `day`, or recode `task` as the within-day task (2 levels) nested in day.
   *Resolution (2026-05-10):* Dropped `day` from all three model formulas; kept `task` as the more granular label. Added a "Note on `day` vs `task`" paragraph directly under the formulas explaining the equivalence — design-level prose still uses "day" freely (it's the natural way to talk about the schedule), the model uses `task`. The note concentrates the rationale in one place so a future reader of the formulas doesn't unwittingly add `day` back.
 
-- [ ] **29. The [1, 0, 0, 1] orthogonality argument needs to be stated in centered form.**
+- [x] **29. The [1, 0, 0, 1] orthogonality argument needs to be stated in centered form.**
   *Where:* §"What this layout buys us"
   *Why:* The doc mixes uncentered and centered reasoning. Day×chatbot interaction aliases perfectly with the chatbot main effect at the room level — should be flagged explicitly, not folded into the asymmetric-carryover caveat.
   *Fix:* Restate the contrast in centered/sum-coded form; explicitly acknowledge day×chatbot is unidentifiable from the main effect at the room level.
+  *Resolution (2026-05-10):* Substituted "orthogonal to" → "uncorrelated with (zero sample covariance)" in the cancellation argument. The original "orthogonal" wording was technically ambiguous — a reader computing a raw dot product on the listed vectors gets a non-zero number, even though the design-level cancellation property does hold (covariance is what matters, and covariance is invariant to centering and to coding choice). "Uncorrelated" is the same condition stated in language that's intuitively clear and matches what a regression actually does. The day×chatbot identifiability concern raised by the reviewer is now moot since `day` was dropped from the model under issue 28.
 
 - [ ] **30. Half (cluster) is unmodeled.**
   *Where:* §Analysis plan
