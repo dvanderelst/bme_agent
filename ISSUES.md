@@ -192,10 +192,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* State explicitly how Q5 enters the BT score (or doesn't); add a description of its current placeholder fields and noted-as-TBD status.
   *Resolution (2026-05-09):* Added a "Q5 — structured per-task wrap-up" paragraph to §Learning rubric design listing the current placeholder fields and candidate additional items (student self-rating on the production rubric; outstanding-problems prompt). Stated that Q5 is descriptive only — not BT-aggregated. Pointed at the design-comment block in `research/pages/3_Survey.py` for the "answered vs untouched" rule.
 
-- [ ] **32. No priors or likelihoods specified.**
+- [x] **32. No priors or likelihoods specified.**
   *Where:* §Analysis plan
   *Why:* "Bayesian mixed model" is not runnable without priors, link functions, or standardization. Production score is a sum of five 0–3 ordinal items — Gaussian will misbehave at floor/ceiling.
   *Fix:* Specify priors, likelihoods (cumulative ordinal or beta-binomial for production), and predictor coding (centered/sum-coded).
+  *Resolution (2026-05-10):* Closed across two §Analysis plan additions. **Priors** are stated in the "Note on Bayesian framing" as weakly informative defaults — `normal(0, 1)` on standardized coefficients, half-normal on variance components, with the explicit note that they're for sensibility rather than subject-matter knowledge. **Likelihoods** are stated in a new "Note on likelihoods and predictor coding": beta-binomial for the production sum-score (respects 0–15 bounds and the expected ceiling effects, where Gaussian would clip and bias chatbot downward), Gaussian for the z-scored BT learning score, negative binomial for instructor-interaction counts. **Predictor coding** spelled out in the same note: standardize continuous, sum-code categorical, so the `normal(0, 1)` prior is on a sensible scale and categorical coefficients are deviations from the grand mean.
 
 ### Medium severity
 
