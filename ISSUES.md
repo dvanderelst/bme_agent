@@ -152,10 +152,11 @@ File:line citations are from the review and have not all been re-verified — co
   *Fix:* Persist the note to a small `rubric_attempts` table at restart-authorization time.
   *Resolution (2026-05-10):* New `rubric_attempts` table writes `(username, task, attempt, note)` at the moment the passcode form is submitted, before Q1 is answered. `next_attempt_number` now considers both `rubric_responses` and `rubric_attempts` so an authorization-without-responses still consumes its number. `record_attempt_start` allocates atomically with up to 5 retries on UNIQUE collision (race between two simultaneous restarts). The fallback chain in `3_Survey.py` now reads `session_state.restart_note` → `progress["note"]` from `rubric_responses` → `get_attempt_note` from `rubric_attempts`, covering the tab-close-before-Q1 case.
 
-- [ ] **26. `mimic.yaml` Q4 content question.**
+- [x] **26. `mimic.yaml` Q4 content question.**
   *Where:* `research/questions/mimic.yaml`
   *Why:* The prompt mentions "two candidate LEDs" but the figure shows three filters (R/G/B). Worth a sanity check that the figure matches the prompt.
   *Fix:* Verify with the original rubric design and update either prompt or figure.
+  *Resolution (2026-05-10):* Closed as not a bug. The "two candidate LEDs" referred to the two answer options the student picks between (dim red vs bright yellow), not to two LEDs visible in the figure. The figure correctly shows three filtered detectors with their readings and no LED — the question asks the student to *infer* which LED type is producing the readings. Tweaked the prompt wording in both `research/questions/mimic.yaml` and the §Learning rubric: Mimic Color block in `ResearchPlan.md` to make this less misreadable ("Which of the following two LEDs could be producing these readings — a dim red LED, or a bright yellow LED?").
 
 ---
 

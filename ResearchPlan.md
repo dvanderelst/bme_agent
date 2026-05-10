@@ -242,7 +242,7 @@ Independent of the choices above, we plan to tag each interaction by *initiator*
 
 ![Robot facing east with three light detectors stacked at the front — red, green, and blue filters. Readings annotated next to each sensor: R = 200, G = 190, B = 50. No target LED is shown.](figures/images/q4_mimic.png)
 
-<u>Question text:</u> The robot has three light detectors with red, green, and blue filters. The readings are R = 200, G = 190, B = 50. Two candidate LEDs could be producing this pattern: a dim red LED, or a bright yellow LED. Which of the two matches the observed readings? Explain.
+<u>Question text:</u> The robot has three light detectors with red, green, and blue filters. The readings are R = 200, G = 190, B = 50. Which of the following two LEDs could be producing these readings — a dim red LED, or a bright yellow LED? Explain.
 
 ### Learning rubric: Approach Color
 
