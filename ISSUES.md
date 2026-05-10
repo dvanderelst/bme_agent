@@ -162,10 +162,11 @@ File:line citations are from the review and have not all been re-verified — co
 
 ### High severity
 
-- [ ] **27. Power isn't quantified.**
+- [x] **27. Power isn't quantified.**
   *Where:* §Analysis plan
   *Why:* N=24 × 4 slots × three Bayesian models with four fixed effects + random intercepts will give credible intervals so wide that null and large effects are indistinguishable.
   *Fix:* Run a prior-predictive / SBC power analysis; state the smallest effect the design can resolve.
+  *Resolution (2026-05-10):* Addressed by stating the position explicitly in §Analysis plan rather than running a power analysis. There's no prior data to anchor a smallest-effect-of-interest, so a power analysis would either need an invented threshold or be uninformative. The plan now says: the design provides 48 chatbot-on and 48 chatbot-off measurements (24 students × 2 of each condition) on each of production and learning; if a pedagogically-meaningful chatbot effect is real, it should be visible at that resolution; if not, "no clear effect at this scale" is itself an informative answer rather than a failed measurement. Combined with the existing estimation-focused (no p-value thresholding) stance.
 
 - [x] **28. `task` is collinear with `day` — model is rank-deficient.**
   *Where:* §Analysis plan, line 108 (`chatbot + day + position + task + (1|student)`)
