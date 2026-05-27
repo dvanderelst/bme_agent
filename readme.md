@@ -7,7 +7,7 @@ Two Streamlit apps deployed together for the Biology Meets Engineering course:
 
 Both share the same student authentication (bcrypt-hashed passwords in a Postgres `students` table) and the same Postgres database. They deploy as two separate services in a single Railway project, each with its own `railway.toml` and `start.sh`. Locally they're run via `dev_agent.sh` / `dev_research.sh`.
 
-The study design these apps support is `ResearchPlan.md` at the repo root. Open issues are tracked in `ISSUES.md`.
+The study design these apps support is `ResearchPlan.md` at the repo root. Pickup notes for future sessions — what's in the repo, open threads, deferred punch-list items, stances — live in `HANDOFF.md`.
 
 ---
 
@@ -117,7 +117,7 @@ figures/                                  Question-image generation pipeline
   render_lib.py                                 Shared rendering primitives
 
 ResearchPlan.md                           Study design document
-ISSUES.md                                 Open issue punch list
+HANDOFF.md                                Pickup notes for future sessions
 
 # Repo-root scripts (run from the repo root):
 dev_agent.sh                              Local-dev wrapper for the chatbot
