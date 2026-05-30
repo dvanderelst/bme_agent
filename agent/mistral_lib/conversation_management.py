@@ -53,7 +53,8 @@ def send_message_to_agent(
     agent_id: Optional[str] = None,
     conversation_id: Optional[str] = None,
     display: bool = True,
-    debug: bool = False
+    debug: bool = False,
+    images: Optional[List[Any]] = None,
 ) -> Dict[str, Any]:
     """
     Send a message to an agent and get the response.
@@ -64,6 +65,10 @@ def send_message_to_agent(
         agent_id (str): The ID of the agent. Must be explicitly provided.
         conversation_id (str, optional): Existing conversation ID. If None, starts a new conversation
         display (bool, optional): If True, prints the conversation in a formatted way. Default: True
+        images (list, optional): List of (filename, mime, raw_bytes, b64) tuples
+            to attach to this turn as inline image_url chunks. Single-turn only
+            — the configured Mistral agent (mistral-medium-latest) is
+            vision-capable. The library/RAG document connector is unaffected.
 
     Returns:
         dict: The conversation response containing agent's reply and conversation metadata
@@ -99,8 +104,23 @@ def send_message_to_agent(
     client = Mistral(api_key=api_key)
 
     try:
-        # Prepare the message input
-        inputs = [{"role": "user", "content": message}]
+        # Prepare the message input. Plain string content for a text-only
+        # turn; when images are attached, content becomes a list of typed
+        # chunks (text + one image_url per image). The image_url value is a
+        # base64 data URI — verified against the mistralai SDK schema, where
+        # ImageURLChunk.image_url accepts {"url": "data:<mime>;base64,..."}.
+        if images:
+            content = [{"type": "text", "text": message}]
+            content.extend(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{b64}"},
+                }
+                for (_, mime, _, b64) in images
+            )
+            inputs = [{"role": "user", "content": content}]
+        else:
+            inputs = [{"role": "user", "content": message}]
 
         # Prepare conversation parameters
         conversation_params = {

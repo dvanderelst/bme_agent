@@ -6,7 +6,7 @@ Logs user/agent conversations and student feedback to a Postgres database.
 import logging
 import psycopg2
 from psycopg2.extras import Json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from shared_lib.auth import (
     CREATE_STUDENTS_TABLE_SQL,
@@ -42,6 +42,23 @@ CREATE TABLE IF NOT EXISTS feedback (
 );
 """
 
+# Image/screenshot attachments uploaded by students alongside a chat turn.
+# One row per file, FK to the interaction it was sent with. interaction_id is
+# INTEGER to match interactions.id (SERIAL = int4). ON DELETE CASCADE so
+# pruning an interaction takes its blobs with it. Bytes live inline as BYTEA:
+# at study scale (≤ ~500 images × ~500 KB ≈ 250 MB) the DB inflation is
+# acceptable and keeps a single backup story.
+CREATE_ATTACHMENTS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS attachments (
+    id              SERIAL PRIMARY KEY,
+    interaction_id  INTEGER REFERENCES interactions(id) ON DELETE CASCADE,
+    filename        TEXT,
+    mime            TEXT,
+    bytes           BYTEA,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+"""
+
 # Idempotent migrations so deployments that predate student_settings pick it
 # up automatically on startup.
 ADD_INTERACTIONS_STUDENT_SETTINGS_SQL = (
@@ -72,6 +89,7 @@ def get_postgres_client(database_url: str) -> str:
         with conn.cursor() as cur:
             cur.execute(CREATE_INTERACTIONS_TABLE_SQL)
             cur.execute(CREATE_FEEDBACK_TABLE_SQL)
+            cur.execute(CREATE_ATTACHMENTS_TABLE_SQL)
             cur.execute(CREATE_STUDENTS_TABLE_SQL)
             cur.execute(ADD_ENABLED_COLUMN_SQL)
             cur.execute(ADD_BACKEND_COLUMN_SQL)
@@ -91,6 +109,7 @@ def log_interaction(
     user_id: Optional[str] = None,
     llm: Optional[str] = None,
     student_settings: Optional[Dict[str, Any]] = None,
+    attachments: Optional[List[Tuple[str, str, bytes]]] = None,
 ) -> bool:
     """
     Log a single user/agent exchange to the interactions table.
@@ -98,6 +117,12 @@ def log_interaction(
     student_settings is stored as a JSONB snapshot of the student's row at
     interaction time, so analyses survive future re-syncs of the students
     table (which TRUNCATEs and rewrites it).
+
+    attachments, when given, is a list of (filename, mime, bytes) tuples —
+    images the student uploaded with this turn. Each is written as one row in
+    the attachments table within the SAME transaction as the interaction, so
+    we never end up with orphan blobs or an interaction whose attachments
+    silently failed to persist.
 
     Returns:
         True if logging succeeded, False if failed
@@ -111,6 +136,7 @@ def log_interaction(
                         (conversation_id, user_id, user_message, agent_response,
                          llm, student_settings)
                     VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING id
                     """,
                     (
                         conversation_id,
@@ -121,6 +147,24 @@ def log_interaction(
                         Json(student_settings) if student_settings else None,
                     ),
                 )
+                interaction_id = cur.fetchone()[0]
+
+                for filename, mime, blob in attachments or []:
+                    cur.execute(
+                        """
+                        INSERT INTO attachments
+                            (interaction_id, filename, mime, bytes)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (
+                            interaction_id,
+                            filename,
+                            mime,
+                            # Binary wrapper so bytes are sent as bytea
+                            # regardless of psycopg2's default adaptation.
+                            psycopg2.Binary(blob),
+                        ),
+                    )
         return True
 
     except psycopg2.Error as e:

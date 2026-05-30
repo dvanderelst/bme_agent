@@ -6,7 +6,7 @@ The project has grown well past the original RAG chatbot. As of 2026-05-10 it's 
 
 ## What's in the repo now
 
-- **`agent/`** — deployed chatbot Streamlit app (Anthropic + Mistral backends, bcrypt auth against Postgres `students` table, RAG via `agent/agent_files/documents/` + `manifest.toml`).
+- **`agent/`** — deployed chatbot Streamlit app (Anthropic + Mistral backends, bcrypt auth against Postgres `students` table, RAG via `agent/agent_files/documents/` + `manifest.toml`, single-turn screenshot upload on both backends → Postgres `attachments` table).
 - **`research/`** — deployed survey Streamlit app for the learning rubric (login → intro → task picker → Q1–Q4 free-text + Q5 structured wrap-up, restart with instructor passcode). Shares the same Postgres and student auth as the chatbot.
 - **`shared_lib/`** — auth, login throttle, Postgres logging, used by both apps.
 - **`figures/`** — figure-generation pipeline for the rubric question images. Renders to `figures/images/*.png`.
@@ -21,6 +21,7 @@ When picking up, read the Outstanding-tasks section at the top of `ResearchPlan.
 
 Not exhaustive — `ResearchPlan.md` Outstanding tasks covers the study-design side.
 
+- **Screenshot / image upload for the chatbot.** ✅ Done — shipped on both backends in one commit (single-turn, base64-inline, PNG/JPEG/WebP ≤ 5 MB, auto-downscale to 1568 px, persisted to the `attachments` table). See `plan.md` at the repo root for the design rationale and `agent/image_utils.py` / the wrappers for the implementation.
 - **Q5 finalization.** The survey's wrap-up question (Q5) is still a placeholder set. Plan calls for adding student self-rating on the production rubric (same 5 items as the instructor/AI rubric, so the contrast between self- and instructor-rating becomes its own output) plus an outstanding-problems prompt. Edit in `research/pages/3_Survey.py` and update the matching §Learning rubric design block in `ResearchPlan.md`. The design comment block at the top of the Q5 branch in `3_Survey.py` lays out the "every widget must distinguish answered from didn't-touch" rule — follow it when picking widgets.
 - **Observer-log app.** Third Streamlit service to capture instructor-interaction observations during slots. Reuses the same auth and Postgres. Discussed in `ResearchPlan.md` §Interaction assessment but not built yet.
 - **Observer protocol** (granularity + topic coding) — pre-Day-1 decision to settle with collaborators. Plan currently lists three granularity options and three topic-coding options.

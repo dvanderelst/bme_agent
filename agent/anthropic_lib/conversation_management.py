@@ -57,19 +57,45 @@ def _build_document_blocks() -> list:
     ]
 
 
-def _build_messages(history: list, user_message: str) -> list:
+def _build_image_blocks(images: Optional[list]) -> list:
+    """Build base64 image content blocks for the new user message.
+
+    ``images`` is a list of ``(filename, mime, raw_bytes, b64)`` tuples as
+    produced by ``image_utils.prepare_uploaded_image``. We inline the base64
+    rather than using the Files API: screenshots are single-turn, so there's
+    no reuse to amortise an upload round trip against.
+    """
+    if not images:
+        return []
+    return [
+        {
+            "type": "image",
+            "source": {"type": "base64", "media_type": mime, "data": b64},
+        }
+        for (_, mime, _, b64) in images
+    ]
+
+
+def _build_messages(history: list, user_message: str, images: Optional[list] = None) -> list:
     """
     Construct the full messages list for the API call.
 
     Historical messages are sent as plain text. The new user message has
     document blocks prepended — Anthropic's guidance is to place documents
     before the user's text so the model treats them as primary source
-    material rather than appendices to skim after answering.
+    material rather than appendices to skim after answering. Any uploaded
+    images sit between the docs and the trailing text block.
+
+    Images are single-turn: callers must not include them in ``history``, so
+    past turns replay as text only and stale image tokens are never re-billed.
     """
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
 
     doc_blocks = _build_document_blocks()
-    new_message_content = doc_blocks + [{"type": "text", "text": user_message}]
+    image_blocks = _build_image_blocks(images)
+    new_message_content = (
+        doc_blocks + image_blocks + [{"type": "text", "text": user_message}]
+    )
 
     messages.append({"role": "user", "content": new_message_content})
     return messages
@@ -79,6 +105,7 @@ def send_message(
     history: list,
     user_message: str,
     api_key: Optional[str] = None,
+    images: Optional[list] = None,
 ) -> dict:
     """
     Send a message to Claude with full conversation history and document context.
@@ -88,6 +115,9 @@ def send_message(
                       as stored in st.session_state.messages.
         user_message: The new user message to send.
         api_key:      Anthropic API key. Falls back to config.get("anthropic_key").
+        images:       Optional list of (filename, mime, raw_bytes, b64) tuples
+                      to attach to this turn as inline image blocks. Single-turn
+                      only — not carried into ``history``.
 
     Returns:
         dict with:
@@ -98,7 +128,7 @@ def send_message(
     client = anthropic.Anthropic(api_key=api_key)
 
     system_prompt = _load_system_prompt()
-    messages = _build_messages(history, user_message)
+    messages = _build_messages(history, user_message, images=images)
 
     params = {
         "model":      anthropic_config("model"),

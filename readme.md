@@ -60,6 +60,10 @@ The two backends store conversation state in opposite places, with practical imp
 - **Mistral** keeps the full conversation server-side, addressed by a `conversation_id`. Each turn we send the new user message plus the `conversation_id`; Mistral concatenates the history, applies any context-window limits, and returns the response. From our side there's nothing to bound — and conversely, no direct visibility into how (or whether) Mistral trims history at very long sessions.
 - **Anthropic's** Messages API is stateless. Every call must include the full message history. The client-side store (`st.session_state.messages`) is the source of truth, and the chat page sends a slice of it on each turn. To keep input cost and request size from growing unboundedly, the chat page caps what's sent to Anthropic at the most recent `max_history_messages` messages (currently 20, about 10 back-and-forth turns). Older history is silently dropped from what the model sees, but stays visible to the student in the chat panel. The cap lives in `agent/anthropic_lib/config.toml` alongside `model` and `max_tokens`.
 
+### Can students attach screenshots?
+
+Yes. The chat input accepts image uploads (PNG / JPEG / WebP, ≤ 5 MB each) so students can show robot code, robot behaviour, or an error message. Images are **single-turn**: an image is sent only on the turn it's uploaded (as an inline image block to whichever backend is active — both `mistral-medium-latest` and Sonnet 4.6 are vision-capable), and later turns reference it only by a `📎 filename` text marker, so stale image tokens are never re-billed. Large images are downscaled to ≤ 1568 px before sending. Uploaded bytes are persisted to the Postgres `attachments` table (FK to the interaction). Moderation stays text-only by design — the caption is classified, image content bypasses the moderator (same fail-open stance as above).
+
 ### How do I change the model used by each backend?
 
 The two backends work very differently:

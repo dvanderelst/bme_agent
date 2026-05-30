@@ -9,6 +9,7 @@ from anthropic_lib import conversation_management as anthropic_conversation
 from anthropic_lib.config import get as anthropic_config
 from anthropic_lib.file_management import validate_registry
 from anthropic_lib.file_registry import load as load_registry
+from image_utils import prepare_uploaded_image, ImageValidationError
 from shared_lib.auth import lookup_student
 from shared_lib.postgres_logger import log_interaction, log_feedback
 from shared_lib.streamlit_helpers import setup_postgres
@@ -281,17 +282,53 @@ for message in st.session_state[SESSION_MESSAGES]:
                     "_Response was cut off — ask me to continue if you'd like more._"
                 )
 
-# React to user input
-if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
+# React to user input. accept_file lets students attach screenshots (robot
+# code, behaviour, or error messages); the returned value carries .text and
+# .files instead of a plain string. file_type pre-filters the picker, but
+# prepare_uploaded_image re-validates size and MIME server-side.
+if user_input := st.chat_input(
+    "Ask about robots, sensors, or animal sensing...",
+    accept_file="multiple",
+    file_type=["png", "jpg", "jpeg", "webp"],
+):
+    caption = (user_input.text or "").strip()
+
+    # Validate + normalise each uploaded image. Rejected files (too big /
+    # wrong type) are reported but don't block a valid caption from sending.
+    # prepared entries are (filename, mime, raw_bytes, b64).
+    prepared = []
+    for uploaded in (user_input.files or []):
+        try:
+            prepared.append(prepare_uploaded_image(uploaded))
+        except ImageValidationError as exc:
+            st.warning(str(exc))
+
+    # The stored/sent text carries a 📎 marker per attachment. This doubles as
+    # the badge when the turn re-renders, and — since images are single-turn —
+    # gives the model a textual trace on later turns without re-billing image
+    # tokens. An image with no caption becomes just the marker (never empty).
+    markers = "".join(f"\n📎 {fname}" for (fname, _, _, _) in prepared)
+    content = (caption + markers).strip()
+
+    # Nothing usable to send (e.g. every upload was rejected and no caption).
+    # Warnings are already shown; skip the backend round trip.
+    if not content:
+        st.stop()
+
     # Display user message in chat message container
     with st.chat_message("user"):
         # Plain text — see note above on Markdown interpretation.
-        st.text(prompt)
-    # Add user message to chat history
-    st.session_state[SESSION_MESSAGES].append({"role": "user", "content": prompt})
+        st.text(content)
+    # Add user message to chat history. Only the text/marker is stored — the
+    # base64 image blocks live for exactly this turn (single-turn rule), so
+    # history replay never re-sends them.
+    st.session_state[SESSION_MESSAGES].append({"role": "user", "content": content})
 
-    # First, moderate the user message
-    moderation_passed, flagged_categories = run_moderation(prompt)
+    # First, moderate the user message. Moderation is text-only by design:
+    # the caption/marker is classified, image content bypasses the moderator.
+    # Consistent with the fail-open stance documented in readme.md — image
+    # moderation is overkill for a supervised, logged-in classroom.
+    moderation_passed, flagged_categories = run_moderation(content)
 
     if not moderation_passed:
         # Message was rejected — tell the student which categories were violated.
@@ -319,14 +356,16 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                 if backend == "anthropic":
                     response = anthropic_conversation.send_message(
                         history=anthropic_history,
-                        user_message=prompt,
+                        user_message=content,
+                        images=prepared,
                     )
                 elif backend == "mistral":
                     response = mistral_conversation.send_message_to_agent(
-                        message=prompt,
+                        message=content,
                         agent_id=agent_id,
                         conversation_id=st.session_state[SESSION_CONVERSATION_ID],
                         display=False,
+                        images=prepared,
                     )
                     # Only update on a non-None id. If the response shape ever
                     # changes and conversation_id is missing, overwriting with
@@ -355,11 +394,15 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                         from anthropic_lib.conversation_management import _build_messages
                         msgs = _build_messages(
                             history=anthropic_history,
-                            user_message=prompt,
+                            user_message=content,
+                            images=prepared,
                         )
                         blocks = msgs[-1]["content"]
                         diag["model"] = anthropic_config("model")
                         diag["block_order"] = blocks[0].get("type") if blocks else None
+                        diag["images"] = sum(
+                            1 for b in blocks if b.get("type") == "image"
+                        )
                         diag["docs"] = [
                             {
                                 "title":   b.get("title", "(untitled)"),
@@ -379,7 +422,7 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                 log_success = log_interaction(
                     client_config=db_config,
                     conversation_id=st.session_state[SESSION_CONVERSATION_ID],
-                    user_message=prompt,
+                    user_message=content,
                     agent_response=agent_response,
                     user_id=student_id,
                     llm=backend,
@@ -387,6 +430,12 @@ if prompt := st.chat_input("Ask about robots, sensors, or animal sensing..."):
                     # passed to every log_* call; copying keeps a later
                     # in-place mutation from leaking into earlier writes.
                     student_settings=dict(student_settings) if student_settings else None,
+                    # Persist the raw image bytes (sans base64) alongside the
+                    # turn. Single-turn images aren't kept in session state, so
+                    # this DB row is the only durable record of the screenshot.
+                    attachments=[
+                        (fname, mime, raw) for (fname, mime, raw, _) in prepared
+                    ] or None,
                 )
                 if not log_success:
                     st.warning("Logging to database failed")
