@@ -21,10 +21,13 @@ Usage:
 """
 
 import argparse
+import logging
 import os
 import sys
 from typing import Any, Dict, List
 from urllib.parse import urlparse
+
+import toml
 
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
@@ -76,13 +79,33 @@ def parse_backend(value: str, username: str) -> str:
 
 # Default roster lives next to this script so PyCharm's run config works
 # regardless of the configured working directory.
-DEFAULT_ROSTER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "students.ods")
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_ROSTER = os.path.join(_SCRIPT_DIR, "students.ods")
+
+# config_manager only finds secrets via a CWD-relative ".streamlit/secrets.toml",
+# which works for the deployed apps (they run from agent/) but not for this
+# script when launched from the repo root or an IDE. Resolve the agent secrets
+# file by absolute path so the working directory never matters — same rationale
+# as DEFAULT_ROSTER above.
+_AGENT_SECRETS_PATH = os.path.join(_SCRIPT_DIR, "agent", ".streamlit", "secrets.toml")
 
 
 def get_database_url() -> str:
+    # First whatever config_manager resolved (env vars, or a CWD-relative
+    # secrets.toml if the script happens to be run from agent/).
     url = config.get("database_url")
+    # Fallback: the agent secrets file by absolute path, so a run from the
+    # repo root (the common case) still finds the Railway URL.
+    if not url and os.path.exists(_AGENT_SECRETS_PATH):
+        try:
+            url = toml.load(_AGENT_SECRETS_PATH).get("DATABASE_URL")
+        except Exception as e:
+            logging.warning("Could not read %s: %s", _AGENT_SECRETS_PATH, e)
     if not url:
-        sys.exit("DATABASE_URL not found in .streamlit/secrets.toml or environment.")
+        sys.exit(
+            "DATABASE_URL not found in the environment or "
+            f"{_AGENT_SECRETS_PATH}."
+        )
     return url
 
 
