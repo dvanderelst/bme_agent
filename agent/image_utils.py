@@ -15,6 +15,7 @@ file-upload API (no reuse benefit, one fewer round trip).
 
 import base64
 import io
+import logging
 from typing import Tuple
 
 from PIL import Image
@@ -58,7 +59,7 @@ def prepare_uploaded_image(uploaded_file) -> Tuple[str, str, bytes, str]:
 
     if len(data) > MAX_UPLOAD_BYTES:
         raise ImageValidationError(
-            f"'{filename}' is {len(data) // (1024 * 1024)} MB; the limit is "
+            f"'{filename}' is {len(data) / (1024 * 1024):.1f} MB; the limit is "
             f"{MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
         )
     if mime not in ALLOWED_MIMES:
@@ -103,4 +104,11 @@ def _maybe_downscale(data: bytes, mime: str) -> Tuple[bytes, str]:
             resized.convert("RGB").save(out, format="JPEG", quality=85)
             return out.getvalue(), "image/jpeg"
     except Exception:
+        # Corrupt upload, unsupported Pillow build, OOM on a huge image, etc.
+        # Falling back to the original bytes keeps the turn usable, but log it
+        # so a later "why did this screenshot fail" isn't a silent dead end.
+        logging.warning(
+            "Image downscale failed; sending original bytes (mime=%s, %d bytes)",
+            mime, len(data), exc_info=True,
+        )
         return data, mime
