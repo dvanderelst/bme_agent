@@ -158,6 +158,24 @@ def run_moderation(message: str) -> tuple[bool, list]:
                 )
     return True, []
 
+
+def _log_dropped_turn(student_id, content: str, prepared: list) -> None:
+    """Durably record a turn that failed to log to the database.
+
+    The interaction write is atomic (text + image rows commit together or not
+    at all), so a logging failure drops the *whole* turn — leaving only an
+    ephemeral st.warning the student sees and the researcher never does. The
+    LLM has already answered by this point, so the exchange happened but would
+    otherwise vanish from the record. Emit the message text (which already
+    carries the 📎 attachment markers) and the attachment filenames at error
+    level so the turn is reconstructable from the server logs.
+    """
+    filenames = [fname for (fname, _, _, _) in prepared]
+    logging.error(
+        "Dropped turn (DB logging failed) for student %s: message=%r attachments=%r",
+        student_id, content, filenames,
+    )
+
 # Initialize session state
 if SESSION_MESSAGES not in st.session_state:
     st.session_state[SESSION_MESSAGES] = []
@@ -439,8 +457,10 @@ if user_input := st.chat_input(
                 )
                 if not log_success:
                     st.warning("Logging to database failed")
+                    _log_dropped_turn(student_id, content, prepared)
             except Exception as log_err:
                 st.warning(f"Logging failed: {log_err}")
+                _log_dropped_turn(student_id, content, prepared)
 
             # Display assistant response in chat message container
             truncated = response.get("stop_reason") == "max_tokens"
