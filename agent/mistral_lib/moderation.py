@@ -38,7 +38,7 @@ active_categories = {
     # "financial",    # disabled — not relevant for this app
     # "law",          # disabled — not relevant for this app
     "pii",
-    # "jailbreaking", # disabled — requires mistral-moderation-2603
+    "jailbreaking",   # enabled — requires mistral-moderation-2603 (now the default)
 }
 
 
