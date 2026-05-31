@@ -6,11 +6,36 @@ and prints results so we can assess thresholds and coverage.
 
 import pathlib
 import sys
+import tomllib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "agent"))
 
 from mistral_lib.moderation import moderate_batch
 from mistral_lib.config import get as mistral_config
+
+# config_manager resolves the Mistral key via a CWD-relative
+# ".streamlit/secrets.toml", which only exists when something runs from
+# agent/. Run this script from the repo root or an IDE and the key comes back
+# empty → the Mistral API returns 401. Resolve the agent secrets file by
+# absolute path so the working directory never matters — same rationale as the
+# _AGENT_SECRETS_PATH fallback in script_configure_students.py.
+_AGENT_SECRETS_PATH = (
+    pathlib.Path(__file__).resolve().parent / "agent" / ".streamlit" / "secrets.toml"
+)
+
+
+def _resolve_mistral_key() -> str:
+    """Mistral key from the env first, then the agent secrets file by abs path."""
+    import os
+    key = os.environ.get("MISTRAL_KEY")
+    if not key and _AGENT_SECRETS_PATH.exists():
+        with open(_AGENT_SECRETS_PATH, "rb") as f:
+            key = tomllib.load(f).get("MISTRAL_KEY")
+    if not key:
+        sys.exit(
+            f"MISTRAL_KEY not found in the environment or {_AGENT_SECRETS_PATH}."
+        )
+    return key
 
 prompts = [
     # --- Expected: PASS ---
@@ -112,7 +137,7 @@ def main():
     labels = [p[0] for p in prompts]
     texts = [p[1] for p in prompts]
 
-    results = moderate_batch(texts)
+    results = moderate_batch(texts, api_key=_resolve_mistral_key())
 
     passed = sum(1 for r in results if r.passed)
     failed = len(results) - passed
