@@ -6,7 +6,7 @@ The ODS file is the source of truth. The first row holds column headers
 matching the desired table schema; each subsequent row is one student.
 
 Required headers: username, password
-Any additional headers (e.g. full_name, challenge, cohort, ...) become
+Any additional headers (e.g. full_name, diagnostics, cohort, ...) become
 TEXT columns on the students table. Columns present in the table but
 absent from the spreadsheet are dropped (except the reserved system
 columns: username, password_hash, created_at).

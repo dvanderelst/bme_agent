@@ -132,6 +132,9 @@ logs/
 # Student roster — contains plaintext passwords, never commit
 students.ods
 
+# DB backups (contain student data)
+db_backups/
+
 # LibreOffice lock files (created while a document is open)
 .~lock.*#
 

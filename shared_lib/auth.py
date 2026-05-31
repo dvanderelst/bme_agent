@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS students (
     enabled       BOOLEAN NOT NULL DEFAULT TRUE,
     backend       TEXT,
     full_name     TEXT,
-    challenge     TEXT,
     created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 """
@@ -75,6 +74,36 @@ def ensure_students_table(database_url: str) -> None:
 def hash_password(password: str) -> str:
     """Hash a plaintext password with bcrypt."""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+# Strings that count as "false" when the enabled column arrives as TEXT.
+# Anything else non-empty is treated as enabled (fail-open: a typo in the
+# spreadsheet keeps a student in rather than silently locking them out).
+_FALSE_STRINGS = {"false", "no", "0", "n", "f", "off"}
+
+
+def _coerce_enabled(value: Any) -> bool:
+    """Normalise the `enabled` flag to a real bool.
+
+    The students table column is BOOLEAN, but a re-sync from the .ods roster
+    can land it as TEXT ('true'/'FALSE'/...) depending on how Calc saved the
+    cell. Both apps gate access on `enabled`, and `not "false"` is False — a
+    truthy non-empty string — so without this coercion a disabled student
+    would still be let in. Empty/None defaults to True (enabled)."""
+    if value is None:
+        return True
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() not in _FALSE_STRINGS
+
+
+def _build_student(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Strip password_hash and normalise the enabled flag for a DB row."""
+    student = dict(row)
+    student.pop("password_hash", None)
+    if "enabled" in student:
+        student["enabled"] = _coerce_enabled(student["enabled"])
+    return student
 
 
 # Pre-computed throwaway hash used to equalise the cost of authenticating an
@@ -130,9 +159,7 @@ def authenticate(
     if not ok:
         return None
 
-    student = dict(row)
-    student.pop("password_hash", None)
-    return student
+    return _build_student(row)
 
 
 def lookup_student(database_url: str, username: str) -> Optional[Dict[str, Any]]:
@@ -160,9 +187,7 @@ def lookup_student(database_url: str, username: str) -> Optional[Dict[str, Any]]
     if row is None:
         return None
 
-    student = dict(row)
-    student.pop("password_hash", None)
-    return student
+    return _build_student(row)
 
 
 def check_login_lockout(database_url: str, username: str) -> Tuple[bool, int]:
