@@ -328,176 +328,176 @@ if user_input := st.chat_input(
     markers = "".join(f"\n📎 {fname}" for (fname, _, _, _) in prepared)
     content = (caption + markers).strip()
 
-    # Nothing usable to send (e.g. every upload was rejected and no caption).
-    # Warnings are already shown; skip the backend round trip.
-    if not content:
-        st.stop()
+    # Nothing usable to send (e.g. every upload was rejected and no
+    # caption). Warnings are already shown; fall through to the widgets
+    # below (feedback, diagnostics) instead of st.stop(), which would halt
+    # the whole rerun and blank them out for that pass.
+    if content:
+        # Display user message in chat message container
+        with st.chat_message("user"):
+            # Plain text — see note above on Markdown interpretation.
+            st.text(content)
+        # Add user message to chat history. Only the text/marker is stored — the
+        # base64 image blocks live for exactly this turn (single-turn rule), so
+        # history replay never re-sends them.
+        st.session_state[SESSION_MESSAGES].append({"role": "user", "content": content})
 
-    # Display user message in chat message container
-    with st.chat_message("user"):
-        # Plain text — see note above on Markdown interpretation.
-        st.text(content)
-    # Add user message to chat history. Only the text/marker is stored — the
-    # base64 image blocks live for exactly this turn (single-turn rule), so
-    # history replay never re-sends them.
-    st.session_state[SESSION_MESSAGES].append({"role": "user", "content": content})
+        # First, moderate the user message. Moderation is text-only by design:
+        # the caption/marker is classified, image content bypasses the moderator.
+        # Consistent with the fail-open stance documented in readme.md — image
+        # moderation is overkill for a supervised, logged-in classroom.
+        moderation_passed, flagged_categories = run_moderation(content)
 
-    # First, moderate the user message. Moderation is text-only by design:
-    # the caption/marker is classified, image content bypasses the moderator.
-    # Consistent with the fail-open stance documented in readme.md — image
-    # moderation is overkill for a supervised, logged-in classroom.
-    moderation_passed, flagged_categories = run_moderation(content)
-
-    if not moderation_passed:
-        # Message was rejected — tell the student which categories were violated.
-        # (run_moderation fails open on API errors, so reaching this branch
-        # means the classifier really did flag the message.)
-        categories_str = ", ".join(flagged_categories) if flagged_categories else "content policy"
-        agent_response = f"I'm sorry, I can't process that request. Violated categories: **{categories_str}**."
-        with st.chat_message("assistant"):
-            st.markdown(agent_response)
-        st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
-    else:
-        # Get response from the configured backend
-        try:
-            # Anthropic is stateless — every call sends the full history. Cap it
-            # so input cost and request size don't grow unboundedly with long
-            # sessions. The chat panel still shows the full transcript to the
-            # student; only what goes to the model is trimmed. Cap lives in
-            # agent/anthropic_lib/config.toml as `max_history_messages`. The
-            # -1 leaves room for the new user message that's passed separately.
-            anthropic_history = _trim_history_for_anthropic(
-                st.session_state[SESSION_MESSAGES][:-1],
-                anthropic_config("max_history_messages") - 1,
-            )
-            with st.spinner("Thinking..."):
-                if backend == "anthropic":
-                    response = anthropic_conversation.send_message(
-                        history=anthropic_history,
-                        user_message=content,
-                        images=prepared,
-                    )
-                elif backend == "mistral":
-                    response = mistral_conversation.send_message_to_agent(
-                        message=content,
-                        agent_id=agent_id,
-                        conversation_id=st.session_state[SESSION_CONVERSATION_ID],
-                        display=False,
-                        images=prepared,
-                    )
-                    # Only update on a non-None id. If the response shape ever
-                    # changes and conversation_id is missing, overwriting with
-                    # None would silently start a fresh server-side
-                    # conversation on the next turn.
-                    new_conv_id = response.get('conversation_id')
-                    if new_conv_id is not None:
-                        st.session_state[SESSION_CONVERSATION_ID] = new_conv_id
-                    else:
-                        logging.warning(
-                            "Mistral response missing conversation_id for student %s; "
-                            "keeping previous value", student_id
-                        )
-            agent_response = response.get('assistant_response', 'No response from agent')
-
-            # Capture a diagnostic snapshot of what was just sent/received,
-            # for rendering in the sidebar. Mirrors the shape script_chat.py
-            # prints, so the two views stay comparable.
-            if diagnostics_enabled:
-                diag = {
-                    "backend":         backend,
-                    "conversation_id": st.session_state[SESSION_CONVERSATION_ID],
-                }
-                if backend == "anthropic":
-                    try:
-                        from anthropic_lib.conversation_management import _build_messages
-                        msgs = _build_messages(
+        if not moderation_passed:
+            # Message was rejected — tell the student which categories were violated.
+            # (run_moderation fails open on API errors, so reaching this branch
+            # means the classifier really did flag the message.)
+            categories_str = ", ".join(flagged_categories) if flagged_categories else "content policy"
+            agent_response = f"I'm sorry, I can't process that request. Violated categories: **{categories_str}**."
+            with st.chat_message("assistant"):
+                st.markdown(agent_response)
+            st.session_state[SESSION_MESSAGES].append({"role": "assistant", "content": agent_response})
+        else:
+            # Get response from the configured backend
+            try:
+                # Anthropic is stateless — every call sends the full history. Cap it
+                # so input cost and request size don't grow unboundedly with long
+                # sessions. The chat panel still shows the full transcript to the
+                # student; only what goes to the model is trimmed. Cap lives in
+                # agent/anthropic_lib/config.toml as `max_history_messages`. The
+                # -1 leaves room for the new user message that's passed separately.
+                anthropic_history = _trim_history_for_anthropic(
+                    st.session_state[SESSION_MESSAGES][:-1],
+                    anthropic_config("max_history_messages") - 1,
+                )
+                with st.spinner("Thinking..."):
+                    if backend == "anthropic":
+                        response = anthropic_conversation.send_message(
                             history=anthropic_history,
                             user_message=content,
                             images=prepared,
                         )
-                        blocks = msgs[-1]["content"]
-                        diag["model"] = anthropic_config("model")
-                        diag["block_order"] = blocks[0].get("type") if blocks else None
-                        diag["images"] = sum(
-                            1 for b in blocks if b.get("type") == "image"
+                    elif backend == "mistral":
+                        response = mistral_conversation.send_message_to_agent(
+                            message=content,
+                            agent_id=agent_id,
+                            conversation_id=st.session_state[SESSION_CONVERSATION_ID],
+                            display=False,
+                            images=prepared,
                         )
-                        diag["docs"] = [
-                            {
-                                "title":   b.get("title", "(untitled)"),
-                                "file_id": b.get("source", {}).get("file_id"),
-                            }
-                            for b in blocks if b.get("type") == "document"
-                        ]
-                    except Exception as e:
-                        diag["error"] = f"diagnostic capture failed: {e}"
-                elif backend == "mistral":
-                    diag["agent_id"] = agent_id
-                    diag["responding_agents"] = response.get("responding_agent_ids", [])
-                st.session_state[SESSION_LAST_DIAG] = diag
+                        # Only update on a non-None id. If the response shape ever
+                        # changes and conversation_id is missing, overwriting with
+                        # None would silently start a fresh server-side
+                        # conversation on the next turn.
+                        new_conv_id = response.get('conversation_id')
+                        if new_conv_id is not None:
+                            st.session_state[SESSION_CONVERSATION_ID] = new_conv_id
+                        else:
+                            logging.warning(
+                                "Mistral response missing conversation_id for student %s; "
+                                "keeping previous value", student_id
+                            )
+                agent_response = response.get('assistant_response', 'No response from agent')
 
-            # Log interaction to database
-            try:
-                log_success = log_interaction(
-                    client_config=db_config,
-                    conversation_id=st.session_state[SESSION_CONVERSATION_ID],
-                    user_message=content,
-                    agent_response=agent_response,
-                    user_id=student_id,
-                    llm=backend,
-                    # Defensive copy — student_settings is the same dict
-                    # passed to every log_* call; copying keeps a later
-                    # in-place mutation from leaking into earlier writes.
-                    student_settings=dict(student_settings) if student_settings else None,
-                    # Persist the raw image bytes (sans base64) alongside the
-                    # turn. Single-turn images aren't kept in session state, so
-                    # this DB row is the only durable record of the screenshot.
-                    attachments=[
-                        (fname, mime, raw) for (fname, mime, raw, _) in prepared
-                    ] or None,
-                )
-                if not log_success:
-                    st.warning("Logging to database failed")
-                    _log_dropped_turn(student_id, content, prepared)
-            except Exception as log_err:
-                st.warning(f"Logging failed: {log_err}")
-                _log_dropped_turn(student_id, content, prepared)
+                # Capture a diagnostic snapshot of what was just sent/received,
+                # for rendering in the sidebar. Mirrors the shape script_chat.py
+                # prints, so the two views stay comparable.
+                if diagnostics_enabled:
+                    diag = {
+                        "backend":         backend,
+                        "conversation_id": st.session_state[SESSION_CONVERSATION_ID],
+                    }
+                    if backend == "anthropic":
+                        try:
+                            from anthropic_lib.conversation_management import _build_messages
+                            msgs = _build_messages(
+                                history=anthropic_history,
+                                user_message=content,
+                                images=prepared,
+                            )
+                            blocks = msgs[-1]["content"]
+                            diag["model"] = anthropic_config("model")
+                            diag["block_order"] = blocks[0].get("type") if blocks else None
+                            diag["images"] = sum(
+                                1 for b in blocks if b.get("type") == "image"
+                            )
+                            diag["docs"] = [
+                                {
+                                    "title":   b.get("title", "(untitled)"),
+                                    "file_id": b.get("source", {}).get("file_id"),
+                                }
+                                for b in blocks if b.get("type") == "document"
+                            ]
+                        except Exception as e:
+                            diag["error"] = f"diagnostic capture failed: {e}"
+                    elif backend == "mistral":
+                        diag["agent_id"] = agent_id
+                        diag["responding_agents"] = response.get("responding_agent_ids", [])
+                    st.session_state[SESSION_LAST_DIAG] = diag
 
-            # Display assistant response in chat message container
-            truncated = response.get("stop_reason") == "max_tokens"
-            with st.chat_message("assistant"):
-                st.markdown(agent_response)
-                if truncated:
-                    st.caption(
-                        "_Response was cut off — ask me to continue if you'd like more._"
+                # Log interaction to database
+                try:
+                    log_success = log_interaction(
+                        client_config=db_config,
+                        conversation_id=st.session_state[SESSION_CONVERSATION_ID],
+                        user_message=content,
+                        agent_response=agent_response,
+                        user_id=student_id,
+                        llm=backend,
+                        # Defensive copy — student_settings is the same dict
+                        # passed to every log_* call; copying keeps a later
+                        # in-place mutation from leaking into earlier writes.
+                        student_settings=dict(student_settings) if student_settings else None,
+                        # Persist the raw image bytes (sans base64) alongside the
+                        # turn. Single-turn images aren't kept in session state, so
+                        # this DB row is the only durable record of the screenshot.
+                        attachments=[
+                            (fname, mime, raw) for (fname, mime, raw, _) in prepared
+                        ] or None,
                     )
-            # Add assistant response to chat history. The truncated flag is
-            # presentation-only (the history-render loop reads it) and is
-            # not sent back to the model.
-            message_entry = {"role": "assistant", "content": agent_response}
-            if truncated:
-                message_entry["truncated"] = True
-            st.session_state[SESSION_MESSAGES].append(message_entry)
-        except Exception:
-            # Log the real exception with traceback for debugging; show the
-            # student a generic message so SDK errors (which can carry stack
-            # traces, internal IDs, or keys) don't leak to the chat.
-            logging.exception(
-                "Backend %s failed for student %s", backend, student_id
-            )
-            # Drop the user message that was queued for this turn. The API
-            # call didn't succeed so the model never saw it, and persisting
-            # it (or an error placeholder) into SESSION_MESSAGES would re-send
-            # it as part of history on the next turn — bad for Anthropic
-            # especially, where every replay re-renders the failed turn.
-            if (
-                st.session_state[SESSION_MESSAGES]
-                and st.session_state[SESSION_MESSAGES][-1].get("role") == "user"
-            ):
-                st.session_state[SESSION_MESSAGES].pop()
-            st.error(
-                "Sorry, something went wrong on my end. Please try sending "
-                "your message again."
-            )
+                    if not log_success:
+                        st.warning("Logging to database failed")
+                        _log_dropped_turn(student_id, content, prepared)
+                except Exception as log_err:
+                    st.warning(f"Logging failed: {log_err}")
+                    _log_dropped_turn(student_id, content, prepared)
+
+                # Display assistant response in chat message container
+                truncated = response.get("stop_reason") == "max_tokens"
+                with st.chat_message("assistant"):
+                    st.markdown(agent_response)
+                    if truncated:
+                        st.caption(
+                            "_Response was cut off — ask me to continue if you'd like more._"
+                        )
+                # Add assistant response to chat history. The truncated flag is
+                # presentation-only (the history-render loop reads it) and is
+                # not sent back to the model.
+                message_entry = {"role": "assistant", "content": agent_response}
+                if truncated:
+                    message_entry["truncated"] = True
+                st.session_state[SESSION_MESSAGES].append(message_entry)
+            except Exception:
+                # Log the real exception with traceback for debugging; show the
+                # student a generic message so SDK errors (which can carry stack
+                # traces, internal IDs, or keys) don't leak to the chat.
+                logging.exception(
+                    "Backend %s failed for student %s", backend, student_id
+                )
+                # Drop the user message that was queued for this turn. The API
+                # call didn't succeed so the model never saw it, and persisting
+                # it (or an error placeholder) into SESSION_MESSAGES would re-send
+                # it as part of history on the next turn — bad for Anthropic
+                # especially, where every replay re-renders the failed turn.
+                if (
+                    st.session_state[SESSION_MESSAGES]
+                    and st.session_state[SESSION_MESSAGES][-1].get("role") == "user"
+                ):
+                    st.session_state[SESSION_MESSAGES].pop()
+                st.error(
+                    "Sorry, something went wrong on my end. Please try sending "
+                    "your message again."
+                )
 
 # Feedback widget — only shown once there is something to rate
 if st.session_state[SESSION_MESSAGES]:
