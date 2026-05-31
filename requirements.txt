@@ -3,7 +3,8 @@
 # keep one union list rather than per-app files.
 
 # Core (used by both apps)
-streamlit
+# streamlit floor: chat_input(accept_file=...) for image upload needs >= 1.43.
+streamlit>=1.43
 psycopg2-binary
 toml
 bcrypt
@@ -15,6 +16,10 @@ python-dotenv
 mistralai
 anthropic
 requests
+# Pillow: imported directly by agent/image_utils.py to downscale uploaded
+# screenshots. Streamlit also depends on it transitively, but we declare it
+# explicitly since we import it ourselves.
+pillow
 
 # Survey only
 pyyaml
