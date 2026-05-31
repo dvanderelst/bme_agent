@@ -16,7 +16,7 @@ from typing import Optional
 import anthropic
 
 from anthropic_lib.config import get as anthropic_config
-from anthropic_lib.file_management import document_block
+from anthropic_lib.file_management import document_block, image_block
 from anthropic_lib.file_registry import load as load_registry
 from shared_lib.config_manager import config
 
@@ -67,13 +67,7 @@ def _build_image_blocks(images: Optional[list]) -> list:
     """
     if not images:
         return []
-    return [
-        {
-            "type": "image",
-            "source": {"type": "base64", "media_type": mime, "data": b64},
-        }
-        for (_, mime, _, b64) in images
-    ]
+    return [image_block(media_type=mime, data=b64) for (_, mime, _, b64) in images]
 
 
 def _build_messages(history: list, user_message: str, images: Optional[list] = None) -> list:

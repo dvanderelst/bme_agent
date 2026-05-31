@@ -24,9 +24,18 @@ from PIL import Image
 # limit is a guard against someone attaching a huge image (cost + memory).
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
-# MIME types we accept. Mirrors the file_type filter on st.chat_input and the
-# formats both Claude and Mistral vision accept.
-ALLOWED_MIMES = {"image/png", "image/jpeg", "image/webp"}
+# Accepted image formats — single source of truth. Maps each accepted MIME
+# type to the file extensions that represent it. Both Claude and Mistral
+# vision accept all of these. ALLOWED_MIMES (server-side validation) and
+# UPLOAD_FILE_TYPES (the st.chat_input picker filter) are derived from this,
+# so the picker and the validator can't drift apart.
+ALLOWED_FORMATS = {
+    "image/png":  ("png",),
+    "image/jpeg": ("jpg", "jpeg"),
+    "image/webp": ("webp",),
+}
+ALLOWED_MIMES = set(ALLOWED_FORMATS)
+UPLOAD_FILE_TYPES = [ext for exts in ALLOWED_FORMATS.values() for ext in exts]
 
 # Anthropic auto-downscales above ~1568 px on the long edge anyway; doing it
 # ourselves keeps the base64 payload (and the DB blob) small and makes the

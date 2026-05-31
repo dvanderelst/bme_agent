@@ -9,7 +9,7 @@ from anthropic_lib import conversation_management as anthropic_conversation
 from anthropic_lib.config import get as anthropic_config
 from anthropic_lib.file_management import validate_registry
 from anthropic_lib.file_registry import load as load_registry
-from image_utils import prepare_uploaded_image, ImageValidationError
+from image_utils import prepare_uploaded_image, ImageValidationError, UPLOAD_FILE_TYPES
 from shared_lib.auth import lookup_student
 from shared_lib.postgres_logger import log_interaction, log_feedback
 from shared_lib.streamlit_helpers import setup_postgres
@@ -307,7 +307,7 @@ for message in st.session_state[SESSION_MESSAGES]:
 if user_input := st.chat_input(
     "Ask about robots, sensors, or animal sensing...",
     accept_file="multiple",
-    file_type=["png", "jpg", "jpeg", "webp"],
+    file_type=UPLOAD_FILE_TYPES,
 ):
     caption = (user_input.text or "").strip()
 

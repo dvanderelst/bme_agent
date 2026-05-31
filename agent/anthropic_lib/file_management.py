@@ -215,15 +215,31 @@ def document_block(
     return block
 
 
-def image_block(file_id: str) -> dict:
+def image_block(
+    file_id: Optional[str] = None,
+    *,
+    media_type: Optional[str] = None,
+    data: Optional[str] = None,
+) -> dict:
     """
     Build an image content block for a Messages request.
-    Use for JPEG, PNG, GIF, and WebP files.
+    Use for JPEG, PNG, GIF, and WebP images.
+
+    Two source forms, pick one:
+        * Files API:    image_block(file_id) — references an uploaded file.
+        * base64 inline: image_block(media_type=..., data=...) — embeds the
+          image bytes directly (used for single-turn screenshot uploads,
+          where there's no reuse to justify an upload round trip).
 
     Returns:
         dict ready to include in a messages content list.
     """
-    return {
-        "type": "image",
-        "source": {"type": "file", "file_id": file_id},
-    }
+    if data is not None:
+        if not media_type:
+            raise ValueError("base64 image_block requires media_type")
+        source = {"type": "base64", "media_type": media_type, "data": data}
+    elif file_id:
+        source = {"type": "file", "file_id": file_id}
+    else:
+        raise ValueError("image_block requires either file_id or media_type+data")
+    return {"type": "image", "source": source}
