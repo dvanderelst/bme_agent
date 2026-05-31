@@ -185,9 +185,6 @@ def build_odt(rows, url: str, cols: int, output: str) -> None:
             username = (r.get("username") or "").strip().lower()
             password = (r.get("password") or "").strip()
             name = display_name(r.get("full_name", ""), username)
-            group = (r.get("group") or "").strip()
-            if group:
-                name = f"{name}  (Group {group})"
             tr.addElement(
                 _slip_cell(slip, name_p, cred_p, url_p, val_t, name, username, password, url)
             )
