@@ -3,21 +3,21 @@ Generate a printable handout of student login slips from the .ods roster.
 
 Reads the same roster as script_configure_students.py (via read_ods_rows, so
 the credentials on the handout match exactly what gets synced to the database)
-and writes a LibreOffice Calc (.ods) file: a grid of bordered cells, one slip
-per student, each showing the student's name, username, and password. The page
-is set up for US Letter — open in LibreOffice and print (or export to PDF),
-then cut along the cell borders to hand each student their strip.
+and writes a LibreOffice Writer (.odt) document: a bordered table, one slip per
+student, each showing the student's name, username, and password. The page is
+set up for US Letter — open in LibreOffice and print (or export to PDF), then
+cut along the cell borders to hand each student their strip.
 
-.ods is used so the sheet can be tweaked in LibreOffice before printing and so
-there is no PDF dependency. odfpy (the `odf` package) is already a dependency
-of script_configure_students.py.
+.odt is used so the sheet can be tweaked in Writer before printing and so there
+is no PDF dependency. odfpy (the `odf` package) is already a dependency of
+script_configure_students.py.
 
-The output contains plaintext passwords, so it is written into participants26/
-(which is gitignored) by default and must never be committed.
+The output contains plaintext passwords, so it is gitignored and must never be
+committed.
 
 Usage:
-    python script_make_handouts.py                       # ./students.ods -> participants26/handouts.ods
-    python script_make_handouts.py roster.ods out.ods
+    python script_make_handouts.py                       # ./students.ods -> ./handouts.odt
+    python script_make_handouts.py roster.ods out.odt
     python script_make_handouts.py --all                 # include test accounts (teacher/ttest)
     python script_make_handouts.py --url https://chatbme.example.app
     python script_make_handouts.py --cols 3
@@ -27,14 +27,15 @@ import argparse
 import os
 import sys
 
-from odf.opendocument import OpenDocumentSpreadsheet
+from odf.opendocument import OpenDocumentText
 from odf.style import (
     Style,
     TextProperties,
     ParagraphProperties,
-    TableCellProperties,
+    TableProperties,
     TableColumnProperties,
     TableRowProperties,
+    TableCellProperties,
     PageLayout,
     PageLayoutProperties,
     MasterPage,
@@ -45,7 +46,7 @@ from odf.text import P, Span
 from script_configure_students import read_ods_rows, DEFAULT_ROSTER
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_OUTPUT = os.path.join(_SCRIPT_DIR, "participants26", "handouts.ods")
+DEFAULT_OUTPUT = os.path.join(_SCRIPT_DIR, "handouts.odt")
 
 # Usernames treated as non-student test accounts and skipped unless --all.
 TEST_USERNAMES = {"teacher", "ttest"}
@@ -76,9 +77,10 @@ def display_name(full_name: str, username: str) -> str:
 
 
 def _build_styles(doc, cols: int):
-    """Register page layout and cell/paragraph/text styles; return them."""
-    # Page: US Letter portrait with half-inch margins. The master page is named
-    # "Standard" (the default a Calc table uses) so the layout takes effect.
+    """Register page layout and table/cell/paragraph/text styles; return them."""
+    # Page: US Letter portrait with half-inch margins. For a text document the
+    # default master page is "Standard", so naming it that makes the layout
+    # take effect without an explicit per-paragraph page style.
     page_layout = PageLayout(name="HandoutPL")
     page_layout.addElement(
         PageLayoutProperties(
@@ -94,20 +96,32 @@ def _build_styles(doc, cols: int):
     doc.automaticstyles.addElement(page_layout)
     doc.masterstyles.addElement(MasterPage(name="Standard", pagelayoutname="HandoutPL"))
 
+    # Table spans the printable width.
+    tbl = Style(name="HandoutTable", family="table")
+    tbl.addElement(TableProperties(width=f"{PRINTABLE_WIDTH_IN:.3f}in", align="margins"))
+    doc.automaticstyles.addElement(tbl)
+
+    # Each column is an equal share of the table width.
+    col = Style(name="HandoutCol", family="table-column")
+    col.addElement(
+        TableColumnProperties(columnwidth=f"{PRINTABLE_WIDTH_IN / cols:.3f}in")
+    )
+    doc.automaticstyles.addElement(col)
+
+    row = Style(name="HandoutRow", family="table-row")
+    row.addElement(TableRowProperties(minrowheight=ROW_HEIGHT))
+    doc.automaticstyles.addElement(row)
+
     # One bordered cell = one slip. Border doubles as the cut line.
     slip = Style(name="Slip", family="table-cell")
     slip.addElement(
         TableCellProperties(
             border="0.5pt solid #888888",
             verticalalign="middle",
-            wrapoption="wrap",
-            paddingtop="0.12in",
-            paddingbottom="0.12in",
-            paddingleft="0.16in",
-            paddingright="0.16in",
+            padding="0.14in",
         )
     )
-    doc.styles.addElement(slip)
+    doc.automaticstyles.addElement(slip)
 
     name_p = Style(name="SlipName", family="paragraph")
     name_p.addElement(TextProperties(fontsize="14pt", fontweight="bold"))
@@ -116,6 +130,7 @@ def _build_styles(doc, cols: int):
 
     cred_p = Style(name="SlipCred", family="paragraph")
     cred_p.addElement(TextProperties(fontsize="11pt"))
+    cred_p.addElement(ParagraphProperties(marginbottom="0.02in"))
     doc.styles.addElement(cred_p)
 
     url_p = Style(name="SlipUrl", family="paragraph")
@@ -130,23 +145,12 @@ def _build_styles(doc, cols: int):
     )
     doc.styles.addElement(val_t)
 
-    # Column width so `cols` slips span the printable width.
-    col = Style(name="SlipCol", family="table-column")
-    col.addElement(
-        TableColumnProperties(columnwidth=f"{PRINTABLE_WIDTH_IN / cols:.3f}in")
-    )
-    doc.automaticstyles.addElement(col)
-
-    row = Style(name="SlipRow", family="table-row")
-    row.addElement(TableRowProperties(rowheight=ROW_HEIGHT))
-    doc.automaticstyles.addElement(row)
-
-    return slip, name_p, cred_p, url_p, val_t, col, row
+    return tbl, col, row, slip, name_p, cred_p, url_p, val_t
 
 
 def _slip_cell(slip_style, name_p, cred_p, url_p, val_t, name, username, password, url):
     """Build one bordered table cell holding a single student's slip."""
-    cell = TableCell(stylename=slip_style, valuetype="string")
+    cell = TableCell(stylename=slip_style)
 
     cell.addElement(P(stylename=name_p, text=name))
 
@@ -166,14 +170,13 @@ def _slip_cell(slip_style, name_p, cred_p, url_p, val_t, name, username, passwor
     return cell
 
 
-def build_ods(rows, url: str, cols: int, output: str) -> None:
-    """Write the roster rows to an .ods grid of login slips."""
-    doc = OpenDocumentSpreadsheet()
-    slip, name_p, cred_p, url_p, val_t, col, row = _build_styles(doc, cols)
+def build_odt(rows, url: str, cols: int, output: str) -> None:
+    """Write the roster rows to an .odt table of login slips."""
+    doc = OpenDocumentText()
+    tbl, col, row, slip, name_p, cred_p, url_p, val_t = _build_styles(doc, cols)
 
-    table = Table(name="Login slips")
-    for _ in range(cols):
-        table.addElement(TableColumn(stylename=col))
+    table = Table(name="LoginSlips", stylename=tbl)
+    table.addElement(TableColumn(stylename=col, numbercolumnsrepeated=cols))
 
     for i in range(0, len(rows), cols):
         chunk = rows[i:i + cols]
@@ -188,24 +191,26 @@ def build_ods(rows, url: str, cols: int, output: str) -> None:
             tr.addElement(
                 _slip_cell(slip, name_p, cred_p, url_p, val_t, name, username, password, url)
             )
-        # Pad a short final row with empty cells so the table stays rectangular.
+        # Pad a short final row with empty bordered cells so it stays rectangular.
         for _ in range(cols - len(chunk)):
-            tr.addElement(TableCell())
+            empty = TableCell(stylename=slip)
+            empty.addElement(P())
+            tr.addElement(empty)
         table.addElement(tr)
 
-    doc.spreadsheet.addElement(table)
+    doc.text.addElement(table)
     os.makedirs(os.path.dirname(os.path.abspath(output)), exist_ok=True)
     doc.save(output)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate a printable .ods handout of student login slips (US Letter)."
+        description="Generate a printable .odt handout of student login slips (US Letter)."
     )
     parser.add_argument("roster", nargs="?", default=DEFAULT_ROSTER,
                         help=f"Path to the .ods roster (default: {DEFAULT_ROSTER})")
     parser.add_argument("output", nargs="?", default=DEFAULT_OUTPUT,
-                        help=f"Output .ods path (default: {DEFAULT_OUTPUT})")
+                        help=f"Output .odt path (default: {DEFAULT_OUTPUT})")
     parser.add_argument("--all", action="store_true",
                         help="Include test accounts (teacher/ttest); they are skipped by default.")
     parser.add_argument("--url", default="",
@@ -232,10 +237,10 @@ def main() -> None:
     if not rows:
         sys.exit("No students to print (did everything get filtered out?).")
 
-    build_ods(rows, args.url, args.cols, args.output)
+    build_odt(rows, args.url, args.cols, args.output)
 
     print(f"Wrote {len(rows)} login slip(s) to {args.output}")
-    print("Open it in LibreOffice and print to US Letter (or export to PDF), "
+    print("Open it in LibreOffice Writer and print to US Letter (or export to PDF), "
           "then cut along the cell borders.")
 
 
