@@ -16,6 +16,25 @@ from shared_lib.auth import (
     CREATE_LOGIN_FAILURES_INDEX_SQL,
 )
 
+# Cap how long a connection attempt blocks. Without this, libpq waits for the
+# OS-default TCP timeout (often a minute or more) when the host is unreachable
+# or misconfigured — which, on the cached setup_postgres() startup path, hangs
+# the whole Streamlit app on a "Running setup_postgres(...)" spinner instead of
+# surfacing the page's "temporarily unavailable" error. 10s is well above a
+# healthy intra-Railway connect (single-digit ms) yet fails fast on trouble.
+CONNECT_TIMEOUT_SECONDS = 10
+
+# Server-side caps for the startup DDL connection. setup_postgres() runs the
+# idempotent CREATE/ALTER migrations on every app process start. If another
+# session holds a conflicting lock on a table (e.g. a leaked idle-in-transaction
+# connection), an unguarded ALTER waits forever — and because a pending
+# exclusive lock blocks all later lock requests on that table, one stuck session
+# stalls every app's startup indefinitely. lock_timeout makes the migration fail
+# fast (caught by the pages' try/except) instead of joining the lock queue;
+# statement_timeout is a blanket backstop. Values in milliseconds.
+SETUP_LOCK_TIMEOUT_MS = 5000
+SETUP_STATEMENT_TIMEOUT_MS = 15000
+
 
 CREATE_INTERACTIONS_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS interactions (
@@ -85,7 +104,14 @@ def get_postgres_client(database_url: str) -> str:
     if not database_url:
         raise ValueError("Database URL must not be empty")
 
-    with psycopg2.connect(database_url) as conn:
+    with psycopg2.connect(
+        database_url,
+        connect_timeout=CONNECT_TIMEOUT_SECONDS,
+        options=(
+            f"-c lock_timeout={SETUP_LOCK_TIMEOUT_MS} "
+            f"-c statement_timeout={SETUP_STATEMENT_TIMEOUT_MS}"
+        ),
+    ) as conn:
         with conn.cursor() as cur:
             cur.execute(CREATE_INTERACTIONS_TABLE_SQL)
             cur.execute(CREATE_FEEDBACK_TABLE_SQL)
@@ -128,7 +154,9 @@ def log_interaction(
         True if logging succeeded, False if failed
     """
     try:
-        with psycopg2.connect(client_config) as conn:
+        with psycopg2.connect(
+            client_config, connect_timeout=CONNECT_TIMEOUT_SECONDS
+        ) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -199,7 +227,9 @@ def log_feedback(
         True if logging succeeded, False if failed
     """
     try:
-        with psycopg2.connect(client_config) as conn:
+        with psycopg2.connect(
+            client_config, connect_timeout=CONNECT_TIMEOUT_SECONDS
+        ) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
