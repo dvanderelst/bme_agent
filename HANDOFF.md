@@ -6,7 +6,7 @@ The project has grown well past the original RAG chatbot. As of 2026-05-10 it's 
 
 ## What's in the repo now
 
-- **`agent/`** — deployed chatbot Streamlit app (Anthropic + Mistral backends, bcrypt auth against Postgres `students` table, RAG via `agent/agent_files/documents/` + `manifest.toml`, single-turn screenshot upload on both backends → Postgres `attachments` table).
+- **`agent/`** — **ChatBmE**, the deployed chatbot Streamlit app (Anthropic + Mistral backends, bcrypt auth against Postgres `students` table, RAG via `agent/agent_files/documents/` + `manifest.toml`, single-turn screenshot upload on both backends → Postgres `attachments` table).
 - **`research/`** — deployed survey Streamlit app for the learning rubric (login → intro → task picker → Q1–Q4 free-text + Q5 structured wrap-up, restart with instructor passcode). Shares the same Postgres and student auth as the chatbot.
 - **`shared_lib/`** — auth, login throttle, Postgres logging, used by both apps.
 - **`figures/`** — figure-generation pipeline for the rubric question images. Renders to `figures/images/*.png`.

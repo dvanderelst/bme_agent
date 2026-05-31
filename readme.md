@@ -2,7 +2,7 @@
 
 Two Streamlit apps deployed together for the Biology Meets Engineering course:
 
-- **`agent/`** — chatbot that answers student questions using either Mistral or Anthropic, grounded in the BME knowledge base.
+- **`agent/`** — **ChatBmE**, the chatbot that answers student questions using either Mistral or Anthropic, grounded in the BME knowledge base.
 - **`research/`** — survey app that walks a student through Q1–Q5 of a learning rubric for whichever lab task they just completed.
 
 Both share the same student authentication (bcrypt-hashed passwords in a Postgres `students` table) and the same Postgres database. They deploy as two separate services in a single Railway project, each with its own `railway.toml` and `start.sh`. Locally they're run via `dev_agent.sh` / `dev_research.sh`.

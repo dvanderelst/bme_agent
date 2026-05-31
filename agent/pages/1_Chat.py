@@ -186,7 +186,7 @@ if SESSION_FEEDBACK_KEY not in st.session_state:
 if SESSION_LAST_DIAG not in st.session_state:
     st.session_state[SESSION_LAST_DIAG] = None
 
-st.title("Bme Chat")
+st.title("ChatBmE")
 
 # Student identity (set at login). `student` was already pulled near the
 # top of the file to drive sidebar visibility; just resolve the rest.
