@@ -7,6 +7,11 @@
 # Section name is arbitrary; the `file` field is what's matched against the
 # documents list in script_configure_agents.py.
 
+[getting_started]
+file = "getting_started.md"
+title = "Getting Started with the Robot"
+description = "The first activity (no biology): building the robot, pairing the wireless dongle, connecting in mBlock, the basic program structure, two first programs (blink the LEDs; blink when the light sensor reads below 500, introducing variables), and challenges using the sonar and gyroscope."
+
 [robot_details]
 file = "robot_details.md"
 title = "mBot Robot — Hardware, Setup, and Connection Reference"
