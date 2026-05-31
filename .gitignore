@@ -138,4 +138,5 @@ db_backups/
 # LibreOffice lock files (created while a document is open)
 .~lock.*#
 
-participants26/
+# Printable login-slip handout — contains plaintext passwords
+handouts.odt
