@@ -20,3 +20,23 @@ Details on the above that matter for interpreting day-1 behaviour:
 + The `students.enabled` flag was being read as text, so disabling a student silently did nothing; fixed to coerce to a real boolean. Disabling a student now actually blocks login.
 + The roster has 27 rows, not 25: the `teacher` and `ttest` accounts are still live for instructor use / spot-checking.
 + Two students named Benjamin were disambiguated as `benjaminm` (Moore) and `benjamino` (Ormsby) — so usernames are first-name-lowercase except for that pair.
+
+
+Mon 01 Jun 2026 07:17:13 AM EDT
+
++ Decided on the long-term data storage approach for student chatbot data, as of today:
+  - While the program runs, data stays on the secure Railway server (only Dieter has access).
+  - After the program ends, the data is removed from the server and kept only as a local copy, with identifying information stored separately from the conversations AND encrypted (so the identity file is unreadable without the key — separation + encryption are two independent locks). TODO when building the post-program export: actually encrypt that identity file — it's now a promise made to students on the slide.
+  - This is pseudonymization, not anonymization: the login→student key is filed apart and access-controlled but NOT destroyed, so the "you can ask to delete your data at any point" promise stays honourable. (Destroying the key would silently break that promise.)
+  - Exact retention duration is intentionally left unspecified — the commitment is the process, not a number.
++ We are putting this in front of the students later today, as part of the ChatBmE explainer slide deck (covers how the chatbot works and how their data is handled).
+
+
+Mon 01 Jun 2026 02:19:44 PM EDT
+
++ Re-synced the students table from the updated `students.ods` (TRUNCATE + reinsert). Roster went from 25 → 24 students (26 rows incl. `teacher`/`ttest`):
+  - Removed (4): `diya` (Venkataragavan), `rebekah` (Stiever), `sophie` (Qiao), and the old `kesia` login.
+  - Added (3): `keysia` (was `kesia` — first-name spelling was a typo, so the login changed too: kesia → keysia), `logan` (Stiever), `stuti` (Koloagi).
+  - Corrected in place: `mario`'s full name was a typo, fixed Ynga Durand → Agustin (same login, same student).
++ Group split is now A=12 / B=12 (test accounts `teacher`/`ttest` stay group X). Columns unchanged; `teacher`/`ttest` untouched.
++ No real student data existed yet (program day 1), so the kesia→keysia login change and the removals carry no data loss.
