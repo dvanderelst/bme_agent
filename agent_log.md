@@ -64,3 +64,16 @@ Wed Jun  3 02:14:46 PM EDT 2026
 + Also updated `manifest.toml`: robot_details title "mBot Robot — …" → "mBot Ranger — …" and its description ("connect the mBot" → "connect the mBot Ranger"), since the manifest title/description is baked into the uploaded content blocks.
 + DEPLOYED: ran `script_configure_agents.py` (via `.venv/bin/python` — system/miniforge python lacks `toml`). It rewrote the Anthropic file IDs in `file_registry.json` and reloaded the Mistral library. NOTE: the script only loads the **current day's activity doc + the always-on reference docs** — today that's `olfaction.md`, `robot_details.md`, `programming_blocks.md`, `faculty_and_staff.md`. So the fixes are LIVE only in those. Edits to `sonar.md`, `touch_whiskers.md`, and `getting_started.md` are committed-to-disk but will not reach students until those activities become the daily topic and the script re-runs then.
 + ACTION REQUIRED: `anthropic_lib/file_registry.json` was rewritten with new file IDs (old IDs deleted from the Anthropic workspace). It must be committed and pushed or the deployed app will reference dead file IDs.
+
+
+Wed Jun  3 03:27:48 PM EDT 2026
+
++ Document technical-review pass. Found and fixed issues the earlier sweeps missed:
+  - olfaction.md Biology-Robot table: stale line-sensor values "reads 4"->3 (gap/lost) and "reads 1"->0 (intersection/centered). These were LIVE (olfaction is the active day).
+  - robot_details.md whisker section: "Attach to ports 3 or 4" -> "any of ports 6–10" (missed earlier because the sweep regex did not catch the plural "ports"; this section contradicted the port table rewritten two sections above). Also LIVE.
+  - touch_whiskers.md obstacle-avoidance pseudocode: step 2 comparison was inverted ("both < threshold -> forward"); since bending lowers the value, < threshold = bent, so it said "both bent -> forward" AND duplicated step 5's condition with the opposite action. Rewrote the block with correct comparisons + else-if ordering (neither bent -> forward; both bent -> reverse; single -> turn away).
+  - touch_whiskers.md obstacle table: wheel-speed notes were inverted for differential drive ("turn right (slow left, speed right)" actually turns left). Fixed to "turn right (speed left, slow right)" / "turn left (speed right, slow left)". (Assumes standard M1=left/M2=right wiring.)
+  - touch_whiskers.md wall-following: "If value above resting" -> "at/near resting" (value cannot exceed resting since bending only lowers it).
+  - sonar.md: dolphin range "0–150 kHz" -> "roughly 0.2–150 kHz" (0 kHz not physical).
++ Reviewed color_vision.md and faculty_and_staff.md: no technical issues.
++ touch_whiskers.md is not in the current (olfaction) active set, so its fixes are on-disk only until that activity day; olfaction.md and robot_details.md fixes require a configure re-run to go live.

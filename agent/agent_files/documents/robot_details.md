@@ -208,6 +208,6 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 - **Output:** Lower values = more bending/pressure (bending the whisker reduces the sensor reading)
 
 **Usage Tips:**
-- **Port Assignment:** Attach to ports 3 or 4
+- **Port Assignment:** Attach to any of ports 6–10 (select the matching port in the block)
 - **Analogy:** *“The robot can detect touches—like a rat feeling walls in the dark!”*
 - **Troubleshooting:** Ensure whiskers are securely attached and not obstructed

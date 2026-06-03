@@ -115,17 +115,17 @@ Contact on one side should bias movement away from that side — the direct biom
 | **Condition** | **Action** |
 |---|---|
 | Neither whisker bent | Drive forward |
-| Left whisker bent | Turn right (slow left, speed right) |
-| Right whisker bent | Turn left (slow right, speed left) |
+| Left whisker bent | Turn right (speed left, slow right) |
+| Right whisker bent | Turn left (speed right, slow left) |
 | Both whiskers bent | Back up briefly, then turn to escape |
 
 ```
-Obstacle avoidance logic:
+Obstacle avoidance logic (bending lowers the value, so "< threshold" = bent):
 1. Read left_whisker and right_whisker values
-2. If left_whisker < threshold AND right_whisker < threshold → forward
-3. If left_whisker < threshold → turn right
-4. If right_whisker < threshold → turn left
-5. If both < threshold → reverse briefly, then turn
+2. If left_whisker > threshold AND right_whisker > threshold → forward (neither bent)
+3. Else if left_whisker < threshold AND right_whisker < threshold → reverse briefly, then turn (both bent)
+4. Else if left_whisker < threshold → turn right (only left bent)
+5. Else if right_whisker < threshold → turn left (only right bent)
 6. Repeat continuously
 ```
 
@@ -140,7 +140,7 @@ Keep one whisker just barely contacting the wall. If contact is lost, turn sligh
 ```
 Wall-following logic (right wall):
 1. Read right whisker value
-2. If value above resting (contact lost) → turn slightly right toward wall
+2. If value at/near resting (contact lost) → turn slightly right toward wall
 3. If value below threshold (too much bend) → turn slightly left away from wall
 4. Otherwise → drive forward
 5. Repeat continuously

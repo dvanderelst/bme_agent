@@ -31,7 +31,7 @@ The sensor has two metal cylinders: one emitter (marked T) and one receiver (mar
 - **40 kHz and animals**: The sensor's 40 kHz emission is inaudible to humans but detectable by many animals — rats hear up to ~40 kHz, bats and dolphins well beyond it. Good discussion point for the biology connection
 
 ### Animals vs. Robots
-While echolocating animals can extract rich information (location, movement, target properties), the mBot Ranger ultrasonic sensor primarily functions as a distance meter. A key difference is that animals use **broad-spectrum sounds** — bats sweep from roughly 25–100+ kHz, dolphins from 0–150 kHz — while the mBot Ranger emits a single narrow frequency (~40 kHz). This broad spectrum is part of what makes animal echolocation so much more powerful.
+While echolocating animals can extract rich information (location, movement, target properties), the mBot Ranger ultrasonic sensor primarily functions as a distance meter. A key difference is that animals use **broad-spectrum sounds** — bats sweep from roughly 25–100+ kHz, dolphins from roughly 0.2–150 kHz — while the mBot Ranger emits a single narrow frequency (~40 kHz). This broad spectrum is part of what makes animal echolocation so much more powerful.
 
 **Agent Notes:**
 - **Animal examples**: Bats, sperm whales, oilbirds, cave-dwelling swiftlets

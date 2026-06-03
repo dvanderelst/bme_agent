@@ -179,6 +179,6 @@ Robot trail-following logic:
 | Repeated small steering corrections | Short motor adjustments in a loop | "Both accumulate small corrections to stay on path" |
 | Wavy path from sampling | Slight oscillation around line center | "Both weave slightly because they're correcting, not locked on" |
 | Failure at sharp corners | Robot overshoots at high speed | "Both struggle when the trail changes direction faster than they can correct" |
-| Failure at gaps | Sensor reads 4, no signal | "Both fail when the cue disappears and need a search strategy" |
-| Failure at intersections | Sensor reads 1 at crossing, ambiguous | "Both face ambiguity when two plausible paths are present" |
+| Failure at gaps | Sensor reads 3, no signal | "Both fail when the cue disappears and need a search strategy" |
+| Failure at intersections | Sensor reads 0 at crossing, ambiguous | "Both face ambiguity when two plausible paths are present" |
 | Trail following ≠ plume following | Line following ≠ gradient climbing | "Following a surface path is a different problem from tracking a diffusing source" |
