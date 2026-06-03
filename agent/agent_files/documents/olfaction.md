@@ -107,46 +107,46 @@ Termite trail-following rule:
 ## Activity 2: Robot Trail Following
 
 ### Setup
-The mBot uses a **line follower sensor** (typically in port 2) to follow a dark line on a light surface. The sensor has two light detectors (left and right) that report whether each side is over the dark line or not. The robot imitates termite trail-following logic by comparing the two sensor values and steering toward the line.
+The mBot Ranger uses a **line follower sensor** (plugged into any of ports 6–10; select the matching port in the block) to follow a dark line on a light surface. The sensor has two light detectors (left and right) that report whether each side is over the dark line or not. The robot imitates termite trail-following logic by comparing the two sensor values and steering toward the line.
 
 ### Sensor Values and Meaning
 
 | **Sensor Value** | **Interpretation** | **Typical Action** |
 |---|---|---|
-| 1 | Centered on the line | Drive forward |
+| 0 | Centered on the line (both detectors on line) | Drive forward |
+| 1 | Veering right (left detector on line) | Turn left to correct |
 | 2 | Veering left (right detector on line) | Turn right to correct |
-| 3 | Veering right (left detector on line) | Turn left to correct |
-| 4 | Line lost (neither detector on line) | Search, slow down, or briefly continue forward |
+| 3 | Line lost (neither detector on line) | Search, slow down, or briefly continue forward |
 
 ### Programming Logic
 
 ```
 Robot trail-following logic:
 1. Read line follower sensor value
-2. If value = 1 → drive forward
-3. If value = 2 → turn right (correct left drift)
-4. If value = 3 → turn left (correct right drift)
-5. If value = 4 → apply gap strategy (continue briefly, slow search, or stop)
+2. If value = 0 → drive forward
+3. If value = 1 → turn left (correct right drift)
+4. If value = 2 → turn right (correct left drift)
+5. If value = 3 → apply gap strategy (continue briefly, slow search, or stop)
 6. Repeat continuously
 ```
 
 **Agent Notes:**
 - **Relevant mBlock blocks**: `line follower sensor [port] value`, `move forward at power [slot]%`, `turn left/right at power [slot]%`, `left wheel at [slot]%, right wheel at [slot]%`, `if/else`, variables and comparison blocks
 - **Speed matters**: Too fast → overshoots corners and gaps; too slow → works but may be unstable. Suggest tuning speed first when behavior is wrong
-- **Gap strategy**: The sensor returns 4 when the line is lost. The robot needs explicit code for this — brief forward continuation is the simplest approach
+- **Gap strategy**: The sensor returns 3 when the line is lost. The robot needs explicit code for this — brief forward continuation is the simplest approach
 
 ### Challenges that Mirror Termite Behavior
 
 | **Challenge** | **Why it's hard** | **Suggested fix** |
 |---|---|---|
 | Sharp corners | Robot moves too fast to detect and correct in time | Reduce speed; increase turn response |
-| Gaps | Sensor reads 4, no guidance signal | Add brief forward continuation, or small search sweep |
-| Intersections | Sensor may read 1 (centered) on a crossing, masking the branch | Add explicit branch rule in code (e.g., always go straight) |
+| Gaps | Sensor reads 3, no guidance signal | Add brief forward continuation, or small search sweep |
+| Intersections | Sensor may read 0 (centered) on a crossing, masking the branch | Add explicit branch rule in code (e.g., always go straight) |
 
 **Agent Notes:**
 - **Connect to termite observations**: These robot failures mirror what students saw with the termites — the same ambiguous situations (gaps, corners, intersections) cause both animal and robot to struggle
 - **When a student's robot fails at gaps**: Ask "what does the sensor read when there's no line? What should the robot do with that value?"
-- **When a student's robot fails at intersections**: Ask "does your code have a rule for what to do when it sees value 1 at a crossing? The robot can't tell a straight stretch from an intersection center"
+- **When a student's robot fails at intersections**: Ask "does your code have a rule for what to do when it sees value 0 at a crossing? The robot can't tell a straight stretch from an intersection center"
 
 ---
 

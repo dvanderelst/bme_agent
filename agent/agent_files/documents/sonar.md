@@ -20,7 +20,7 @@ Sound travels at approximately 343 meters per second in air. The total travel di
 - **Why divide by 2?** The sound makes a round trip (to object and back)
 - **Common mistake**: Students often forget to divide by 2
 
-### The mBot Ultrasonic Sensor
+### The mBot Ranger Ultrasonic Sensor
 The sensor has two metal cylinders: one emitter (marked T) and one receiver (marked R). It emits ultrasonic pulses at around 40 kHz — inaudible to humans — and returns distance in centimeters in mBlock. It uses the first strong echo it receives, not a detailed waveform.
 
 **Agent Notes:**
@@ -31,15 +31,15 @@ The sensor has two metal cylinders: one emitter (marked T) and one receiver (mar
 - **40 kHz and animals**: The sensor's 40 kHz emission is inaudible to humans but detectable by many animals — rats hear up to ~40 kHz, bats and dolphins well beyond it. Good discussion point for the biology connection
 
 ### Animals vs. Robots
-While echolocating animals can extract rich information (location, movement, target properties), the mBot ultrasonic sensor primarily functions as a distance meter. A key difference is that animals use **broad-spectrum sounds** — bats sweep from roughly 25–100+ kHz, dolphins from 0–150 kHz — while the mBot emits a single narrow frequency (~40 kHz). This broad spectrum is part of what makes animal echolocation so much more powerful.
+While echolocating animals can extract rich information (location, movement, target properties), the mBot Ranger ultrasonic sensor primarily functions as a distance meter. A key difference is that animals use **broad-spectrum sounds** — bats sweep from roughly 25–100+ kHz, dolphins from 0–150 kHz — while the mBot Ranger emits a single narrow frequency (~40 kHz). This broad spectrum is part of what makes animal echolocation so much more powerful.
 
 **Agent Notes:**
 - **Animal examples**: Bats, sperm whales, oilbirds, cave-dwelling swiftlets
 - **Not all bats echolocate**: Only microbats (e.g. Little Brown Bat, Big Brown Bat) echolocate; megabats (fruit bats, flying foxes) rely on vision and smell
 - **Not all whales echolocate**: Only toothed whales (dolphins, sperm whales, orcas, belugas) echolocate; baleen whales (humpback, blue, fin) do not
-- **Robot limitation**: mBot mainly uses sonar for distance estimation, not detailed mapping
-- **Important distinction**: "The mBot sensor is useful but not bat-level echolocation"
-- **Broad vs. narrow spectrum**: Animals use broad-spectrum calls; the mBot uses a single ~40 kHz frequency — this is one reason animal sonar extracts richer information
+- **Robot limitation**: mBot Ranger mainly uses sonar for distance estimation, not detailed mapping
+- **Important distinction**: "The mBot Ranger sensor is useful but not bat-level echolocation"
+- **Broad vs. narrow spectrum**: Animals use broad-spectrum calls; the mBot Ranger uses a single ~40 kHz frequency — this is one reason animal sonar extracts richer information
 - **Real-world engineering uses**: Parking sensors, drones, occupancy detectors, fish finders, seafloor mapping, submarine sensing
 
 ### Sensor Directionality
@@ -65,7 +65,7 @@ Smooth, angled surfaces can reflect sound away from the receiver, making objects
 Students measure how the sensor's detection range varies with angle.
 
 **Setup:**
-- Sonar sensor in port 1
+- Sonar sensor in any of ports 6–10 (select the matching port in the block)
 - Line follower can be omitted
 - LEDs provide feedback (green = detected, red = not detected)
 
@@ -80,7 +80,7 @@ Students measure how the sensor's detection range varies with angle.
 - **Body interference**: The student's own body returns stronger echoes than most test objects — remind them to keep their body out of the detection zone while moving the test object
 - **Troubleshooting**: If no detection:
   - Is the sensor properly connected to the correct port?
-  - Is the mBot paired and connected in mBlock?
+  - Is the mBot Ranger paired and connected in mBlock?
   - Try a larger or harder object (soft surfaces absorb more sound)
 - **Question**: *"Why isn't the detection range the same in all directions?"*
   **Answer**: "The sensor is directional - it's most sensitive straight ahead"
@@ -100,7 +100,7 @@ Students compare detection of smooth walls at different angles.
 ## Activity 2: Obstacle-Avoidance Robot
 
 ### Two-Sensor Setup
-Uses two ultrasonic sensors (typically left on port 1, right on port 2) for spatial awareness.
+Uses two ultrasonic sensors (e.g. left on port 6, right on port 7 — any two ports work, as long as the blocks match) for spatial awareness.
 
 **How It Works:**
 1. Continuously read both sensors
@@ -142,7 +142,7 @@ Two-sensor obstacle avoidance:
 | "Robot turns wrong way" | Turn rule reversed for sensor mounting | Test with clear obstacle, flip logic if needed |
 | "Works alone but not with others" | Sensor interference from multiple robots | Space robots apart, test one at a time |
 | "Should work from 4 meters" | Confusing manufacturer max with classroom reality | Explain practical range is much shorter |
-| "Program runs but nothing moves correctly" | Wrong ports, mBot not connected, or swapped motor leads | Check mBot was paired and added in mBlock; verify sensor ports and motor wiring |
+| "Program runs but nothing moves correctly" | Wrong ports, mBot Ranger not connected, or swapped motor leads | Check mBot Ranger was paired and added in mBlock; verify sensor ports and motor wiring |
 
 **Agent Notes (Arena Setup):**
 - **Use complex objects**: Toys, irregular objects with multiple surfaces return strong echoes from many angles — smooth walls cause the mirror effect and make poor arena boundaries

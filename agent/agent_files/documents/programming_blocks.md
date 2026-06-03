@@ -108,22 +108,22 @@
 # Sensing Blocks
 
 ## `light sensor [dropdown] light intensity`
-- **Description:** Measures the ambient light intensity using a light sensor. The dropdown can take the value `Onboard Sensor` to read the onboard light sensor, or `port3` or `port4` to read an external light sensor attached to those ports.
+- **Description:** Measures the ambient light intensity using a light sensor. The dropdown can take the value `Onboard Sensor` to read the onboard light sensor, or a port such as `port6` to read an external light sensor attached to that port (any of ports 6–10).
 - **Output:** Returns a value where higher numbers = brighter light.
 - **Agent Notes:**
   - **Whisker Sensor Compatibility:** The custom whisker sensor uses the same blocks as the light sensor
   - **Whisker Behavior:** Bending the whisker reduces the light sensor value (more bend = lower value)
-  - **Port Selection:** Whisker sensors must be connected to port 3 or 4
+  - **Port Selection:** Whisker sensors can be connected to any port (6–10); select that same port in the block
   - **Example Usage:**
     ```
-    if light sensor port3 light intensity < 20 then
+    if light sensor port6 light intensity < 20 then
       # Whisker is bent - obstacle detected
       turn right at power 50% for 0.5 secs
     ```
   - **Troubleshooting:** If whisker readings seem reversed, check the physical connection and orientation
 
 ## `ultrasonic sensor [dropdown] distance`
-- **Description:** Measures distance (in cm) to objects using the ultrasonic sensor plugged into one of the ports (1, 2, 3, or 4). The sensor from which the distance is measured is selected by choosing a port from the dropdown menu.
+- **Description:** Measures distance (in cm) to objects using the ultrasonic sensor plugged into one of the ports (6, 7, 8, 9, or 10). The sensor from which the distance is measured is selected by choosing a port from the dropdown menu.
 - **Output:** Distance in centimeters (e.g., 10 = 10 cm away).
 - **Agent Notes:**
   - If readings seem off, ask:
@@ -132,19 +132,19 @@
   - Tip: Use with *"if distance < 10"* to avoid obstacles.
 
 ## `line follower sensor [dropdown] value`
-- **Description:** Reads the line sensor’s position. The port to which the sensor is connected should be selected from the dropdown menu (the sensor can be attached to ports 1, 2, 3, or 4).
-- **Output:** Returns a number (1–4) based on which IR pairs detect a dark surface (the line):
+- **Description:** Reads the line sensor’s position. The port to which the sensor is connected should be selected from the dropdown menu (the sensor can be attached to ports 6, 7, 8, 9, or 10).
+- **Output:** Returns a number (0–3) based on which IR pairs detect a dark surface (the line):
 
 | Value | Left Pair | Right Pair | Interpretation | Suggested Action |
 |-------|-----------|------------|----------------|-----------------|
-| 1 | Low | Low | Centered on line | Continue straight |
+| 0 | Low | Low | Centered on line | Continue straight |
+| 1 | Low | High | Veering right | Turn left |
 | 2 | High | Low | Veering left | Turn right |
-| 3 | Low | High | Veering right | Turn left |
-| 4 | High | High | Lost — no line detected | Stop or search |
+| 3 | High | High | Lost — no line detected | Stop or search |
 
 - **Agent Notes:**
-  - *"Robot keeps turning left?"* → The right sensor (value 3) is likely over the line — turn left to correct.
-  - *"Value keeps returning 4?"* → Robot has lost the line. Try slowing down or widening the search turn.
+  - *"Robot keeps turning left?"* → It's reading value 1 — the left detector is likely over the line.
+  - *"Value keeps returning 3?"* → Robot has lost the line. Try slowing down or widening the search turn.
 
 # Light & Sound Blocks (Extension Required)
 
@@ -166,7 +166,7 @@ To access these blocks:
   - **Troubleshooting:** If block is missing, check if extension is installed
   - **Example Usage:**
     ```
-    if sound sensor port3 loudness > 50 then
+    if sound sensor port6 loudness > 50 then
       play note C4 for 0.5 beats
     ```
 
@@ -188,7 +188,7 @@ To access these blocks:
 - **Description:** Adds two numbers. Slots can be typed values, sensor blocks, or variable blocks.
 - **Agent Notes:**
   - Common use: combine two sensor readings, or add an offset to a value.
-  - Example: `light sensor port3 light intensity + 10`
+  - Example: `light sensor port6 light intensity + 10`
 
 ## `[slot] - [slot]`
 - **Description:** Subtracts the second number from the first.
@@ -215,17 +215,17 @@ To access these blocks:
 - **Description:** Returns true if the first value is greater than the second.
 - **Agent Notes:**
   - Used inside `if` or `while` blocks to compare sensor values to thresholds.
-  - Example: `if ultrasonic sensor port1 distance > 20 then move forward`
+  - Example: `if ultrasonic sensor port6 distance > 20 then move forward`
 
 ## `[slot] < [slot]`
 - **Description:** Returns true if the first value is less than the second.
 - **Agent Notes:**
-  - Example: `if ultrasonic sensor port1 distance < 10 then stop moving`
+  - Example: `if ultrasonic sensor port6 distance < 10 then stop moving`
 
 ## `[slot] = [slot]`
 - **Description:** Returns true if both values are equal.
 - **Agent Notes:**
-  - Most useful with the line follower sensor (e.g., `if line follower sensor value = 1 then`)
+  - Most useful with the line follower sensor (e.g., `if line follower sensor value = 0 then`)
 
 ## `[slot] and [slot]`
 - **Description:** Returns true only if both conditions are true.
@@ -240,7 +240,7 @@ To access these blocks:
 ## `not [slot]`
 - **Description:** Reverses a true/false condition.
 - **Agent Notes:**
-  - Example: `if not (line follower value = 1) then` — acts when the robot is off-center.
+  - Example: `if not (line follower value = 0) then` — acts when the robot is off-center.
 
 # Variables in mBlock
 
@@ -254,7 +254,7 @@ To access these blocks:
 ## `set [variable] to [slot]`
 - **Description:** Assigns a value to the variable. The slot can be a sensor block to store a sensor's value in a variable. It can also be a combination of operator blocks.
 - **Agent Notes:**
-  - Most common use: store a sensor reading so it can be compared or reused. Example: `set sensorValue to light sensor port3 light intensity`
+  - Most common use: store a sensor reading so it can be compared or reused. Example: `set sensorValue to light sensor port6 light intensity`
   - Useful when you need to read a sensor once and use the result multiple times in the same loop iteration.
 
 ## `change [variable] by [slot]`

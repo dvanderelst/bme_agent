@@ -12,7 +12,7 @@ The robot is programmed with **mBlock**, a block-based coding tool similar to Sc
 **Agent Notes:**
 - **Block-based, no typing**: students snap blocks together. If a student has used Scratch, the interface will feel familiar.
 - **Wireless via dongle**: the link between computer and robot is the dongle, not a USB cable to the robot itself. This is a frequent source of confusion — see the pairing section.
-- **The robot has several onboard features** used in this activity even before any external sensors are attached: programmable RGB LEDs, a light-intensity sensor, a sonar (ultrasonic) distance sensor, and a 3-axis gyroscope.
+- **The robot has several onboard features** used in this activity even before any external sensors are attached: programmable RGB LEDs, a light-intensity sensor, and a 3-axis gyroscope. The **sonar (ultrasonic) distance sensor** used in the challenges is *not* onboard — it is an external sensor plugged into one of the ports (6–10).
 
 ### The Basic Program Structure
 A central idea introduced here, and reused in every later module, is the standard shape of a robot program:

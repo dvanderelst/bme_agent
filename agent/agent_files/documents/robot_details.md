@@ -1,8 +1,8 @@
-# mBot Robot Technical Documentation
+# mBot Ranger Robot Technical Documentation
 
 ## Overview
 
-The **mBot by Makeblock** is a 2-wheeled, differentially driven robot programmed using **mBlock**, a Scratch-based drag-and-drop interface. Students can use mBlock [online](https://ide.mblock.cc/) or via installed software.
+The **mBot Ranger by Makeblock** is a 2-wheeled, differentially driven robot programmed using **mBlock**, a Scratch-based drag-and-drop interface. Students can use mBlock [online](https://ide.mblock.cc/) or via installed software.
 
 - **Key Feature:** Designed for beginners; ideal for modeling biological behaviors with sensors
 - **Programming Environment:** Visual drag-and-drop block interface (mBlock). BME students use blocks only.
@@ -11,29 +11,34 @@ The **mBot by Makeblock** is a 2-wheeled, differentially driven robot programmed
 
 ### Ports and Sensors
 
-The mBot has **four ports** (1–4), each with color-coded labels indicating compatible sensors:
+The mBot Ranger has **five ports** (6, 7, 8, 9, and 10). Any sensor can be plugged into any of these ports — sensors are not tied to a specific port number.
 
-| Port | Compatible Labels | Sensors |
-| --- | --- | --- |
-| 1 | Yellow, Blue, White | Ultrasonic (yellow), Line (blue) |
-| 2 | Yellow, Blue, White | Ultrasonic (yellow), Line (blue) |
-| 3 | Yellow, Blue, White, Gray | Ultrasonic (yellow), Sound (gray), Light (gray), Whisker (custom, gray) |
-| 4 | Yellow, Blue, White, Gray | Ultrasonic (yellow), Sound (gray), Light (gray), Whisker (custom, gray) |
+| Port | Compatible Sensors |
+| --- | --- |
+| 6 | Ultrasonic, Line follower, Sound, Light, Whisker |
+| 7 | Ultrasonic, Line follower, Sound, Light, Whisker |
+| 8 | Ultrasonic, Line follower, Sound, Light, Whisker |
+| 9 | Ultrasonic, Line follower, Sound, Light, Whisker |
+| 10 | Ultrasonic, Line follower, Sound, Light, Whisker |
+
+**The rule that trips students up:** each sensor block in mBlock has a port dropdown. You must select the **same port number** the sensor is physically plugged into. A correct program with the wrong port selected behaves as if the sensor isn't connected.
 
 **Troubleshooting Tips:**
 - If a sensor isn’t working, check:
-  - Is it plugged into a compatible port?
   - Is the cable fully seated?
-- **Whisker sensor location:** Ports 3 or 4
+  - Does the **port selected in the mBlock block** match the physical port the sensor is plugged into?
 
 ### Onboard Sensors and Outputs
 
-Even without external sensors, the mBot has built-in features:
+Even without external sensors, the mBot Ranger has a rich set of built-in features:
 
-1. **Ambient light sensor** (measures room brightness)
-2. **Speaker** (plays tones/melodies)
-3. **2 RGB LEDs** (color and brightness can be programmed)
-4. **Button** (can trigger programs)
+1. **Programmable RGB LEDs** (color and brightness can be programmed)
+2. **Onboard light sensor** (measures how much light falls on it; returns a value from 0 to 1000)
+3. **Sound sensor** (onboard microphone that measures loudness)
+4. **3-axis gyroscope** (measures the robot's tilt/angle around the X and Y axes — used in the level/tilt challenge)
+5. **Temperature sensor**
+6. **Buzzer / speaker** (plays tones and melodies)
+7. **Button** (can trigger programs)
 
 **Analogy for Students:**
 - *“The onboard light sensor is like a simple ‘eye’ that detects brightness—no colors, just how much light there is!”*
@@ -57,14 +62,14 @@ Even without external sensors, the mBot has built-in features:
 
 **Important: Three Essential Steps for mBlock Operation**
 
-Before you can program your mBot in mBlock, **three things must be completed in this exact order**:
+Before you can program your mBot Ranger in mBlock, **three things must be completed in this exact order**:
 
 1. **Pair the Dongle and Robot** (Hardware Connection) ✅
    - Establishes the wireless link between computer and robot
    - Only needs to be done once per robot/dongle pair
 
 2. **Add the Robot to mBlock** (Software Configuration) ✅  
-   - Makes mBlock aware of your specific mBot model
+   - Makes mBlock aware of your specific mBot Ranger model
    - Unlocks robot-specific programming blocks
 
 3. **Connect in mBlock** (Session Establishment) ✅
@@ -100,16 +105,16 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 
 **✅ Step 2 of 3: Configure Software**
 
-**Steps to add mBot to mBlock:**
+**Steps to add mBot Ranger to mBlock:**
 1. Open mBlock and look at the **`Devices` area** (bottom-left corner)
-2. If mBot is **not listed**:
+2. If mBot Ranger is **not listed**:
    - Click the **`Add (+)` button** in the `Devices` area
-   - Select **`mBot`** (not `mBot2`)
+   - Select **`mBot Ranger`** (not the plain `mBot`)
    - Click **`OK`**
-3. The mBot will now appear in the `Devices` area
+3. The mBot Ranger will now appear in the `Devices` area
 
 **Troubleshooting:**
-- *“I don’t see the motor blocks!”* → Ask: *“Did you add the mBot in the Devices area?”*
+- *“I don’t see the motor blocks!”* → Ask: *“Did you add the mBot Ranger in the Devices area?”*
 - Show them where to find the **`Add (+)` button**
 
 **✅ Robot Added!** Next: [Step 3: Connect in mBlock](#step-3-connecting-in-mblock)
@@ -136,7 +141,7 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 - ❌ Skipping pairing and going straight to mBlock connection
 - ❌ Forgetting to add the robot to mBlock after pairing  
 - ❌ Trying to connect before turning on the robot
-- ❌ Using `mBot2` instead of `mBot` in the device selection
+- ❌ Using the plain `mBot` instead of `mBot Ranger` in the device selection
 
 ## Sensor Technical Specifications
 
@@ -167,18 +172,18 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 ### Line Sensor
 
 - **Components:** 2 IR LED/receiver pairs (left and right)
-- **Output:** Returns a **number (1–4)** based on surface reflectivity:
+- **Output:** Returns a **number (0–3)** based on surface reflectivity:
 
 | Value | Left Pair | Right Pair | Interpretation | Action for Line-Following |
 | --- | --- | --- | --- | --- |
-| 1 | Low | Low | Centered on line | Continue straight |
+| 0 | Low | Low | Centered on line | Continue straight |
+| 1 | Low | High | Veering right | Turn left |
 | 2 | High | Low | Veering left | Turn right |
-| 3 | Low | High | Veering right | Turn left |
-| 4 | High | High | Lost (no line) | Search or stop |
+| 3 | High | High | Lost (no line) | Search or stop |
 
 **Line Following Tips:**
-- *“Robot keeps turning left?”* → Check if right sensor (Value 3) is over the line
-- *“Value 4?”* → Robot lost the line—try slowing down or recalibrating
+- *“Robot keeps turning left?”* → It’s reading Value 1 — check whether the left detector is over the line
+- *“Value 3?”* → Robot lost the line—try slowing down or recalibrating
 
 ### Ultrasonic Sensor
 

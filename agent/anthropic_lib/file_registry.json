@@ -1,21 +1,21 @@
 {
   "robot_details.md": {
-    "file_id": "file_011CbfMBKgPotbSHbY8xPRT5",
-    "title": "mBot Robot \u2014 Hardware, Setup, and Connection Reference",
-    "description": "Hardware specs (ports, sensors, motors), how to connect the mBot to mBlock, and troubleshooting for cables, motors, and sensor placement."
+    "file_id": "file_011CbgoPn9yoya7iLF5XvgN8",
+    "title": "mBot Ranger \u2014 Hardware, Setup, and Connection Reference",
+    "description": "Hardware specs (ports, sensors, motors), how to connect the mBot Ranger to mBlock, and troubleshooting for cables, motors, and sensor placement."
   },
   "programming_blocks.md": {
-    "file_id": "file_011CbfMBQ4pd9DWbvvv7UW5Q",
+    "file_id": "file_011CbgoPs3fFqVPhXrrrD4k9",
     "title": "mBlock Programming Block Reference",
     "description": "Reference for the mBlock visual programming blocks BME students use: action, sensor, and control-flow blocks."
   },
   "faculty_and_staff.md": {
-    "file_id": "file_011CbfMBU7uPcF8mjgMVj5MY",
+    "file_id": "file_011CbgoPw2X1Gs8s22RXQqy8",
     "title": "BME Faculty and Staff Directory",
     "description": "Who runs the BME program and who to contact about specific issues."
   },
   "olfaction.md": {
-    "file_id": "file_011CbfMBYULZtEtmASJE4YWs",
+    "file_id": "file_011CbgoQ1qz9VLzHkxn7jK4t",
     "title": "Olfaction and Odor-Guided Behavior",
     "description": "Biology of olfaction; termite trail-following observation; robot line-following as a model of odor-guided movement."
   }

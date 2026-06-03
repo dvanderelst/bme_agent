@@ -85,11 +85,11 @@ A tester applies two points to the skin simultaneously. The subject (eyes closed
 ## Activity 2: Robot Whisker Sensing
 
 ### Hardware Setup
-The mBot uses **flex sensors** as mechanical whiskers. The flex sensor has a nominal flat resistance of ~10 kΩ that increases when bent. In this module's implementation, whiskers are read through the **light sensor block** on **port 3 or port 4** in mBlock.
+The mBot Ranger uses **flex sensors** as mechanical whiskers. The flex sensor has a nominal flat resistance of ~10 kΩ that increases when bent. In this module's implementation, whiskers are read through the **light sensor block** on **any of ports 6–10** (select that port in the block) in mBlock.
 
 **Agent Notes:**
 - **Value drops when bent**: In this module's wiring and code, the displayed value in mBlock *decreases* when the whisker bends — this is counterintuitive but correct for this setup. Trust the measured mBlock values, not the assumption that more bend = bigger number
-- **Use the light sensor block**: Not the sonar or line sensor block — read port 3 or 4 with the light sensor block
+- **Use the light sensor block**: Not the sonar or line sensor block — read the whisker's port (one of 6–10) with the light sensor block
 - **One-direction bending only**: Flex sensors can be damaged by bending in the wrong direction or by creasing — emphasize this during mounting
 
 ### Safe Handling and Mounting
@@ -154,7 +154,7 @@ Wall-following logic (right wall):
 
 | **Problem** | **Likely Cause** | **What to try** |
 |---|---|---|
-| Whisker value does not change at all | Wrong port, wrong block, loose cable, or damaged sensor | Check block reads port 3 or 4; reseat cable; gently bend sensor by hand to confirm it works |
+| Whisker value does not change at all | Wrong port, wrong block, loose cable, or damaged sensor | Check the block's port matches the whisker's physical port (6–10); reseat cable; gently bend sensor by hand to confirm it works |
 | Value changes but robot does nothing | Threshold not crossed, or condition not inside the running loop | Print/read values, compare to threshold, verify the if-statement is inside the loop |
 | Robot reacts constantly without contact | Threshold too close to resting value, bent mounting, or cable noise | Recalibrate resting values; remount whisker so it sits neutral when not contacting anything |
 | Robot turns the wrong way | Left/right logic reversed, or motors wired opposite to expectations | Swap turn logic in code first; if movement directions are globally wrong, check M1/M2 wiring |

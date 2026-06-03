@@ -14,8 +14,8 @@ description = "The first activity (no biology): building the robot, pairing the 
 
 [robot_details]
 file = "robot_details.md"
-title = "mBot Robot — Hardware, Setup, and Connection Reference"
-description = "Hardware specs (ports, sensors, motors), how to connect the mBot to mBlock, and troubleshooting for cables, motors, and sensor placement."
+title = "mBot Ranger — Hardware, Setup, and Connection Reference"
+description = "Hardware specs (ports, sensors, motors), how to connect the mBot Ranger to mBlock, and troubleshooting for cables, motors, and sensor placement."
 
 [programming_blocks]
 file = "programming_blocks.md"
