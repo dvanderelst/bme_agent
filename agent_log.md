@@ -40,3 +40,7 @@ Mon 01 Jun 2026 02:19:44 PM EDT
   - Corrected in place: `mario`'s full name was a typo, fixed Ynga Durand → Agustin (same login, same student).
 + Group split is now A=12 / B=12 (test accounts `teacher`/`ttest` stay group X). Columns unchanged; `teacher`/`ttest` untouched.
 + No real student data existed yet (program day 1), so the kesia→keysia login change and the removals carry no data loss.
+Tue 02 Jun 2026 08:14:14 PM EDT
+
++ Switched the agent's daily topic from `getting_started.md` to `olfaction.md` (day 2): re-ran `script_configure_agents.py`, which rewrote the Anthropic file IDs (`file_registry.json`), reloaded the Mistral library, and replaced the "Today's Activity" block in `bme_agent_instructions.md` with the olfaction activity description.
++ Fixed a path bug in `script_configure_agents.py`: it assumed CWD was `agent/` (relative `agent_files/...` paths and config_manager's `.streamlit/secrets.toml` load both broke when run from the repo root). It now `chdir`s into `agent/` before the imports, so it runs from anywhere. Side effect: the run log now lands in `agent/logs/`.

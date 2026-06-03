@@ -10,7 +10,15 @@ import pathlib
 import re
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "agent"))
+# Everything in this script is relative to the agent/ directory — both the
+# document/instruction/activity dirs below and config_manager, which loads
+# .streamlit/secrets.toml (agent IDs, API keys) relative to CWD at import
+# time. Anchor CWD there so the script runs from anywhere, e.g.
+# `python script_configure_agents.py` from the repo root.
+AGENT_DIR = pathlib.Path(__file__).resolve().parent / "agent"
+os.chdir(AGENT_DIR)
+
+sys.path.insert(0, str(AGENT_DIR))
 
 import toml
 
@@ -21,7 +29,7 @@ from shared_lib.output_logging import start_logging, stop_logging, OutputLogger
 from shared_lib.config_manager import config
 
 # ── UPDATE THIS BEFORE RUNNING ─────────────────────────────────────────────
-daily_modules = ["getting_started.md"]
+daily_modules = ["olfaction.md"]
 # ──────────────────────────────────────────────────────────────────────────
 
 # ── Paths ──────────────────────────────────────────────────────────────────
