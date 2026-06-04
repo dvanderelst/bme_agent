@@ -148,16 +148,27 @@ Students collaborate by communicating how bright each box looks through their go
 ## Activity 4: Robot Color Discrimination
 
 ### What the Robot Is Building
-In this activity, students give their robot color vision by equipping it with up to three light sensors, each covered by a color filter. The result is essentially a **1-pixel RGB camera**: just like the human eye compares signals across three cone classes to determine color, the robot compares signals across three filtered sensors.
+In this activity, students give their robot color vision by equipping it with light sensors, each covered by a color filter. The default build uses **two** filtered sensors — a **dichromatic** robot, the same kind of two-channel color vision a **dog** has. Each filtered sensor responds strongly only to its own band of wavelengths, and the robot tells colors apart by **comparing** the readings. Groups that want to recognize more colors can add a **third** filter to make a **trichromatic** (full red/green/blue) robot, closer to human vision and the three goggles students wore in Activity 3.
 
 **Agent Notes:**
-- Use the "1-pixel RGB camera" framing to help students connect the human goggle game (Activity 3) to this robot activity. The goggles they wore are the same idea as the color filters on the sensors.
-- Each filtered sensor acts like one cone class: it only responds strongly to its own color of light.
+- **Dichromatic by default**: the standard build is **two** sensors (for example green + blue), like a dog's two-cone color vision. Adding a third filter (red) makes it trichromatic, like humans. Don't assume three sensors — ask the student how many filters they are actually using.
+- Think of it as a **1-pixel color sensor**: just like the eye compares signals across cone classes, the robot compares signals across its filtered sensors. With two channels it can separate fewer colors than with three — that limit is part of the point, and it mirrors why a dog makes fewer color distinctions than a person.
+- Each filtered sensor acts like one cone class: it only responds strongly to its own color of light. The goggles from the human goggle game (Activity 3) are the same idea as the color filters here.
 
 ### How It Works
-- The robot is equipped with up to 3 external light sensors.
-- Students fit 3D-printed covers over the sensors and slide in red, green, or blue color filters, making each sensor sensitive to a narrow part of the spectrum.
-- By comparing the readings across the three filtered sensors, the robot can determine the color of the light falling on them:
+- The robot is equipped with **two** external light sensors by default (a third can be added for full RGB).
+- Students fit 3D-printed covers over the sensors and slide in color filters (for example green and blue), making each sensor sensitive to a narrow part of the spectrum.
+- The mBot Ranger light sensor responds to roughly **480–1000 nm**, so deep-blue/violet light sits at the edge of its sensitivity — one reason some colors are harder to tell apart than others.
+- By **comparing** the readings across the filtered sensors, the robot determines the color of the light falling on them. With a green and a blue sensor, for example:
+
+| Light Color | Green Sensor | Blue Sensor |
+|---|---|---|
+| Green | High | Low |
+| Blue | Low | High |
+| Cyan (green + blue) | High | High |
+| Red | Low | Low |
+
+- **Two channels cannot separate every color**: here red and "no light" both read low–low, and yellow would read the same as green (high–low) — which is exactly why a third filter helps. If a group adds a **red** sensor, the full three-channel pattern is:
 
 | Light Color | Red Sensor | Green Sensor | Blue Sensor |
 |---|---|---|---|
@@ -183,34 +194,39 @@ Before writing any program, students should take calibration measurements. This 
 - Calibration values will differ between robots and lighting conditions — there are no universal "correct" values.
 - Encourage students to write down their calibration table before they start programming.
 
+**This session, students work on two challenges**, split across groups: **Challenge 1 (Color Mimicking)** and **Challenge 2 (Approach / Avoid)**. *Challenge 3 (Following a Colored Trail) below is kept for reference but is not run this time — don't propose it as the current task.*
+
 ### Challenge 1: Color Mimicking
 The robot determines the color of an LED bar held in front of it and switches on its onboard LEDs to match. For example, if it detects yellow, it lights up yellow.
 
 **Program logic:**
-1. Read the three filtered sensor values.
+1. Read the filtered sensor values (both sensors — or all three if a third filter was added).
 2. Compare them against calibration thresholds to identify the color.
-3. Set the onboard LEDs to the matching color using the RGB LED block.
+3. Set the onboard LED ring to the matching color.
 4. Repeat in a loop.
 
 **Agent Notes:**
 - The most common problem is wrong or missing calibration. If the robot misidentifies colors, ask: *"What values did your sensors give during calibration? Are your thresholds based on those?"*
-- Remind students that the robot needs to check all three sensors together — no single sensor is enough to identify all colors.
+- Remind students that the robot needs to check its sensors **together** — no single filtered sensor is enough to identify a color on its own.
+- With only two sensors, some colors are genuinely ambiguous (see the dichromatic table above). If a group can't tell two colors apart, that may be the dichromatic limit, not a bug — they can pick more-distinguishable colors or add a third filter.
 
-### Challenge 2: Color Approach
-Two LED bars of different colors are placed in front of the robot. The robot identifies which side holds its preferred color (chosen by the student) and moves toward it.
+### Challenge 2: Approach / Avoid
+The robot is programmed to **approach one color and avoid another** — for example, drive toward green but turn away from yellow. Two LED bars of different colors are placed in front of it; using its filtered sensor readings, the robot decides which side to steer toward and which to steer away from. The robot has essentially **one "eye"** (it can't look left and right at once), so it must turn, sample, and compare.
 
 **Program logic:**
-1. Turn slightly left, read and store the three sensor values in variables.
-2. Turn slightly right, read and store the three sensor values in variables.
-3. Compare the stored values to determine which side is showing the preferred color.
-4. Move toward that side.
+1. Turn slightly left, read and store the sensor values in variables.
+2. Turn slightly right, read and store the sensor values in variables.
+3. Compare the stored values to decide which side shows the color to approach (and which shows the color to avoid).
+4. Steer toward the preferred color and away from the other.
 
 **Agent Notes:**
 - Students must store sensor readings in variables — they can't take both measurements at the same time. Ask: *"Are you saving the first measurement in a variable before taking the second one?"*
-- The preferred color is the student's choice — calibration must be done for that specific color under the actual lighting conditions.
-- If the robot can't tell which side is brighter, the two LED bars may be too far apart or the turn angle too small.
+- The "approach" and "avoid" colors are the student's choice — calibration must be done for those specific colors under the actual lighting conditions.
+- If the robot can't tell the two sides apart, the LED bars may be too far apart, the turn angle too small, or the two colors too similar for a two-sensor (dichromatic) robot to distinguish.
 
 ### Challenge 3: Following a Colored Trail
+> **Not part of the current session** — only Challenge 1 (Mimicking) and Challenge 2 (Approach / Avoid) are running this time. This challenge is kept for reference; don't present it as today's task.
+
 Students lay down a track of two differently colored papers — one color on the left side, one on the right. The robot follows the track by turning left when it detects the color of the right-side paper, and turning right when it detects the color of the left-side paper.
 
 **Program logic:**

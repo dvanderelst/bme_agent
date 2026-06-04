@@ -30,7 +30,7 @@ description = "Who runs the BME program and who to contact about specific issues
 [color_vision]
 file = "color_vision.md"
 title = "Color Vision — Biology and Robot Activities"
-description = "Biology of color vision; the human color-discrimination goggle game (a deployed web app with a color trainer and a timed, scored group competition with team leaderboard); the robot 1-pixel RGB camera challenge; two local HTML web games (RGB Codebreaker for additive mixing, Color Constancy Challenge for context-dependent perception)."
+description = "Biology of color vision; the human color-discrimination goggle game (a deployed web app with a color trainer and a timed, scored group competition with team leaderboard); the robot color-discrimination challenge (filtered light sensors as a 1-pixel color camera — a dichromatic two-sensor build by default, like a dog, extendable to trichromatic RGB); two local HTML web games (RGB Codebreaker for additive mixing, Color Constancy Challenge for context-dependent perception)."
 
 [olfaction]
 file = "olfaction.md"
