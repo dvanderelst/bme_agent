@@ -343,10 +343,12 @@ if user_input := st.chat_input(
         st.session_state[SESSION_MESSAGES].append({"role": "user", "content": content})
 
         # First, moderate the user message. Moderation is text-only by design:
-        # the caption/marker is classified, image content bypasses the moderator.
-        # Consistent with the fail-open stance documented in readme.md — image
-        # moderation is overkill for a supervised, logged-in classroom.
-        moderation_passed, flagged_categories = run_moderation(content)
+        # only the caption is classified — image content and the 📎 filename
+        # markers bypass the moderator. Filenames often contain dates (e.g.
+        # phone screenshots) that get false-flagged as PII, and image content
+        # moderation is overkill for a supervised, logged-in classroom (see
+        # the fail-open stance documented in readme.md).
+        moderation_passed, flagged_categories = run_moderation(caption)
 
         if not moderation_passed:
             # Message was rejected — tell the student which categories were violated.
