@@ -155,3 +155,12 @@ Wed Jun  3 09:26:43 PM EDT 2026
 Wed Jun  3 09:34:50 PM EDT 2026
 
 + Research app: renamed the "approach" challenge's display label "Approach Color" → "Approach / Avoid" so it matches the slides and color_vision.md (final cross-artifact consistency check before the color-vision day). Changed in pages/2_Tasks.py (TASKS label) and questions/approach.yaml (title). The task KEY stays "approach" — display-only change, so existing/future DB rows are unaffected. (Dieter confirmed RESTART_PASSCODE is set on Railway, and fixed the deck title-slide "robots"→"robot" himself.)
+
+
+Wed Jun  3 09:40:01 PM EDT 2026
+
++ DEPLOYED the agent for the color-vision day: set daily_modules=["color_vision.md"] in script_configure_agents.py and ran it (via .venv/bin/python).
++ First run hit a TRANSIENT Mistral 500 (Internal Server Error) on the 4th library upload (color_vision.md) — left the Mistral library partial (3 of 4 docs, no description/reassign) and never reached the Anthropic section. Re-ran immediately; the second run completed cleanly: Mistral library cleared + all 4 docs re-uploaded + description updated; Anthropic deleted the old olfaction-day file set and uploaded the new 4, rewriting anthropic_lib/file_registry.json.
++ Loaded doc set is now: robot_details.md, programming_blocks.md, faculty_and_staff.md (always-on) + color_vision.md (daily). olfaction/getting_started/sonar/touch_whiskers are no longer loaded. All the recent color-vision/robot doc fixes are therefore now live on both backends.
++ Also refreshed activity_descriptions/color_vision.md (was stale — "1-pixel RGB camera"); it now describes the dichromatic-default robot (two filtered sensors, like a dog), the games, and the two challenges (Color Mimicking, Approach/Avoid). The script injected it into the "Today's Activity" block of bme_agent_instructions.md.
++ ACTION REQUIRED (Dieter is pushing): commit + push anthropic_lib/file_registry.json — the old Anthropic file IDs were deleted from the workspace, so production points at dead IDs until the new registry is pushed and Railway redeploys. (Mistral side is live API state, already updated — no push needed for it.)
