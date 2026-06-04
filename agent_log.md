@@ -77,3 +77,28 @@ Wed Jun  3 03:27:48 PM EDT 2026
   - sonar.md: dolphin range "0–150 kHz" -> "roughly 0.2–150 kHz" (0 kHz not physical).
 + Reviewed color_vision.md and faculty_and_staff.md: no technical issues.
 + touch_whiskers.md is not in the current (olfaction) active set, so its fixes are on-disk only until that activity day; olfaction.md and robot_details.md fixes require a configure re-run to go live.
+
+
+Wed Jun  3 04:42:41 PM EDT 2026
+
++ Extended the color vision knowledge base with the two web-based color games from Color_Vision_Games_Knowledge_Base.docx (dropped into the project root). Added to color_vision.md as **Activity 3: RGB Codebreaker** (additive mixing / RGB sliders / score-is-a-game-metric, Easy-Hard modes, Check-Match-before-Next, reveal shows name+RGB) and **Activity 4: Color Constancy Challenge** (same/different physical-vs-perceptual judgment, reveal-on-neutral-background as the teaching moment). Plus a new Biology–Engineering Connections table covering both games.
++ Condensed the docx into the repo house style (concise sections + embedded Agent Notes Q&A + troubleshooting inside each activity) rather than pasting the ~2,500-word verbose chatbot-guidance prose verbatim. Decision (confirmed with Dieter): integrate into the existing color_vision.md as one module rather than a separate doc; condense rather than keep all detail.
++ Flagged in the doc: the Color Constancy Challenge section reflects the *planned* classroom version of the game; if the shipped app differs, support should anchor on the concept, not interface details (the docx itself carried this caveat).
++ Updated manifest.toml color_vision description to mention both web games (title/description are baked into the uploaded content blocks). NOT YET DEPLOYED: script_configure_agents.py not run — color_vision is not the current daily topic (olfaction is), so these edits are on-disk only until the color vision activity day, when the configure script re-runs and picks them up.
+
+
+Wed Jun  3 04:47:46 PM EDT 2026
+
++ Reordered color_vision.md activities (Dieter's call): the two web games now come FIRST as Activity 1 (RGB Codebreaker) and Activity 2 (Color Constancy Challenge), followed by Activity 3 (Human Color Discrimination, the goggle game) and Activity 4 (Robot Color Discrimination). Web games are the gentler familiarization step, so they precede the hands-on goggle/robot work. Also reordered the intro sentence to match and fixed the '1-pixel RGB camera' cross-reference in the robot section (was 'connection between Activity 1 and Activity 2'; now names the human goggle game as Activity 3). Still on-disk only — not deployed (color vision is not the current daily topic).
+
+
+Wed Jun  3 04:54:17 PM EDT 2026
+
++ Correction (Dieter): the two color games (RGB Codebreaker, Color Constancy Challenge) run from a LOCAL HTML file on each student's own computer — NOT a deployed web app (no server, login, or internet). Updated color_vision.md: headings '(Web Game)' -> '(Local HTML Game)', intro + each activity's opening line now say 'browser game opened from a local HTML file', and added a troubleshooting bullet (double-click the correct .html file; there is no web address). Still on-disk only — color vision is not the current daily topic.
+
+
+Wed Jun  3 08:03:32 PM EDT 2026
+
++ Updated the Color Vision knowledge base to match the rewritten ColorVisionApp (NiceGUI + Postgres) now deployed on Railway at https://colorvisionapp.up.railway.app. This single app is the **human color discrimination goggle game** = Activity 3 in color_vision.md (NOT the two local-HTML games in Activities 1–2; Dieter clarified that distinction). It replaced two older Anvil apps (a separate trainer + competition).
++ color_vision.md Activity 3 (Human Color Discrimination) rewritten from a generic "computer screen" description into the deployed web app: noted it needs internet (unlike Activities 1–2's local HTML), documented the TRAIN (Color Trainer) and competition modes, the scoring (10 rounds, 100 pts/round decaying with an audible clock, -10 per wrong box which also speeds the clock up, round total × difficulty multiplier Easy ×1.0 / Medium ×1.5 / Hard ×2.0), team-name submission + password-protected instructor dashboard (teachers email vanderdt@ucmail.uc.edu for access), plus a new "Troubleshooting the color discrimination game" subsection and a score-is-a-game-metric agent note. Updated the doc intro line and the manifest.toml color_vision description accordingly. Activities 1, 2, 4 left untouched.
++ NOT DEPLOYED: color vision is not the current daily topic (olfaction is), so script_configure_agents.py was not run — these color_vision.md / manifest.toml edits are on-disk only until the color vision activity day, when the configure script re-runs and picks them up.

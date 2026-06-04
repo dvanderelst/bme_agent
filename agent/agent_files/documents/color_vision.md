@@ -1,6 +1,6 @@
 # Color Vision
 
-This document covers the biology of color vision and the two activities students complete during the color vision day(s): a human color discrimination game and a robot color discrimination challenge.
+This document covers the biology of color vision and the activities students complete during the color vision day(s): two browser color games that run from a local HTML file on the student's own computer (RGB Codebreaker and the Color Constancy Challenge), a human color discrimination game (a deployed web app with a goggle trainer and a timed group competition), and a robot color discrimination challenge.
 
 ## Core Concepts
 
@@ -35,17 +35,100 @@ Perceiving color involves more than comparing signals from the retina. The brain
 - Color constancy is the ability to recognize an object as having the same surface color under different lighting conditions.
 - Ambiguous viewing conditions can produce disagreements about color perception, as in famous online image examples (e.g., the blue/gold dress).
 
-## Activity 1: Human Color Discrimination
+## Activity 1: RGB Codebreaker (Local HTML Game)
 
-In this activity, students play a game in groups of 3. Each student wears goggles with a red, green, or blue filter and acts as a proxy for one cone class.
+RGB Codebreaker is a color-matching game that students open in a web browser from a local HTML file on their own computer (it is not a deployed web app — there is no server, login, or internet dependency). Students view a target color square, then adjust red, green, and blue sliders to recreate it in a "Your Color" square. It teaches additive color mixing, numerical color representation, and the idea that a machine stores color as numbers while a human perceives color as an experience. This connects directly to the "How Computer Screens Produce Color" concept above.
 
-The group is presented with a computer screen showing 9 colored boxes (primary and secondary colors). The name of the target color is shown at the top. The goal is for the group to collectively select all boxes of that color.
+**What students do:**
+- View a target color square, then adjust the R, G, and B sliders to match it.
+- Click **Check Match** to get a score.
+- Click **Reveal Answer** to see the color's name and exact RGB values.
+- Click **Next Round** to advance through the fixed round set; the end screen reports an average score.
+
+**App structure the agent should know:**
+- Targets come from fixed round sets, not random colors. There are **Easy** and **Hard** modes set by a teacher toggle.
+- Easy mode uses named canonical targets (Red, Green, Blue, Yellow, Cyan, Magenta, Gray, Orange, Brown, Purple). Hard mode uses muted, less-saturated versions of those families.
+- Each round starts with sliders reset to middle values. Students must click **Check Match** before **Next Round** will advance. Switching Easy/Hard restarts the round sequence by design.
+
+### What the score means
+The score is a **game metric, not a measure of perception**. It reflects how close the student's RGB settings are to the stored target values. A high score means a close numerical match — but numerical similarity and human perceptual similarity are not always the same thing.
+
+**Agent Notes:**
+- Use the score as feedback, not as the teaching point. A student can learn something even from a low-scoring round if they notice how channel changes affect the color.
+- When students focus only on beating the score, redirect to the pattern of channel contributions: *"Which channel is contributing most strongly here?"* or *"What happened when you raised green but left red high?"*
+- Question: *Why is yellow possible if there is no yellow slider?*
+  Answer: The screen combines red and green light, and the visual system interprets that pattern as yellow — no separate yellow source is needed.
+- Question: *Does a high score mean my eyes were perfect?*
+  Answer: No — it means your RGB settings were numerically close to the stored target.
+- Question: *Why is gray (or a muted color) harder than red?*
+  Answer: Neutral and muted colors require careful balance across all three channels; saturated colors often just need one channel maxed out.
+
+### Troubleshooting RGB Codebreaker
+- If the game won't open, the student likely needs to double-click the correct `.html` file so it opens in their browser (it runs locally from the file — there is no web address to visit). The same applies to the Color Constancy Challenge.
+- If a student can't advance, check whether they clicked **Check Match** before **Next Round**.
+- Duplicate panels, sliders, or target squares point to an outdated or malformed HTML file, not a color-vision concept problem.
+- Washed-out or odd colors usually trace to screen brightness, glare, browser zoom, or a projector — not the game. Different displays can shift color slightly across devices.
+
+## Activity 2: Color Constancy Challenge (Local HTML Game)
+
+The Color Constancy Challenge is the second browser game opened from a local HTML file on the student's own computer (again, no server or internet needed). In it, students judge whether two center patches are **physically the same** color or **physically different** when each is shown in a different surrounding context. It teaches that perceived color depends on context, inferred lighting, and brain-level interpretation — not cone signals alone. This builds on the "Color Constancy and Context" concept above.
+
+**Expected game structure (planned classroom version):**
+- Two center patches are shown, one in a left context and one in a right context; students answer **Same** or **Different**, then get correctness feedback.
+- A **reveal** step then shows the patches again on a neutral background for direct comparison.
+- Easy/Hard modes vary how subtle the context manipulation is. Rounds may be "same but looks different" or "different but looks similar."
+- *Note: this reflects the planned version. If the shipped app differs, anchor support in the concept, not memorized interface details.*
+
+### Looks vs. physically the same
+The core distinction students must grasp:
+- **Looks the same / looks different** are perceptual judgments.
+- **Physically the same / different** refers to the actual stored patch values.
+- Perception and physical stimulus are related but not always identical — that gap is the whole point of the activity.
+
+**Agent Notes:**
+- The **reveal step is the teaching moment** — treat it as more important than the score. The point is not whether the student guessed right, but whether they notice how perception changes when misleading context is removed. After a reveal, ask *"What changed?"* rather than just stating the answer.
+- Restate the task plainly when students are confused: *"Are the two center patches physically the same color, yes or no?"*
+- Question: *If the patches look different, aren't they different?*
+  Answer: Not always — surrounding context can change appearance without changing the actual patch values.
+- Question: *If they're physically the same, why did my answer feel wrong?*
+  Answer: Your visual system was doing a context-sensitive interpretation that usually helps in real life.
+- Question: *So is the brain bad at color? Are illusions just tricks?*
+  Answer: No — the brain is solving a useful problem (estimating surface color under uncertain lighting). Illusions reveal that normal computation, they aren't gimmicks.
+
+### Troubleshooting the Color Constancy Challenge
+- If students keep answering from appearance alone, introduce the looks-vs-physical vocabulary explicitly.
+- If the reveal isn't obvious, have them compare only the center patches and ignore the previous background.
+- If a projector washes out the effect, try a laptop screen or dimmer room lighting; strong display color casts also change the strength of the illusion.
+
+## Activity 3: Human Color Discrimination
+
+This activity is a **deployed web app** — the human color discrimination game — that groups of at least three students play in a browser at **https://colorvisionapp.up.railway.app** (it runs on a server, so it needs an internet connection; this is unlike the local HTML games in Activities 1 and 2). Each student wears goggles with a red, green, or blue filter and acts as a proxy for one cone class. Together the group works like a three-channel color detector — the same idea as the robot's three filtered sensors in Activity 4.
+
+The app has two modes, reached from buttons on its start page:
+- **TRAIN** — a Color Trainer for practicing before the competition.
+- **START** — the timed, scored competition.
+
+### Train mode (Color Trainer)
+Students choose a color from a dropdown. A large box shows that color, and below it three boxes — one under an image of each pair of goggles (red, green, and blue) — show how that color looks through each filter. This lets the group learn the bright/dark pattern each color produces across the three channels before they compete.
+
+**Agent Notes:**
+- Train mode is the safe place to discover that one channel alone is ambiguous (for example, red and yellow both look bright through the red goggle). Encourage students to use it until they can predict the three-goggle pattern for each color.
+
+### Competition mode (the scored game)
+The group is presented with a screen showing **9 colored boxes** (primary and secondary colors), with the **name of the target color shown above them**. The goal is for the group to collectively select **all** boxes of that color, communicating how bright each box looks through their goggles.
+
+**How scoring works:**
+- There are **10 rounds**. Each round starts at **100 points** and counts down as an audible clock ticks — the faster the group selects all the correct boxes, the more of the 100 points it keeps.
+- Selecting a wrongly colored box costs **10 points** and also speeds the clock up, so mistakes are penalized twice over.
+- The round total is multiplied by a **difficulty factor** chosen on the start page: **Easy ×1.0, Medium ×1.5, Hard ×2.0** (harder settings also allow less time per screen).
+- At the end, the group enters a **team name** and submits its score. Submitted scores appear on a password-protected **instructor dashboard** (link at the bottom of the start page), which lists each team's score for a chosen date. Teachers who want to use the dashboard in class can email vanderdt@ucmail.uc.edu for access.
 
 Students collaborate by communicating how bright each box looks through their goggles. The table below shows how each color appears through each filter:
 
 **Agent Notes:**
 - Question: *Why can't one student identify all colors on their own?*
   Answer: One color channel doesn't contain enough information to distinguish many colors — just like a single cone class can't support full color vision on its own.
+- The score is a **game metric, not a measure of perception** — it mainly rewards fast, accurate teamwork across the three goggle "channels." If a group fixates on the score, redirect them to the communication: *"What did the blue-goggle student see that the others couldn't?"*
 
 | Actual Color | Goggles That See This as Bright | Goggles That See This as Dark |
 |---|---|---|
@@ -56,13 +139,19 @@ Students collaborate by communicating how bright each box looks through their go
 | Cyan | Green, Blue | Red |
 | Magenta | Red, Blue | Green |
 
-## Activity 2: Robot Color Discrimination
+### Troubleshooting the color discrimination game
+- The game is a web app, so it needs an internet connection and the correct address (https://colorvisionapp.up.railway.app). If it won't load, check connectivity and the URL — there is no local file to open here (unlike the RGB Codebreaker and Color Constancy games in Activities 1–2).
+- If a group can't agree on a box, have each goggle-wearer report only **"bright"** or **"dark"** for that box and match the pattern against the table above.
+- If scores seem low, remember the clock: both speed and avoiding wrong clicks matter, since wrong clicks lose points *and* speed the timer up. Suggest starting on **Easy** to build confidence.
+- The instructor dashboard is password-protected; teachers who want to use it in class can email vanderdt@ucmail.uc.edu for access.
+
+## Activity 4: Robot Color Discrimination
 
 ### What the Robot Is Building
 In this activity, students give their robot color vision by equipping it with up to three light sensors, each covered by a color filter. The result is essentially a **1-pixel RGB camera**: just like the human eye compares signals across three cone classes to determine color, the robot compares signals across three filtered sensors.
 
 **Agent Notes:**
-- Use the "1-pixel RGB camera" framing to help students understand the connection between Activity 1 and Activity 2. The goggles they wore are the same idea as the color filters on the sensors.
+- Use the "1-pixel RGB camera" framing to help students connect the human goggle game (Activity 3) to this robot activity. The goggles they wore are the same idea as the color filters on the sensors.
 - Each filtered sensor acts like one cone class: it only responds strongly to its own color of light.
 
 ### How It Works
@@ -133,3 +222,16 @@ Students lay down a track of two differently colored papers — one color on the
 - Again, calibration is critical — students should measure the sensor values for both paper colors before programming.
 - If the robot overshoots, suggest reducing motor power or turn duration.
 - Students need to choose two colors that are clearly distinguishable by the sensors (e.g., red and green rather than red and orange).
+
+## Biology–Engineering Connections
+
+| Biology | The two web games |
+|---|---|
+| The eye builds color from three cone channels | RGB Codebreaker builds any target color from three output channels (additive mixing) |
+| Color is represented in the brain as a pattern of activation, not a single "color signal" | Engineering systems store color numerically (RGB values), not as the experience itself |
+| Color constancy: the brain estimates surface color despite changing illumination | The Color Constancy Challenge shows context and inferred lighting changing perceived color |
+| Perception sometimes diverges from the physical stimulus | Machine vision also struggles when lighting, shadow, or white balance change |
+
+**Agent Notes:**
+- Strong bridge sentence: *"RGB Codebreaker shows how machines build color from channels; the Color Constancy Challenge shows that channel values alone don't determine what we perceive."*
+- Keep engineering analogies honest — computer vision and human vision overlap usefully but are not identical (consistent with not overclaiming the robot's capabilities elsewhere in this module).
