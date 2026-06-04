@@ -32,10 +32,10 @@ The mBot Ranger has **five ports** (6, 7, 8, 9, and 10). Any sensor can be plugg
 
 Even without external sensors, the mBot Ranger has a rich set of built-in features:
 
-1. **Programmable RGB LEDs** (color and brightness can be programmed)
+1. **Programmable RGB LED ring** (a ring of **12** individually addressable RGB LEDs on top of the board; color and brightness can be programmed, and individual LEDs 1–12 can be set — this is what the LED bar-graph challenge lights up)
 2. **Onboard light sensor** (measures how much light falls on it; returns a value from 0 to 1000)
-3. **Sound sensor** (onboard microphone that measures loudness)
-4. **3-axis gyroscope** (measures the robot's tilt/angle around the X and Y axes — used in the level/tilt challenge)
+3. **Onboard sound sensor** (microphone that measures loudness). *Note:* the sound-localization activity does **not** use this single onboard sensor — it uses **two external sound sensors** (one per side, plugged into ports) so the robot can compare left-vs-right loudness.
+4. **Onboard inertial sensor (gyroscope + accelerometer)** (reports the robot's tilt/angle around the X and Y axes relative to horizontal — used in the level/tilt challenge)
 5. **Temperature sensor**
 6. **Buzzer / speaker** (plays tones and melodies)
 7. **Button** (can trigger programs)
@@ -159,6 +159,7 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 ### Sound Sensor
 
 - **Type:** Analog (measures sound intensity)
+- **Onboard vs. external:** The board has one **onboard** sound sensor, but the **sound-localization activity uses two external sound sensors** (one per side, each plugged into a port 6–10) so the robot can compare left-vs-right loudness — you cannot localize a sound source with a single sensor.
 - **Behavior Characteristics:**
   - **Transient response:** Reacts strongly to sound onset, then returns to baseline (~1 sec)
   - **Frequency response:** Flat in auditory range (~20Hz–20kHz)

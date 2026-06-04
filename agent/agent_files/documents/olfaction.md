@@ -35,7 +35,7 @@ The robot used in this module does **not** have a real chemical or gas sensor. I
 
 **Agent Notes:**
 - **Critical framing**: The robot is not literally smelling. It is imitating the *logic* of odor-guided trail following with a substitute signal
-- **Do not say "the robot smells"**: Correct phrasing: "the robot uses a light sensor as a stand-in for an olfactory sensor" or "the line acts as a proxy for a chemical trail"
+- **Do not say "the robot smells"**: Correct phrasing: "the robot uses a line follower sensor as a stand-in for an olfactory sensor" or "the line acts as a proxy for a chemical trail"
 - **The biomimetic idea**: Biology provides the guidance logic (compare left vs. right, steer toward the signal, search when lost); the robot provides an engineered version of the same control problem
 
 ---
@@ -157,8 +157,8 @@ Robot trail-following logic:
 - **Response**: "What sensory structures do termites use to detect their environment? Could the ink contain something chemical rather than visual that the termite detects?"
 
 **"The robot is smelling the trail"**
-- **Reality**: The robot uses a light sensor, not a chemical sensor
-- **Response**: "The robot is imitating the *logic* of smell-guided movement — comparing left and right inputs and steering toward the signal — but the sensor is detecting light, not chemicals"
+- **Reality**: The robot uses a line follower sensor (which detects the line by reflected light), not a chemical sensor
+- **Response**: "The robot is imitating the *logic* of smell-guided movement — comparing left and right inputs and steering toward the signal — but the sensor is following a line, not detecting chemicals"
 
 **"Trail following and plume following are the same thing"**
 - **Reality**: Trail following means the cue is on the surface; plume following means tracking odor through air

@@ -12,7 +12,7 @@ The robot is programmed with **mBlock**, a block-based coding tool similar to Sc
 **Agent Notes:**
 - **Block-based, no typing**: students snap blocks together. If a student has used Scratch, the interface will feel familiar.
 - **Wireless via dongle**: the link between computer and robot is the dongle, not a USB cable to the robot itself. This is a frequent source of confusion — see the pairing section.
-- **The robot has several onboard features** used in this activity even before any external sensors are attached: programmable RGB LEDs, a light-intensity sensor, and a 3-axis gyroscope. The **sonar (ultrasonic) distance sensor** used in the challenges is *not* onboard — it is an external sensor plugged into one of the ports (6–10).
+- **The robot has several onboard features** used in this activity even before any external sensors are attached: a ring of 12 programmable RGB LEDs (on top of the robot), a light-intensity sensor, and an inertial sensor (gyroscope + accelerometer) for tilt. The **sonar (ultrasonic) distance sensor** used in the challenges is *not* onboard — it is an external sensor plugged into one of the ports (6–10).
 
 ### The Basic Program Structure
 A central idea introduced here, and reused in every later module, is the standard shape of a robot program:
@@ -144,13 +144,13 @@ N = distance / 10
 - If the distance is **greater than 120 cm**, **all** LEDs are on.
 
 ### Challenge 4 — Use the Robot as a Level
-The robot has an **onboard 3-axis gyroscope** that measures the robot's tilt around the **X and Y axes** relative to horizontal. Write a program that uses the LEDs to indicate when the robot is **level** (e.g., all LEDs green when level). Optionally, use different colors or numbers of LEDs to show the **direction and amount of tilt** (e.g., more blue LEDs the further it's rotated around the Y axis).
+The robot has an **onboard inertial sensor (gyroscope + accelerometer)** that reports the robot's tilt around the **X and Y axes** relative to horizontal. Write a program that uses the LEDs to indicate when the robot is **level** (e.g., all LEDs green when level). Optionally, use different colors or numbers of LEDs to show the **direction and amount of tilt** (e.g., more blue LEDs the further it's rotated around the Y axis).
 
 **Agent Notes:**
 - **All four follow sense → decide → act**: read sonar/gyroscope, compare to a threshold, then drive or set LEDs. Point students back to the basic program structure when they're stuck.
 - **Challenge 2 needs two thresholds (20 cm and 15 cm)**: the gap between them (15–20 cm) is a "do nothing" dead band that keeps the robot from jittering forward and backward. If a student's robot oscillates constantly, this dead band is usually the missing piece.
-- **Challenge 3 is integer LED steps**: N = distance/10 means the count jumps by whole LEDs; the <10 cm and >120 cm rules are the floor (0 LEDs) and ceiling (all LEDs).
-- **Challenge 4 uses tilt, not distance**: the gyroscope reports angle around X and Y; "level" means both angles are near zero. Encourage students to first just turn LEDs green when level before adding direction-of-tilt color logic.
+- **Challenge 3 is integer LED steps**: N = distance/10 means the count jumps by whole LEDs; the <10 cm and >120 cm rules are the floor (0 LEDs) and ceiling (all LEDs). The display is the robot's **12-LED top ring** (so N runs 0–12, and >120 cm lights all 12).
+- **Challenge 4 uses tilt, not distance**: read the `onboard gyro [X/Y/Z] angle` block — use the X and Y axes for tilt; "level" means both are near zero (Z is heading/turn, not tilt). Encourage students to first just turn LEDs green when level before adding direction-of-tilt color logic.
 - **Sonar caveats apply** (from the robot hardware reference): the ultrasonic sensor is most reliable for objects roughly in front of it and within its working range; smooth angled surfaces can reflect sound away and give odd readings.
 
 ---

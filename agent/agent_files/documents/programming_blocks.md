@@ -41,31 +41,34 @@
 
 # Show Blocks
 
-## `LED [dropdown] shows color [color] for [slot] secs`
-- **Description:** Displays a specified color on all LEDs for a set duration (in seconds).
-- **Dropdown Options:** `all`, `left`, `right` - allows targeting specific LEDs
-- **Agent Notes:**
-  - Use color picker or enter RGB values for custom colors
-  - Duration controls how long the color is displayed before turning off
-  - **Status Feedback Idea:** Use different colors to indicate program states or steps
+The robot's lights are the **12-LED RGB ring** on top of the board. Individual LEDs are selected by **number (1–12)** typed into the block; a separate block sets the whole ring at once. (There is no `left`/`right` option — that is the basic mBot, not the Ranger.)
 
-## `LED [dropdown] shows color [color]`
-- **Description:** Displays a specified color on all LEDs continuously until changed or turned off.
+## `all lights up with color [color]`
+- **Description:** Sets the entire 12-LED ring to one color (from the color picker), continuously until changed.
 - **Agent Notes:**
-  - Remember to use a "turn off LED" block or this will persist
-  - Great for status indicators (e.g., red = error, green = ready)
-  - **Dropdown Options:** `all`, `left`, `right` - allows targeting specific LEDs
-  - **Sensory Feedback Idea:** Use left/right LEDs to indicate:
-    - Which sound sensor detected louder noise
-    - Which ultrasonic sensor detected an obstacle first
-    - Turn direction (left LED for left turns, right LED for right turns)
+  - Quickest way to color the whole ring at once — good for status indicators (e.g., red = error, green = ready).
+  - To clear the ring, set the color to black.
 
-## `turn on [dropdown] light with color red [slot] green [slot] blue [slot]`
-- **Description:** Controls all LEDs using individual RGB values (0-255 for each color channel).
+## `turn on [N] light with color [color]`
+- **Description:** Sets a single ring LED to a color from the color picker, continuously until changed. `[N]` is the LED number — type a value from **1 to 12**.
+- **Agent Notes:**
+  - Address LEDs individually by number; loop over 1..N to light the first N LEDs (this is how the LED-distance bar-graph challenge works).
+  - To turn a single LED off, set its color to black.
+  - **Sensory Feedback Idea:** Use LEDs on the left vs. right side of the ring (or different colors / numbers of lit LEDs) to indicate which sound or ultrasonic sensor triggered, or the turn direction.
+
+## `turn on [N] light with color [color] for [slot] secs`
+- **Description:** Same as above for a single LED `[N]` (1–12), but the color shows for a set duration (in seconds), then the LED turns off.
+- **Agent Notes:**
+  - Duration controls how long the color is displayed before turning off.
+  - **Status Feedback Idea:** Use different colors to indicate program states or steps.
+
+## `turn on [N] light with color red [slot] green [slot] blue [slot]`
+- **Description:** Sets a single ring LED `[N]` (1–12) using individual RGB values (0-255 per channel), continuously until changed.
 - **Agent Notes:**
   - Standard RGB color model: (255,0,0)=red, (0,255,0)=green, (0,0,255)=blue
   - Example: (128,128,128) creates a medium gray color
   - Values outside 0-255 range will be clamped
+  - To turn the LED off, set all three channels to 0
   - **Advanced Feedback Idea:** Use RGB gradients to show sensor intensity:
     - Bright red (255,0,0) = object very close
     - Dim red (100,0,0) = object far away
@@ -97,13 +100,9 @@
     - Frequency changes = proximity alerts (higher pitch = closer object)
     - Different frequencies for left vs. right sensor triggers
 
-## `turn off LED [dropdown]`
-- **Description:** Turns off the specified LED(s).
-- **Agent Notes:**
-  - Essential for ending persistent LED displays
-  - **Dropdown Options:** `all`, `left`, `right` - allows targeting specific LEDs
-  - Use after "show color" blocks that don't have automatic timeout
-  - **Example:** Create flashing effects by alternating "show color" and "turn off LED" blocks
+## Turning the lights off
+- **There is no dedicated "off" block.** Turn a light off by setting its color to **black** (color picker) or RGB **(0,0,0)**. Clear the whole ring with `all lights up with color [black]`.
+- **Example:** Create flashing effects by alternating an on-color and black.
 
 # Sensing Blocks
 
@@ -146,6 +145,13 @@
   - *"Robot keeps turning left?"* → It's reading value 1 — the left detector is likely over the line.
   - *"Value keeps returning 3?"* → Robot has lost the line. Try slowing down or widening the search turn.
 
+## `onboard gyro [dropdown] angle`
+- **Description:** Reads a tilt/rotation angle (in degrees) from the robot's onboard inertial sensor (gyroscope + accelerometer). No external sensor or port is needed.
+- **Dropdown Options:** axis `X`, `Y`, or `Z`.
+- **Agent Notes:**
+  - **X and Y are tilt** (pitch/roll relative to horizontal); **Z is heading/turn** (yaw).
+  - For the "use the robot as a level" challenge, read **X and Y** and check both are near zero. Z does not change when you tilt the robot — it changes when the robot turns.
+
 # Light & Sound Blocks (Extension Required)
 
 **Important: These blocks require installing the "Light Sound" extension**
@@ -156,7 +162,7 @@ To access these blocks:
 3. A new **"Light Sound" category** will appear with these blocks
 
 ## `sound sensor [dropdown] loudness`
-- **Description:** Measures sound intensity using the sound sensor plugged into the specified port.
+- **Description:** Measures sound intensity. The dropdown selects either the **onboard** sound sensor or an **external** sound sensor on a port (6–10). The sound-localization activity uses **two external sensors** (one per side) so left-vs-right loudness can be compared — a single sensor cannot localize a source.
 - **Output:** Returns a value where higher numbers = louder sounds.
 - **Agent Notes:**
   - **Extension Required:** Students must install the "Light Sound" extension first
