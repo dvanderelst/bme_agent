@@ -28,7 +28,7 @@ username = student.get("username")
 
 TASKS = [
     ("mimic", "Mimic Color"),
-    ("approach", "Approach Color"),
+    ("approach", "Approach / Avoid"),
     ("kinesis", "Kinesis Sound Localization"),
     ("taxis", "Taxis Sound Localization"),
 ]

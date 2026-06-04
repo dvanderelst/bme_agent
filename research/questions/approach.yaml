@@ -1,5 +1,5 @@
 task: approach
-title: Approach Color
+title: Approach / Avoid
 questions:
   - number: 1
     image: ../figures/images/q1_approach.png

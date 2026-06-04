@@ -144,3 +144,14 @@ Wed Jun  3 09:22:51 PM EDT 2026
   - SCROLL-TO-TOP: added research/ui_helpers.py with scroll_to_top(view_key=None) — injects a tiny components.html script that scrolls the main container to the top. Called on each page; keyed by view (login / intro / tasks:<selected> / survey:<task>:<attempt>:<question>) so it fires when the visible page/question changes but NOT on in-place reruns like a form validation error (which would otherwise yank a student away from where they were typing). Fixes students landing scrolled-down after clicking a button below the fold.
 + Verified: all five files ast-parse, and ui_helpers imports cleanly under the repo venv with streamlit. Did NOT do a full interactive run (needs the Railway Postgres + a browser).
 + DEPLOY NOTE: the research app deploys from Railway (research/start.sh); these changes go live when committed and pushed (Railway auto-deploys). Not pushed yet.
+
+
+Wed Jun  3 09:26:43 PM EDT 2026
+
++ Scheduling deviation from ResearchPlan.md (recorded here only — the plan is intentionally LEFT AS THE ORIGINAL PLAN, not edited). The plan's "Slot schedule" (§ Latin-square reversal across two days) runs the four slots two-per-day over two days: Day 1 (Color vision) = slot 1 (chatbot on) + slot 2 (off); Day 2 (Sound localization) = slot 3 (off) + slot 4 (on). We have now decided to run **each slot on its own separate day** — one task/slot per day, four days total — instead of two slots per day.
++ Expected to be immaterial to the analysis (Dieter's read, and consistent with the plan's own notes): `day` is perfectly collinear with `task` in this design and is already dropped from the models in favor of `task`, and the chatbot order across slots — the vector [1, 0, 0, 1] — is unchanged. The main practical differences: the "second-task-of-the-day" within-day position effect becomes moot (each day now has a single task), and any carryover between adjacent slots now spans a day boundary rather than happening within a day (the on→off / off→on slot ordering is preserved either way). No app or data-schema change needed — responses are keyed by task/attempt, independent of calendar day.
+
+
+Wed Jun  3 09:34:50 PM EDT 2026
+
++ Research app: renamed the "approach" challenge's display label "Approach Color" → "Approach / Avoid" so it matches the slides and color_vision.md (final cross-artifact consistency check before the color-vision day). Changed in pages/2_Tasks.py (TASKS label) and questions/approach.yaml (title). The task KEY stays "approach" — display-only change, so existing/future DB rows are unaffected. (Dieter confirmed RESTART_PASSCODE is set on Railway, and fixed the deck title-slide "robots"→"robot" himself.)
