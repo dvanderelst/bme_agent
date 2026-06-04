@@ -164,3 +164,8 @@ Wed Jun  3 09:40:01 PM EDT 2026
 + Loaded doc set is now: robot_details.md, programming_blocks.md, faculty_and_staff.md (always-on) + color_vision.md (daily). olfaction/getting_started/sonar/touch_whiskers are no longer loaded. All the recent color-vision/robot doc fixes are therefore now live on both backends.
 + Also refreshed activity_descriptions/color_vision.md (was stale — "1-pixel RGB camera"); it now describes the dichromatic-default robot (two filtered sensors, like a dog), the games, and the two challenges (Color Mimicking, Approach/Avoid). The script injected it into the "Today's Activity" block of bme_agent_instructions.md.
 + ACTION REQUIRED (Dieter is pushing): commit + push anthropic_lib/file_registry.json — the old Anthropic file IDs were deleted from the workspace, so production points at dead IDs until the new registry is pushed and Railway redeploys. (Mistral side is live API state, already updated — no push needed for it.)
+
+
+Thu Jun  4 05:17:20 PM EDT 2026
+
++ Chat: moderation now classifies only the student's typed caption, not the assembled `content` (caption + `📎 <filename>` markers). Screenshot filenames often embed dates (phone camera naming) and were getting false-flagged as PII, blocking legitimate uploads. Image content was already excluded from moderation by design; this just stops the filename string from being classified too. Chat history, the model call, and DB logging still use the full `content` (with markers) — only the moderator input changed. One-line edit in `agent/pages/1_Chat.py` (commit cf9856a). Deploys to Railway on push.
