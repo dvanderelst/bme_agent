@@ -140,3 +140,5 @@ db_backups/
 
 # Printable login-slip handout — contains plaintext passwords
 handouts.odt
+# collected data
+collected_data/
