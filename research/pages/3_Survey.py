@@ -6,6 +6,7 @@ import yaml
 
 from shared_lib.auth import lookup_student
 from rubric_db import TOTAL_QUESTIONS, get_attempt_note, get_progress, record_answer
+from ui_helpers import scroll_to_top
 
 st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
 
@@ -51,7 +52,7 @@ progress = get_progress(database_url, username, task)
 # park the typed text under the wrong (attempt, question_no) row.
 if progress["attempt"] > attempt:
     st.warning(
-        "This task was advanced in another tab or window — possibly a "
+        "This challenge was advanced in another tab or window — possibly a "
         "restart with the instructor passcode. Reload to pick up where "
         "it stands now. Anything you started typing here will not be saved."
     )
@@ -84,16 +85,21 @@ if not restart_note and attempt > 1:
         database_url, username, task, attempt
     )
 
+# Reset scroll whenever the visible question (or the completion screen)
+# changes. Keyed so an in-place rerun — e.g. a validation error — leaves the
+# student where they were typing instead of jumping to the top.
+scroll_to_top(f"survey:{task}:{attempt}:{current_question}")
+
 # --- Completion screen -------------------------------------------------------
 if current_question > TOTAL_QUESTIONS:
     st.title("Thank you")
     st.success(
-        f"You've completed the **{task_label}** survey (attempt {attempt})."
+        f"You've completed the **{task_label}** questions (attempt {attempt})."
     )
     st.caption("Your answers are saved.")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Back to tasks", use_container_width=True):
+        if st.button("Back to challenges", use_container_width=True):
             for k in ("task", "task_label", "attempt", "restart_note"):
                 st.session_state.pop(k, None)
             st.switch_page("pages/2_Tasks.py")
@@ -163,7 +169,7 @@ if 1 <= current_question <= 4:
                     expected_q = 1  # fresh attempt; no rows yet
                 if expected_q != current_question:
                     st.error(
-                        "This task changed in another tab while you were "
+                        "This challenge changed in another tab while you were "
                         "answering. Reload the page to continue."
                     )
                 else:
@@ -218,13 +224,13 @@ if 1 <= current_question <= 4:
 #
 elif current_question == 5:
     st.markdown(
-        "A few short questions about the task you just did. "
+        "A few short questions about the challenge you just did. "
         "*(Placeholder set — these will be refined.)*"
     )
 
     with st.form("q5_form", clear_on_submit=True):
         used_chatbot = st.radio(
-            "Did you use the chatbot for this task?",
+            "Did you use the chatbot for this challenge?",
             options=["Yes", "No"],
             index=None,
             horizontal=True,
@@ -244,7 +250,7 @@ elif current_question == 5:
             key="q5_specifics",
         )
         comments = st.text_area(
-            "Any other comments about the task?",
+            "Any other comments about the challenge?",
             height=100,
             key="q5_comments",
         )
@@ -252,7 +258,7 @@ elif current_question == 5:
         if submitted:
             if used_chatbot is None:
                 st.error(
-                    "Please answer whether you used the chatbot for this task."
+                    "Please answer whether you used the chatbot for this challenge."
                 )
             elif used_chatbot == "Yes" and usefulness is None:
                 st.error(
@@ -270,7 +276,7 @@ elif current_question == 5:
                     expected_q = 1
                 if expected_q != 5:
                     st.error(
-                        "This task changed in another tab while you were "
+                        "This challenge changed in another tab while you were "
                         "answering. Reload the page to continue."
                     )
                 else:

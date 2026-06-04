@@ -133,3 +133,14 @@ Wed Jun  3 09:06:28 PM EDT 2026
   - Updated manifest.toml color_vision description (was "1-pixel RGB camera challenge") to reflect the dichromatic-default framing.
 + Cross-check result: the deck and the doc agree on the core method (filters make sensors wavelength-selective; compare filtered channels; mimic with onboard LEDs; approach via turn-measure-compare). The mismatches were all in the doc and are now fixed.
 + NOT DEPLOYED: script_configure_agents.py not re-run. color_vision becomes the daily topic tomorrow; these edits go live when the configure script runs for the color-vision day. (Did NOT change the Notion deck — Dieter owns that; this was a one-way doc alignment to the deck.)
+
+
+Wed Jun  3 09:22:51 PM EDT 2026
+
++ Tightened the research app (research/, the Streamlit "Check Your Understanding" app on Railway) ahead of the color-vision day, per Dieter:
+  - REBRAND "Survey" → "Check Your Understanding" (Dieter's call from a few options; friendlier than "Comprehension questions", avoids sounding research-y). Updated all user-visible titles/messages: login title "BmE — Check Your Understanding" (app.py), intro title, the DB-unavailable and no-access errors, and the completion "...questions" line. Did NOT rename the page .py files (1_Intro/2_Tasks/3_Survey) — the sidebar is hidden via CSS so filenames aren't user-visible, and renaming would mean rewriting every st.switch_page target (breakage risk for no user benefit).
+  - LINGO "tasks" → "Challenges" to match the presentation: every student-facing string ("Pick the challenge you just completed", "Back to challenge list", the already-started/-completed notices, the restart note placeholder, the stale-tab warnings, and the Q5 chatbot questions). Internal identifiers (TASKS list, task keys, enter_survey, question yaml filenames) left unchanged.
+  - REMOVED the data-use placeholder paragraph on the intro page ("Placeholder text — ... how the data will be used ...") per Dieter; kept the real "pick the challenge, answer five questions" instructions.
+  - SCROLL-TO-TOP: added research/ui_helpers.py with scroll_to_top(view_key=None) — injects a tiny components.html script that scrolls the main container to the top. Called on each page; keyed by view (login / intro / tasks:<selected> / survey:<task>:<attempt>:<question>) so it fires when the visible page/question changes but NOT on in-place reruns like a form validation error (which would otherwise yank a student away from where they were typing). Fixes students landing scrolled-down after clicking a button below the fold.
++ Verified: all five files ast-parse, and ui_helpers imports cleanly under the repo venv with streamlit. Did NOT do a full interactive run (needs the Railway Postgres + a browser).
++ DEPLOY NOTE: the research app deploys from Railway (research/start.sh); these changes go live when committed and pushed (Railway auto-deploys). Not pushed yet.

@@ -2,6 +2,8 @@ import streamlit as st
 
 from shared_lib.auth import lookup_student
 
+from ui_helpers import scroll_to_top
+
 st.markdown("<style>[data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
 
 if not st.session_state.get("authenticated"):
@@ -21,18 +23,16 @@ if fresh_student is None or not fresh_student.get("enabled", True):
 st.session_state.student = fresh_student
 student = fresh_student
 
-st.title("Bme Survey")
+scroll_to_top("intro")
+
+st.title("Check Your Understanding")
 st.write(f"Logged in as **{student.get('username', '?')}**.")
 
 st.markdown(
     """
     ---
 
-    *Placeholder text — full instructions and a reminder of how the data
-    will be used will live here. For now this page exists so the navigation
-    flow can be tested.*
-
-    On the next page you'll pick the task you just completed, then answer
+    On the next page you'll pick the challenge you just completed, then answer
     five short questions about it. Your written answers cannot be revisited
     once submitted, so take a moment with each one.
 

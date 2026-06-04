@@ -11,6 +11,7 @@ from shared_lib.auth import (
 from shared_lib.streamlit_helpers import setup_postgres
 
 from rubric_db import ensure_rubric_table
+from ui_helpers import scroll_to_top
 
 # Penalty added to every failed login. Equalises timing between unknown-user
 # and wrong-password paths and slows brute-force attempts to a crawl.
@@ -34,10 +35,12 @@ try:
     ensure_rubric_table(database_url)
 except Exception as e:
     logging.error("Database setup failed: %s", e)
-    st.error("The survey is temporarily unavailable. Please try again later.")
+    st.error("Check Your Understanding is temporarily unavailable. Please try again later.")
     st.stop()
 
-st.title("Bme Survey")
+scroll_to_top("login")
+
+st.title("BmE — Check Your Understanding")
 st.write("Please log in to continue.")
 
 with st.form("login_form"):
@@ -63,7 +66,7 @@ with st.form("login_form"):
                 st.error("Incorrect username or password.")
             elif not student.get("enabled", True):
                 time.sleep(FAILED_LOGIN_DELAY_SECONDS)
-                st.error("Sorry, you don't have access to the survey at this moment.")
+                st.error("Sorry, you don't have access to Check Your Understanding at this moment.")
             else:
                 st.session_state.authenticated = True
                 st.session_state.student = student

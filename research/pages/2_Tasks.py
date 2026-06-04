@@ -4,6 +4,7 @@ import streamlit as st
 
 from shared_lib.auth import lookup_student
 from rubric_db import get_progress, record_attempt_start, TOTAL_QUESTIONS
+from ui_helpers import scroll_to_top
 
 WRONG_PASSCODE_DELAY_SECONDS = 0.5
 
@@ -71,7 +72,7 @@ def render_restart_section(selected_task: str, task_label: str) -> None:
         passcode = st.text_input("Instructor passcode", type="password")
         note = st.text_area(
             "Note (why are you restarting?)",
-            placeholder="e.g. student picked the wrong task",
+            placeholder="e.g. student picked the wrong challenge",
         )
         submitted = st.form_submit_button("Restart from Q1", type="primary")
         if submitted:
@@ -103,6 +104,7 @@ def render_restart_section(selected_task: str, task_label: str) -> None:
 
 # --- Confirmation flow for an already-touched task ---------------------------
 selected_task = st.session_state.get("selected_task")
+scroll_to_top(f"tasks:{selected_task}")
 if selected_task is not None:
     task_label = dict(TASKS)[selected_task]
     progress = st.session_state.get("selected_progress") or get_progress(
@@ -113,7 +115,7 @@ if selected_task is not None:
 
     if progress["completed"]:
         st.warning(
-            f"You've already completed this task (attempt {progress['attempt']})."
+            f"You've already completed this challenge (attempt {progress['attempt']})."
         )
         st.caption(
             "Restart requires an instructor passcode and a note. The previous "
@@ -121,14 +123,14 @@ if selected_task is not None:
         )
         render_restart_section(selected_task, task_label)
         st.divider()
-        if st.button("Back to task list"):
+        if st.button("Back to challenge list"):
             for k in ("selected_task", "selected_progress"):
                 st.session_state.pop(k, None)
             st.rerun()
     else:
         next_q = progress["last_question"] + 1
         st.info(
-            f"You've already started this task (attempt {progress['attempt']}). "
+            f"You've already started this challenge (attempt {progress['attempt']}). "
             f"Last answered Q{progress['last_question']} of {TOTAL_QUESTIONS}."
         )
         col1, col2 = st.columns(2)
@@ -143,15 +145,15 @@ if selected_task is not None:
 
         with st.expander("Restart from Q1 (instructor passcode required)"):
             st.caption(
-                "Use this if the student picked the wrong task or otherwise "
+                "Use this if the student picked the wrong challenge or otherwise "
                 "needs a fresh start. The current attempt's answers are "
                 "preserved; a new attempt is created."
             )
             render_restart_section(selected_task, task_label)
     st.stop()
 
-# --- Default view: list of tasks ---------------------------------------------
-st.title("Pick the task you just completed")
+# --- Default view: list of challenges ----------------------------------------
+st.title("Pick the challenge you just completed")
 st.caption(f"Logged in as **{username}**.")
 
 for task_key, task_label in TASKS:
