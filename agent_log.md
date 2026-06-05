@@ -169,3 +169,16 @@ Wed Jun  3 09:40:01 PM EDT 2026
 Thu Jun  4 05:17:20 PM EDT 2026
 
 + Chat: moderation now classifies only the student's typed caption, not the assembled `content` (caption + `📎 <filename>` markers). Screenshot filenames often embed dates (phone camera naming) and were getting false-flagged as PII, blocking legitimate uploads. Image content was already excluded from moderation by design; this just stops the filename string from being classified too. Chat history, the model call, and DB logging still use the full `content` (with markers) — only the moderator input changed. One-line edit in `agent/pages/1_Chat.py` (commit cf9856a). Deploys to Railway on push.
+
+
+Fri Jun  5 10:45:49 AM EDT 2026
+
++ CHATBOT TURNED OFF for all students (Dieter, this slot). Set `enabled` = false for every row in students.ods and re-ran `script_configure_students.py` (TRUNCATE + re-sync). Login to the chatbot now shows "Sorry, you don't have access to the chatbot at this moment."
++ NOTE: `enabled` is a SHARED access gate — it also blocks the research/survey app ("Check Your Understanding"). The survey is not being presented during this slot, so that is fine.
++ Also updated the Google Slides for today.
++ ACTION REQUIRED — RE-ENABLE BEFORE THE SURVEY: set `enabled` back to true (or blank) in students.ods and re-run `script_configure_students.py`. If this is skipped, students stay locked out of BOTH the chatbot and the survey.
+
+
+Fri Jun  5 02:26:13 PM EDT 2026
+
++ RE-ENABLED all student accounts ahead of the survey (Dieter). Set `enabled` back to true in students.ods and re-ran `script_configure_students.py` (TRUNCATE + re-sync). Chatbot and the research/survey app ("Check Your Understanding") are both accessible again. Closes the ACTION REQUIRED from the earlier chatbot-off entry today.
