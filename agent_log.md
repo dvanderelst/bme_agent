@@ -182,3 +182,7 @@ Fri Jun  5 10:45:49 AM EDT 2026
 Fri Jun  5 02:26:13 PM EDT 2026
 
 + RE-ENABLED all student accounts ahead of the survey (Dieter). Set `enabled` back to true in students.ods and re-ran `script_configure_students.py` (TRUNCATE + re-sync). Chatbot and the research/survey app ("Check Your Understanding") are both accessible again. Closes the ACTION REQUIRED from the earlier chatbot-off entry today.
+
+Wed Jun 10 13:08
+
+Set the instructions to sonar. Ran agent conf. and pushed.

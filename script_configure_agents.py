@@ -29,7 +29,7 @@ from shared_lib.output_logging import start_logging, stop_logging, OutputLogger
 from shared_lib.config_manager import config
 
 # ── UPDATE THIS BEFORE RUNNING ─────────────────────────────────────────────
-daily_modules = ["color_vision.md"]
+daily_modules = ["sonar.md"]
 # ──────────────────────────────────────────────────────────────────────────
 
 # ── Paths ──────────────────────────────────────────────────────────────────

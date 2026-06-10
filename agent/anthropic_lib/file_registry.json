@@ -1,22 +1,22 @@
 {
   "robot_details.md": {
-    "file_id": "file_011CbhNC7hj8uZw8Feij8w6F",
+    "file_id": "file_011CbuwsaV1vM3G9d7eZjBiE",
     "title": "mBot Ranger \u2014 Hardware, Setup, and Connection Reference",
     "description": "Hardware specs (ports, sensors, motors), how to connect the mBot Ranger to mBlock, and troubleshooting for cables, motors, and sensor placement."
   },
   "programming_blocks.md": {
-    "file_id": "file_011CbhNCCDb8AsXoTFsBvJLa",
+    "file_id": "file_011Cbuwsfb6VpJhkEWUD4JcQ",
     "title": "mBlock Programming Block Reference",
     "description": "Reference for the mBlock visual programming blocks BME students use: action, sensor, and control-flow blocks."
   },
   "faculty_and_staff.md": {
-    "file_id": "file_011CbhNCGDSZVEGqhCAJ3YKb",
+    "file_id": "file_011Cbuwsj7RZeAT4YeLMWo9H",
     "title": "BME Faculty and Staff Directory",
     "description": "Who runs the BME program and who to contact about specific issues."
   },
-  "color_vision.md": {
-    "file_id": "file_011CbhNCLiK1qPuC5qXvKqhK",
-    "title": "Color Vision \u2014 Biology and Robot Activities",
-    "description": "Biology of color vision; the human color-discrimination goggle game (a deployed web app with a color trainer and a timed, scored group competition with team leaderboard); the robot color-discrimination challenge (filtered light sensors as a 1-pixel color camera \u2014 a dichromatic two-sensor build by default, like a dog, extendable to trichromatic RGB); two local HTML web games (RGB Codebreaker for additive mixing, Color Constancy Challenge for context-dependent perception)."
+  "sonar.md": {
+    "file_id": "file_011CbuwsoHhWMiQ5nnxnJaDw",
+    "title": "Sonar and Echolocation",
+    "description": "Biology of echolocation; sensor directionality; obstacle-avoidance robot; sonar-cane activity."
   }
 }
