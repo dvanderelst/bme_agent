@@ -212,3 +212,8 @@ Wed Jun 10 10:15 PM EDT 2026
   - FIXED factual errors in the always-on docs (robot_details.md, programming_blocks.md): removed the wrong "the activity uses two sensors / you cannot localize with a single sensor" claims (they'd have told the one-eared group their task is impossible), and removed the wrong "sound sensor needs the Light Sound extension" claim (it's available out of the box). Both now describe the one-ear and two-ear builds correctly and "never the onboard mic."
   - robot_details.md — added general guidance on using the 12-LED ring as program-state feedback (color/specific LEDs per branch/step/decision) as a debugging aid for any activity.
 + STILL LIVE: sonar.md remains the daily module (daily_modules unchanged) — students are still finishing sonar. None of the above reaches the agent until script_configure_agents.py is run with daily_modules=["sound_localization.md"] for the sound-localization day (the chatbot-ON day; the first sound day is chatbot-off). Committed + pushed to git as source only; no configure run, so production behavior is unchanged.
+
+Thurday June 11 12:55 EDT 2026
+
+Deactivated the accounts as the first sound-localization day is chatbot-off.
+Also set the topic to sound localization
