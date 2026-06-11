@@ -186,3 +186,13 @@ Fri Jun  5 02:26:13 PM EDT 2026
 Wed Jun 10 13:08
 
 Set the instructions to sonar. Ran agent conf. and pushed.
+
+Wed Jun 10 08:48 PM EDT 2026
+
++ Research app (the "Check Your Understanding" survey, research/pages/3_Survey.py): EXPANDED Q5 — did not replace the existing widgets. Q5 now has three parts:
+  1. Chatbot-use questions (unchanged): used-chatbot Yes/No, usefulness 1–5, specifics, comments.
+  2. NEW — student self-rating on the production rubric. Five items, per task, mirroring the instructor/AI production rubric in ResearchPlan.md 1:1 (same items, same order) so self-rating vs. actual score becomes its own study output. Items live in a new PRODUCTION_SELF_RATING dict keyed by task (mimic/approach/taxis/kinesis), student-facing wording, on a 0–3 scale (Not at all / Barely / Partly / Yes, clearly) mapping to the rubric's absent/rudimentary/partial/clearly present. Each item is a required horizontal st.radio with index=None (submit rejected if any is None) — follows the file's "distinguish answered from didn't-touch" design rule. Stored in answer_json["self_rating"] as a 5-element list in rubric order.
+  3. NEW — outstanding-problems free-text prompt ("anything you couldn't get working, or are still unsure about"). Empty stored as None. answer_json["outstanding"].
++ Closes the "Finalize Q5 items" outstanding task. Updated ResearchPlan.md §Learning rubric design (Q5 now documented as deployed, three parts) and ticked the Outstanding-tasks checkbox.
++ Verified: file AST-parses under the repo venv; the four PRODUCTION_SELF_RATING keys match the four questions/*.yaml task keys and each has exactly 5 items. No interactive run (needs Railway Postgres + browser).
++ DEPLOY NOTE: research app deploys from Railway on push (research/start.sh) — not committed/pushed yet. answer_json gains two new keys (self_rating, outstanding); no DB schema change (Q5 already stored a JSON blob).

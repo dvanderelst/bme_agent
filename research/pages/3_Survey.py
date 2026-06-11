@@ -40,6 +40,58 @@ QUESTIONS_DIR = pathlib.Path(__file__).resolve().parent.parent / "questions"
 with open(QUESTIONS_DIR / f"{task}.yaml") as f:
     task_data = yaml.safe_load(f)
 
+# Per-task production-rubric items for the Q5 student self-rating. These mirror
+# the instructor-/AI-scored production rubric in ResearchPlan.md 1:1 — same
+# five items, same order — so each student's self-rating can be contrasted
+# item-for-item with the actual production score (that contrast is itself a
+# study output). Keep in sync with the "Production rubric: <task>" blocks in
+# ResearchPlan.md; the wording here is the student-facing paraphrase.
+PRODUCTION_SELF_RATING = {
+    "mimic": [
+        "My robot uses at least two sensors with different color filters.",
+        "My robot produces the correct output color for a given input color.",
+        "My code uses ratios or normalization so the response doesn't depend "
+        "on overall brightness.",
+        "My code handles noise (e.g. averaging or thresholding).",
+        "My robot can mimic more than two distinct colors (combining "
+        "channels, not just thresholding each one).",
+    ],
+    "approach": [
+        "My robot uses at least two sensors with different color filters.",
+        "My robot compares measurements between rotations to decide which "
+        "way to turn.",
+        "My code uses ratios or normalization so the discrimination doesn't "
+        "depend on overall brightness.",
+        "My code handles noise (e.g. averaging or thresholding).",
+        "My robot can handle several different distractor colors, not just "
+        "one specific one.",
+    ],
+    "taxis": [
+        "My robot has two ears pointing in clearly different directions.",
+        "My code compares the loudness at the left and right ears.",
+        "My robot turns in the direction the louder ear indicates.",
+        "My code handles noise (e.g. averaging or thresholding).",
+        "My robot stops when it reaches the goal.",
+    ],
+    "kinesis": [
+        "My robot has a single directional ear.",
+        "My robot compares the measurements between rotations.",
+        "My robot turns in the direction the louder measurement indicates.",
+        "My code handles noise (e.g. averaging or thresholding).",
+        "My robot stops when it reaches the goal.",
+    ],
+}
+
+# 0–3 self-rating scale, mirroring the instructor rubric's
+# absent / rudimentary / partial / clearly present, in student-facing words.
+SELF_RATING_OPTIONS = [0, 1, 2, 3]
+SELF_RATING_LABELS = {
+    0: "0 — Not at all",
+    1: "1 — Barely",
+    2: "2 — Partly",
+    3: "3 — Yes, clearly",
+}
+
 # --- Derive current question from the DB ------------------------------------
 # The DB is the source of truth; session state only carries (task, attempt).
 # Refreshing the page or coming back from a tab close still works.
@@ -218,14 +270,16 @@ if 1 <= current_question <= 4:
 #   - Free-text (st.text_area / st.text_input): an empty string IS the
 #     "didn't touch" answer — store it as None on submit so that's explicit.
 #
-# The widgets below are placeholders; the actual Q5 questions are TBD.
-# Whatever they end up being, they must follow these same rules so the
-# analysis layer can tell skipped questions from neutral answers.
+# Q5 has three parts: (1) the chatbot-use questions, (2) the student's
+# self-rating on this task's production rubric — the same five items the
+# instructor/AI scorer uses, so self- vs. actual score becomes its own
+# output (see PRODUCTION_SELF_RATING above), and (3) an outstanding-problems
+# prompt. Any widget added later must follow the same rules so the analysis
+# layer can tell skipped questions from neutral answers.
 #
 elif current_question == 5:
     st.markdown(
-        "A few short questions about the challenge you just did. "
-        "*(Placeholder set — these will be refined.)*"
+        "A few short questions to finish up the challenge you just did."
     )
 
     with st.form("q5_form", clear_on_submit=True):
@@ -254,6 +308,40 @@ elif current_question == 5:
             height=100,
             key="q5_comments",
         )
+
+        # (2) Self-rating on this task's production rubric. Same five items
+        # the instructor/AI scorer uses; the contrast between this and the
+        # actual score is a study output. Required, on the 0–3 scale, with
+        # index=None so a click-through can't masquerade as a real rating.
+        st.divider()
+        rubric_items = PRODUCTION_SELF_RATING.get(task, [])
+        self_ratings = []
+        if rubric_items:
+            st.markdown(
+                "**How well does your own robot do each of these?** "
+                "This is your own view of your robot — separate from how it "
+                "will be scored."
+            )
+            for i, item in enumerate(rubric_items):
+                self_ratings.append(
+                    st.radio(
+                        item,
+                        options=SELF_RATING_OPTIONS,
+                        index=None,
+                        horizontal=True,
+                        format_func=lambda v: SELF_RATING_LABELS[v],
+                        key=f"q5_self_rating_{i}",
+                    )
+                )
+
+        # (3) Outstanding-problems prompt. Free text — empty stored as None.
+        st.divider()
+        outstanding = st.text_area(
+            "Is there anything you couldn't get working, or are still unsure "
+            "about?",
+            height=100,
+            key="q5_outstanding",
+        )
         submitted = st.form_submit_button("Submit and finish", type="primary")
         if submitted:
             if used_chatbot is None:
@@ -263,6 +351,10 @@ elif current_question == 5:
             elif used_chatbot == "Yes" and usefulness is None:
                 st.error(
                     "You said you used the chatbot — please rate how useful it was."
+                )
+            elif any(r is None for r in self_ratings):
+                st.error(
+                    "Please rate your own robot on each of the items above."
                 )
             else:
                 # Re-check progress at submit time (same race-protection
@@ -286,6 +378,12 @@ elif current_question == 5:
                         "usefulness": usefulness if used_chatbot_bool else None,
                         "specifics": specifics.strip() or None,
                         "comments": comments.strip() or None,
+                        # Per-item self-rating on this task's production
+                        # rubric, in the order of PRODUCTION_SELF_RATING[task]
+                        # (so it lines up with the instructor rubric). Empty
+                        # list if the task has no rubric defined.
+                        "self_rating": self_ratings,
+                        "outstanding": outstanding.strip() or None,
                     }
                     result = record_answer(
                         database_url,

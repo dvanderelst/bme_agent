@@ -11,7 +11,7 @@
 - [ ] Digitize surveys → task aware?
 - [ ] Settle observer protocol for student↔instructor interactions (granularity, topic coding) — discuss with collaborators. Treated as a third outcome, not a control.
 - [ ] Build observer-log app: third Streamlit service alongside the chatbot and survey, reusing the same auth and Postgres.
-- [ ] Finalize Q5 items. At minimum add (a) student self-rating on the production rubric — same five items as the instructor/AI rubric, so the contrast between self-rating and actual score becomes its own output, and (b) an outstanding-problems prompt. Update `research/pages/3_Survey.py` plus §Learning rubric design in this file.
+- [x] Finalize Q5 items. Added (a) student self-rating on the production rubric — same five items as the instructor/AI rubric, so the contrast between self-rating and actual score becomes its own output, and (b) an outstanding-problems prompt. Implemented in `research/pages/3_Survey.py` and described in §Learning rubric design. (Existing chatbot-use questions kept.)
 
 # Research question
 
@@ -104,10 +104,11 @@ The current image-based scaffolded format is a deliberate move away from two alt
 
 Multiple-choice was also considered and rejected. MC would require designing distractor options that anticipate every interesting wrong answer — work the image-based scaffolding does without losing the depth signal that open-ended responses preserve.
 
-**Q5 — structured per-task wrap-up.** Following the four scaffolded free-text questions, each task ends with a Q5 page capturing additional structured items. The currently deployed placeholder asks whether the student used the chatbot for this task, how useful it was, plus open comments. The intent is to settle the final set with collaborators before Day 1. Candidate additional items include:
+**Q5 — structured per-task wrap-up.** Following the four scaffolded free-text questions, each task ends with a Q5 page capturing additional structured items. As deployed, Q5 has three parts:
 
-- *Student self-rating on the production rubric* — same five items as the instructor-/AI-scored production rubric, asked of the student. The contrast between self-rating and the actual production score is itself a substantive output: students who believe their robot is fine vs. students who recognise what's still missing.
-- *Outstanding problems* — a short prompt asking what the student thinks is still wrong with their robot or where they got stuck.
+- *Chatbot use* — whether the student used the chatbot for this task, how useful it was (1–5), and open comments.
+- *Student self-rating on the production rubric* — the same five items as the instructor-/AI-scored production rubric for that task, asked of the student on the same 0–3 scale. The contrast between self-rating and the actual production score is itself a substantive output: students who believe their robot is fine vs. students who recognise what's still missing. The student-facing wording of the five items lives in `PRODUCTION_SELF_RATING` in `research/pages/3_Survey.py` and is kept 1:1 with the "Production rubric: <task>" blocks below.
+- *Outstanding problems* — a short prompt asking what the student couldn't get working or is still unsure about.
 
 Q5 is treated as descriptive — it does not enter the BT-aggregated learning score, since its widgets aren't pairwise-comparable text answers. Where a Q5 widget needs to distinguish "answered" from "didn't touch" (radios, sliders, …), the survey app enforces this so an unanswered question never looks in the data like a deliberate neutral response — the design rule lives as a comment block in `research/pages/3_Survey.py`.
 
