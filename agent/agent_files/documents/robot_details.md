@@ -34,7 +34,7 @@ Even without external sensors, the mBot Ranger has a rich set of built-in featur
 
 1. **Programmable RGB LED ring** (a ring of **12** individually addressable RGB LEDs on top of the board; color and brightness can be programmed, and individual LEDs 1–12 can be set — this is what the LED bar-graph challenge lights up)
 2. **Onboard light sensor** (measures how much light falls on it; returns a value from 0 to 1000)
-3. **Onboard sound sensor** (microphone that measures loudness). *Note:* the sound-localization activity does **not** use this single onboard sensor — it uses **two external sound sensors** (one per side, plugged into ports) so the robot can compare left-vs-right loudness.
+3. **Onboard sound sensor** (microphone that measures loudness). *Note:* the sound-localization activity does **not** use this onboard sensor — students embed **external** sound sensors inside handmade directional ears (one ear for the one-eared build, two for the two-eared build), because the onboard mic can't be placed inside an ear.
 4. **Onboard inertial sensor (gyroscope + accelerometer)** (reports the robot's tilt/angle around the X and Y axes relative to horizontal — used in the level/tilt challenge)
 5. **Temperature sensor**
 6. **Buzzer / speaker** (plays tones and melodies)
@@ -42,6 +42,16 @@ Even without external sensors, the mBot Ranger has a rich set of built-in featur
 
 **Analogy for Students:**
 - *“The onboard light sensor is like a simple ‘eye’ that detects brightness—no colors, just how much light there is!”*
+
+**Using the LED ring as feedback (a debugging tool for any activity):**
+The 12-LED ring is one of the most useful ways for students to *see what their program is doing*. Because the LEDs can be set from any branch of the code, students can use color or specific lit LEDs to show **which state / step / branch the program is currently in** — turning invisible logic into something visible on top of the robot.
+
+**Agent Notes:**
+- **Visualize program state**: have each branch set a distinct color, e.g. `if A > B: set LEDs red ... else: set LEDs green`. The student can then watch the robot and instantly know which way a comparison went, without staring at code or values.
+- **Show a step/sequence**: light a different color (or a different number of LEDs) at each stage of the program so students can confirm the robot is reaching the step they expect.
+- **Indicate a decision/direction**: e.g. light the left LEDs vs. the right LEDs to show which way the robot decided to turn, or which sensor was louder/closer.
+- **Why suggest this**: it's the single best low-effort debugging aid on the robot — when a student says "I don't know what it's doing," adding LED feedback for each branch usually answers the question. Encourage it across all activities.
+- **Blocks**: see programming_blocks.md for the LED-ring blocks (whole ring vs. individual LEDs 1–12).
 
 ### Motors and Movement
 
@@ -159,7 +169,7 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 ### Sound Sensor
 
 - **Type:** Analog (measures sound intensity)
-- **Onboard vs. external:** The board has one **onboard** sound sensor, but the **sound-localization activity uses two external sound sensors** (one per side, each plugged into a port 6–10) so the robot can compare left-vs-right loudness — you cannot localize a sound source with a single sensor.
+- **Onboard vs. external:** The board has one **onboard** sound sensor, but the **sound-localization activity always uses external sound sensors** plugged into ports 6–10 — never the onboard one, because it can't be embedded in a directional ear. Students build either a **one-eared** robot (a single external sensor in one ear, which localizes by rotating and comparing loudness across turns) or a **two-eared** robot (two external sensors, one per ear, comparing left-vs-right loudness).
 - **Behavior Characteristics:**
   - **Transient response:** Reacts strongly to sound onset, then returns to baseline (~1 sec)
   - **Frequency response:** Flat in auditory range (~20Hz–20kHz)
@@ -168,7 +178,7 @@ Pair Dongle → Add to mBlock → Connect → Ready to Program
 **Student Questions:**
 - *“The sensor stops responding after a second!”* → 
   *“It’s designed to notice new sounds, not constant noise—like how you jump at a sudden clap but ignore background hum.”*
-- **Sound localization:** Use two sensors (e.g., “ears”) and compare intensity
+- **Sound localization:** Build directional external ears and compare intensity — either one ear (rotate and compare across turns) or two ears (compare left vs. right)
 
 ### Line Sensor
 

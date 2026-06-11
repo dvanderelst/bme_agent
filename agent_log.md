@@ -201,3 +201,14 @@ Wed Jun 10 08:48 PM EDT 2026
 Wed Jun 10 09:05 PM EDT 2026
 
 + Research app: relabeled the two sound-localization challenges in the task picker (Dieter). "Kinesis Sound Localization" -> "One Ear", "Taxis Sound Localization" -> "Two Ears". Display-only: changed the TASKS label in research/pages/2_Tasks.py and the title in questions/kinesis.yaml + questions/taxis.yaml. Task KEYS (kinesis/taxis) unchanged, so VALID_TASKS, the DB CHECK constraints, PRODUCTION_SELF_RATING, and existing/future rows are unaffected (same pattern as the earlier Approach Color -> Approach / Avoid rename). ResearchPlan.md keeps the formal construct names Kinesis/Taxis. Deploys on push.
+
+
+Wed Jun 10 10:15 PM EDT 2026
+
++ PREP (NOT DEPLOYED): built the sound-localization knowledge for the agent ahead of the sound-localization days, against Dieter's draft + the just-edited "Sound localization robot" Google Slides + the kinesis/taxis rubrics in ResearchPlan.md.
+  - NEW agent/agent_files/documents/sound_localization.md — full RAG doc (house format). Covers: loudness-only/phasic/omnidirectional sound sensor; external-ear solution (bigger ears = more directional; encourage 10–20 cm, not tiny); systematic directionality calibration (semi-quiet spot, fixed distance, several azimuths, write down readings, compare to expected pattern — agent should ask the student for their numbers); the one-eared (rotate-sample-compare) and two-eared (compare L vs R) approach algorithms straight from the slides; averaging + stepwise stop-measure-move motion; optional stop-at-target. Internal note tells the agent NOT to say "kinesis"/"taxis" and to ask how many ears a student is building.
+  - NEW agent/agent_files/activity_descriptions/sound_localization.md — the "Today's Activity" injection.
+  - manifest.toml — added [sound_localization] entry.
+  - FIXED factual errors in the always-on docs (robot_details.md, programming_blocks.md): removed the wrong "the activity uses two sensors / you cannot localize with a single sensor" claims (they'd have told the one-eared group their task is impossible), and removed the wrong "sound sensor needs the Light Sound extension" claim (it's available out of the box). Both now describe the one-ear and two-ear builds correctly and "never the onboard mic."
+  - robot_details.md — added general guidance on using the 12-LED ring as program-state feedback (color/specific LEDs per branch/step/decision) as a debugging aid for any activity.
++ STILL LIVE: sonar.md remains the daily module (daily_modules unchanged) — students are still finishing sonar. None of the above reaches the agent until script_configure_agents.py is run with daily_modules=["sound_localization.md"] for the sound-localization day (the chatbot-ON day; the first sound day is chatbot-off). Committed + pushed to git as source only; no configure run, so production behavior is unchanged.

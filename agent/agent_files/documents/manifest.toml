@@ -46,3 +46,8 @@ description = "Biology of echolocation; sensor directionality; obstacle-avoidanc
 file = "touch_whiskers.md"
 title = "Touch, Whiskers, and Mechanical Whisker Sensing"
 description = "Biology of touch and whiskers; two-point discrimination test; robot whisker activity using flex sensors; active sensing."
+
+[sound_localization]
+file = "sound_localization.md"
+title = "Sound Localization — Biology and Robot Activity"
+description = "Biology of sound localization (two ears, pinnae, interaural level differences); the robot challenge of approaching a pulsed-sound speaker using a directional external ear made of paper or clay; the phasic, omnidirectional, loudness-only sound sensor; two builds — a one-eared robot that rotates and compares loudness across turns, and a two-eared robot that compares left vs. right; calibrating ear directionality, averaging noisy measurements, and an optional stop-at-the-target extension."

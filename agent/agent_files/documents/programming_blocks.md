@@ -152,24 +152,16 @@ The robot's lights are the **12-LED RGB ring** on top of the board. Individual L
   - **X and Y are tilt** (pitch/roll relative to horizontal); **Z is heading/turn** (yaw).
   - For the "use the robot as a level" challenge, read **X and Y** and check both are near zero. Z does not change when you tilt the robot — it changes when the robot turns.
 
-# Light & Sound Blocks (Extension Required)
-
-**Important: These blocks require installing the "Light Sound" extension**
-
-To access these blocks:
-1. Click the **+ button** at the bottom of the block category section
-2. Select **"Light Sound" extension** from the list
-3. A new **"Light Sound" category** will appear with these blocks
+# Sound Sensor Block
 
 ## `sound sensor [dropdown] loudness`
-- **Description:** Measures sound intensity. The dropdown selects either the **onboard** sound sensor or an **external** sound sensor on a port (6–10). The sound-localization activity uses **two external sensors** (one per side) so left-vs-right loudness can be compared — a single sensor cannot localize a source.
+- **Description:** Measures sound intensity. The dropdown selects either the **onboard** sound sensor or an **external** sound sensor on a port (6–10). The sound-localization activity always uses **external** sensors embedded in handmade directional ears (never the onboard one) — either one ear (localize by rotating and comparing loudness across turns) or two ears (compare left-vs-right loudness).
 - **Output:** Returns a value where higher numbers = louder sounds.
 - **Agent Notes:**
-  - **Extension Required:** Students must install the "Light Sound" extension first
+  - **Available by default:** the sound sensor block needs no extension — it's there out of the box.
   - Sensor has transient response - reacts strongly to sudden sounds then returns to baseline
   - Useful for detecting claps, snaps, or other abrupt noises
   - For continuous sound monitoring, may need to implement averaging
-  - **Troubleshooting:** If block is missing, check if extension is installed
   - **Example Usage:**
     ```
     if sound sensor port6 loudness > 50 then
