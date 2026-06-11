@@ -1,5 +1,5 @@
 task: taxis
-title: Taxis Sound Localization
+title: Two Ears
 questions:
   - number: 1
     image: ../figures/images/q1_taxis.png

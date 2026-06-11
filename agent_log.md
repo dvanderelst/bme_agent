@@ -196,3 +196,8 @@ Wed Jun 10 08:48 PM EDT 2026
 + Closes the "Finalize Q5 items" outstanding task. Updated ResearchPlan.md §Learning rubric design (Q5 now documented as deployed, three parts) and ticked the Outstanding-tasks checkbox.
 + Verified: file AST-parses under the repo venv; the four PRODUCTION_SELF_RATING keys match the four questions/*.yaml task keys and each has exactly 5 items. No interactive run (needs Railway Postgres + browser).
 + DEPLOY NOTE: research app deploys from Railway on push (research/start.sh) — not committed/pushed yet. answer_json gains two new keys (self_rating, outstanding); no DB schema change (Q5 already stored a JSON blob).
+
+
+Wed Jun 10 09:05 PM EDT 2026
+
++ Research app: relabeled the two sound-localization challenges in the task picker (Dieter). "Kinesis Sound Localization" -> "One Ear", "Taxis Sound Localization" -> "Two Ears". Display-only: changed the TASKS label in research/pages/2_Tasks.py and the title in questions/kinesis.yaml + questions/taxis.yaml. Task KEYS (kinesis/taxis) unchanged, so VALID_TASKS, the DB CHECK constraints, PRODUCTION_SELF_RATING, and existing/future rows are unaffected (same pattern as the earlier Approach Color -> Approach / Avoid rename). ResearchPlan.md keeps the formal construct names Kinesis/Taxis. Deploys on push.
