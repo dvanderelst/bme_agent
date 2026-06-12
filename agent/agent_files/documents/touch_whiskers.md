@@ -84,12 +84,27 @@ A tester applies two points to the skin simultaneously. The subject (eyes closed
 
 ## Activity 2: Robot Whisker Sensing
 
+### The Challenges (students choose)
+The preceding slide deck presents **two challenges, and students pick which one to work on** — there is no required order and no single "correct" path. The agent should ask which challenge a student is attempting and tailor help to that choice rather than assuming the obstacle-avoidance task.
+
+| **Challenge** | **Goal** | **Whiskers needed** | **Where the logic lives in this doc** |
+|---|---|---|---|
+| 1. Obstacle avoidance | Drive around without bumping into obstacles | At least two (left + right) | "Obstacle Avoidance Logic" below |
+| 2. Wall following | Keep one whisker lightly touching a wall without bumping into it | One is enough | "Wall Following Logic" below |
+
+**Extension (applies to either challenge): more whiskers.** Animals have many mechanoreceptors — can the student improve their robot by adding more sensors? This is not a third standalone challenge; it's an open-ended extension that builds on whichever of the two challenges the student already has working.
+
+**Agent Notes:**
+- **Ask first, then tailor**: Find out which of the two challenges the student chose before giving logic or calibration advice — the wiring, whisker count, and thresholds differ
+- **The "more whiskers" extension is open-ended**: It's an exploration, not a fixed recipe — students add sensors and test whether more whiskers genuinely improve their obstacle avoidance *or* their wall following. Tie it back to the biology (whisker arrays, mechanoreceptor density) and to the engineering tradeoff (more sensors = more calibration and code complexity). It layers on top of a working Challenge 1 or 2, rather than replacing it
+- **Calibration and safe-handling steps apply to all of these** — every challenge and the extension read whiskers the same way (decreasing value when bent, light sensor block, ports 6–10)
+
 ### Hardware Setup
-The mBot Ranger uses **flex sensors** as mechanical whiskers. The flex sensor has a nominal flat resistance of ~10 kΩ that increases when bent. In this module's implementation, whiskers are read through the **light sensor block** on **any of ports 6–10** (select that port in the block) in mBlock.
+The mBot Ranger uses **flex sensors** as mechanical whiskers. The flex sensor has a nominal flat resistance of ~10 kΩ that increases when bent. In this module's implementation, whiskers are read with the **`light sensor [dropdown] light intensity`** block on **any of ports 6–10** (select that port in the block's dropdown) in mBlock.
 
 **Agent Notes:**
 - **Value drops when bent**: In this module's wiring and code, the displayed value in mBlock *decreases* when the whisker bends — this is counterintuitive but correct for this setup. Trust the measured mBlock values, not the assumption that more bend = bigger number
-- **Use the light sensor block**: Not the sonar or line sensor block — read the whisker's port (one of 6–10) with the light sensor block
+- **Use the `light sensor [dropdown] light intensity` block**: Not the sonar or line sensor block — read the whisker's port (one of 6–10) by selecting it in this block's dropdown
 - **One-direction bending only**: Flex sensors can be damaged by bending in the wrong direction or by creasing — emphasize this during mounting
 
 ### Safe Handling and Mounting

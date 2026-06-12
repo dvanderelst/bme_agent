@@ -79,6 +79,26 @@ If neither pattern appears, the ear isn't shaped well enough — rebuild it befo
 - **Average while testing**: take several reads per position (the sensor is noisy and the sound pulses) before recording a value.
 - **If readings barely change with direction**: the ear is too shallow or leaky — make it deeper, narrower, or denser, and make sure the sensor sits down inside it.
 
+## Match the Two Sensors (Two-Eared Robots Only)
+The two-eared robot steers by comparing the left reading to the right reading — so it quietly assumes the two sensors give the **same number for the same sound**. They usually don't. The two Makeblock sound sensors have slightly different intrinsic **sensitivity** (normal manufacturing variation), so the same sound produces **different raw readings** on each — **even with no ears attached, or two identical ears**. Once each sensor is inside a handmade ear, the ears differ too, adding to the mismatch.
+
+The symptom a student notices: with the speaker **straight ahead** (equal distance to both ears), the left and right readings are **not equal** — one ear "always reads higher." Left uncorrected, the robot treats centered as off-center and **drifts or turns toward the more-sensitive side** even when it's aimed right at the speaker.
+
+**How to equalize the two sensors:**
+1. Present the **same sound** to both ears equally — speaker straight ahead at a fixed distance, or hold the two assembled ears side by side facing the same source.
+2. Take an **averaged** reading of each sensor (several reads — the sensor is noisy and the sound pulses). Call them `L_avg` and `R_avg`.
+3. Compute a **correction factor** and apply it in the program so the two match: e.g. multiply the right reading by `L_avg / R_avg` (or divide the louder sensor down). After correction, the same sound should give roughly equal corrected values.
+4. Use the **corrected** readings in the left-vs-right comparison.
+5. **Re-check**, then proceed to the directionality test with the corrected values.
+
+**Agent Notes:**
+- **This is the answer when a student says "my two sensors read differently."** It is expected, not a fault — the sensors (and ears) are not identical. Reassure them and walk them through measuring `L_avg`/`R_avg` and adding a multiply/divide block to one side.
+- **Equalize the assembled ear, not just the bare sensor**: both the sensor and the handmade ear contribute to the mismatch, so the most useful calibration is done with the final ears mounted, sound straight ahead.
+- **Average before computing the factor** — a factor from single noisy reads will be wrong. Same averaging discipline as everywhere else in this activity.
+- **Multiply or divide, either works**: scale one sensor to match the other (the choice of which to scale is arbitrary). The goal is only that equal sound → equal corrected readings.
+- **One-eared robots don't need this**: a one-eared robot compares one sensor against *itself* over successive turns, so an overall sensitivity offset cancels out. Sensor matching is a two-eared concern only.
+- **Distinguish from a flipped turn sign**: "drifts to one side at center" can be *either* unmatched sensors *or* a swapped/flipped turn rule. If equalizing the readings doesn't fix the drift, check the turn sign and L/R port assignment next.
+
 ## Challenge A: One-Eared Robot
 **Goal:** approach a speaker using a single ear. With only one ear there is no left/right to compare at one instant, so the robot must **rotate to sample** different directions and head toward whichever is louder.
 
@@ -123,6 +143,7 @@ Two-eared approach (from the slides):
 
 **Agent Notes:**
 - **Ears must diverge**: if both ears point straight ahead they read the same and give no steering signal. Angle each ear outward so each is more sensitive to its own side (confirm with the two-ear calibration test).
+- **Match the two sensors first**: the L-vs-R comparison only works if equal sound gives equal readings — and the two sensors don't, out of the box. If a student notices the ears read differently with the speaker centered, send them to "Match the Two Sensors" above (measure `L_avg`/`R_avg`, scale one sensor with a multiply/divide block).
 - **Sign must match the mounting**: "louder on the right → turn right." If the robot veers away from the speaker, the turn sign is flipped, or the left/right sensors are swapped — fix either one.
 - **Watch the comparison**: it is `if R>L turn right` / `if L>R turn left` — two different conditions. Writing the same condition twice (e.g. `L<R` and `R>L`) is a common slip and makes the logic contradictory.
 - Average several reads per ear before comparing.
@@ -131,6 +152,8 @@ Two-eared approach (from the slides):
 | ------- | ------------ | --- |
 | "Turns away from the speaker" | Turn sign flipped, or L/R sensors swapped | Flip the turn rule, or swap which port is L vs. R |
 | "Goes straight, never steers" | Ears not divergent (read equal), or dead-band too wide | Angle ears outward; compare L vs. R directly |
+| "Drifts/turns to one side even when aimed at the speaker" | Two sensors have different sensitivity (unmatched), or turn sign flipped | Equalize the sensors (measure `L_avg`/`R_avg`, scale one with multiply/divide); if that doesn't fix it, check the turn sign |
+| "Left and right read differently with the speaker centered" | Normal sensor-to-sensor sensitivity variation | Expected — equalize with a correction factor (see "Match the Two Sensors") |
 | "Jitters left-right constantly" | Noisy single reads | Average; optionally ignore very small L–R differences |
 | "Only one ear reads" | A sensor unplugged or wrong port | Check both ports (6–10) and that both blocks match |
 
@@ -163,6 +186,9 @@ Because averaging takes time, the robot usually ends up **moving stepwise** rath
 
 **"Two ears just hear better."**
 - Reality: two ears let you compare left vs. right — that comparison is what gives direction, not extra sensitivity. (One ear can still localize by turning.)
+
+**"My two sound sensors are identical, so they should read the same."**
+- Reality: two sensors of the same model still differ in sensitivity (manufacturing variation), and once each is inside a handmade ear they differ more. Equal sound giving unequal readings is expected — equalize them with a correction factor before comparing left vs. right. (Two-eared robots only; see "Match the Two Sensors.")
 
 **"My program is fine, the robot is just broken."**
 - Separate the layers: is the **sensor** reading sensibly (calibration)? is the **decision** (the comparison) right? is the **motor**/turn direction right? Most problems are an un-directional ear or a flipped turn sign, not "broken."

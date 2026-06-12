@@ -1,21 +1,21 @@
 {
   "robot_details.md": {
-    "file_id": "file_011CbwpngbgEXQeKmPkhCBji",
+    "file_id": "file_011CbxTJ23DXudSrarYNTjrJ",
     "title": "mBot Ranger \u2014 Hardware, Setup, and Connection Reference",
     "description": "Hardware specs (ports, sensors, motors), how to connect the mBot Ranger to mBlock, and troubleshooting for cables, motors, and sensor placement."
   },
   "programming_blocks.md": {
-    "file_id": "file_011Cbwpnm2ZyGyYin4HZG5Je",
+    "file_id": "file_011CbxTJ422HVwKPRtyb8jkK",
     "title": "mBlock Programming Block Reference",
     "description": "Reference for the mBlock visual programming blocks BME students use: action, sensor, and control-flow blocks."
   },
   "faculty_and_staff.md": {
-    "file_id": "file_011CbwpnpwE5J5EThF8SAiZt",
+    "file_id": "file_011CbxTJ5pRqZdy6RTovjAN6",
     "title": "BME Faculty and Staff Directory",
     "description": "Who runs the BME program and who to contact about specific issues."
   },
   "sound_localization.md": {
-    "file_id": "file_011CbwpnubmMsMKderqCrgVj",
+    "file_id": "file_011CbxTJ7VdNJmior8AfX7i8",
     "title": "Sound Localization \u2014 Biology and Robot Activity",
     "description": "Biology of sound localization (two ears, pinnae, interaural level differences); the robot challenge of approaching a pulsed-sound speaker using a directional external ear made of paper or clay; the phasic, omnidirectional, loudness-only sound sensor; two builds \u2014 a one-eared robot that rotates and compares loudness across turns, and a two-eared robot that compares left vs. right; calibrating ear directionality, averaging noisy measurements, and an optional stop-at-the-target extension."
   }
