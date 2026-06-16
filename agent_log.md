@@ -228,3 +228,32 @@ Thursday June 11 2026 (later)
 + Sound-localization doc — sensor matching (Dieter): added coverage for two-eared robots whose two sound sensors don't read equally for the same sound (intrinsic sensitivity variation, present even with no/identical ears; ears add more mismatch). agent/agent_files/documents/sound_localization.md now has: (a) a new "## Match the Two Sensors (Two-Eared Robots Only)" section before Challenge A — explains the symptom (drifts to one side at center), and the fix (measure averaged L_avg/R_avg under the same sound, compute a correction factor, multiply/divide one sensor in the program so equal sound -> equal corrected readings, then compare corrected values; one-eared robots don't need this since the offset cancels); (b) a Challenge B agent note pointing to it; (c) two new Challenge B troubleshooting rows; (d) a new misconception ("my two sensors should read the same"). Source-only; no configure run.
 
 + Ran script_configure_agents.py (daily_modules=["sound_localization.md"]). Pushed the updated knowledge base — including today's sound_localization.md edits (two-eared sensor-matching / gain-equalization content) — to BOTH backends. Mistral library cleared + re-uploaded (live immediately). Anthropic Files API: old 4 files deleted, 4 re-uploaded, anthropic_lib/file_registry.json rewritten with new IDs. Today's Activity instructions section unchanged (already sound localization from the June 11 run). touch_whiskers.md edits (challenge reframe, light-sensor block name, decreasing-value wording) are NOT deployed — touch_whiskers is not in daily_modules/shared_documents, so it ships only when its day is configured. ACTION NEEDED: commit + push anthropic_lib/file_registry.json so production's Anthropic backend references the new file IDs (old ones already deleted from the Anthropic workspace).
+
+
+Sun 14 Jun 2026 12:31:01 PM EDT (Claude)
+
++ Added a new activity to the agent's knowledge base: **final_project** — the self-selected capstone. Students design their own robot challenge using any one, or any combination, of the senses already covered (color vision, touch/whiskers, sonar, olfaction/line following, sound localization).
+  - New knowledge doc `agent/agent_files/documents/final_project.md` (cross-cutting, no new biology — recaps the five senses, gives a scope/design process, covers combining senses across the 5 ports + writing a "which sense wins" priority rule, and ends with a senses-available recap table instead of a single-sense Biology-Robot Connections table).
+  - New activity description `agent/agent_files/activity_descriptions/final_project.md` (the "Today's Activity" blurb).
+  - Manifest entry `[final_project]` added to `agent/agent_files/documents/manifest.toml`.
+  - Updated the stale "Available modules" comment in `script_configure_agents.py`.
++ NOT deployed: `daily_modules` is unchanged (still sound_localization) and `script_configure_agents.py` has not been re-run, so the new doc is available to set as a future activity but is not yet uploaded to Mistral/Anthropic. To deploy: set `daily_modules = ["final_project.md"]`, run the script, then commit/push `file_registry.json`.
+
+  Update (same day): reworked how the final project loads its sense knowledge.
+  Rather than loading all five full sense docs on capstone day, added a single
+  companion reference `agent/agent_files/documents/sensor_toolkit.md` that, per
+  sense, gives: a one-line biology hook, **what students already built** with it
+  (so the agent can say "remember you did obstacle avoidance with sonar? reuse
+  that pattern"), the sensor + exact mBlock block + value meanings, calibration/
+  reuse steps, and the top troubleshooting items. The hands-on *biology*
+  activities (goggle game, termite observation, two-point discrimination) were
+  dropped — they don't transfer to a robot build. Built by extracting from each
+  sense doc; manifest entry `[sensor_toolkit]` added. `final_project.md` now
+  points at `sensor_toolkit.md` instead of the five individual docs.
+  Capstone-day deploy is therefore: daily_modules = ["final_project.md",
+  "sensor_toolkit.md"] (2 docs, not 6). Still NOT deployed.
+
+
+Tues 14:15 PM EDT 2026 (Dieter)
+
+Updated to final project

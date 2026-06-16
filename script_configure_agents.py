@@ -2,7 +2,14 @@
 Configure both the Mistral and Anthropic agents in one pass.
 
 Before running, update DAILY_MODULES below to match today's activity.
-Available modules: color_vision.md, sonar.md, olfaction.md, touch_whiskers.md
+Available modules: color_vision.md, sonar.md, olfaction.md, touch_whiskers.md,
+sound_localization.md, final_project.md
+For the final-project (capstone) day, load BOTH the activity and its companion
+reference: daily_modules = ["final_project.md", "sensor_toolkit.md"].
+sensor_toolkit.md has no activity_descriptions/ file on purpose (it's a
+reference, not an activity) — the script logs a harmless "no activity
+description" warning for it and the Today's Activity text comes from
+final_project.md alone.
 """
 
 import os
@@ -29,7 +36,9 @@ from shared_lib.output_logging import start_logging, stop_logging, OutputLogger
 from shared_lib.config_manager import config
 
 # ── UPDATE THIS BEFORE RUNNING ─────────────────────────────────────────────
-daily_modules = ["sound_localization.md"]
+#daily_modules = ["sound_localization.md"]
+# Final-project (capstone) day — load the activity and its companion reference:
+daily_modules = ["final_project.md", "sensor_toolkit.md"]
 # ──────────────────────────────────────────────────────────────────────────
 
 # ── Paths ──────────────────────────────────────────────────────────────────

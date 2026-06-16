@@ -51,3 +51,13 @@ description = "Biology of touch and whiskers; two-point discrimination test; rob
 file = "sound_localization.md"
 title = "Sound Localization — Biology and Robot Activity"
 description = "Biology of sound localization (two ears, pinnae, interaural level differences); the robot challenge of approaching a pulsed-sound speaker using a directional external ear made of paper or clay; the phasic, omnidirectional, loudness-only sound sensor; two builds — a one-eared robot that rotates and compares loudness across turns, and a two-eared robot that compares left vs. right; calibrating ear directionality, averaging noisy measurements, and an optional stop-at-the-target extension."
+
+[final_project]
+file = "final_project.md"
+title = "Final Project — Self-Selected Capstone"
+description = "The capstone activity (no new sense or biology): students design and build their own robot challenge using any one, or any combination, of the senses already covered (color vision, touch/whiskers, sonar, olfaction/line following, sound localization). Covers scoping a realistic project, the sense-process-decide-act design process, and the main new engineering wrinkle — combining senses across the robot's five ports (6–10) and writing a priority rule for which sense the robot acts on when they disagree. Points to the companion sensor_toolkit.md for blocks, calibration, and per-sense troubleshooting; ends with a recap table of which robot build each sense uses. Loaded together with sensor_toolkit.md on capstone day."
+
+[sensor_toolkit]
+file = "sensor_toolkit.md"
+title = "Sensor Toolkit & Prior Activities — Final Project Reference"
+description = "Companion reference for the final project. For each sense already covered (color vision, touch/whiskers, sonar, olfaction/line following, sound localization): a one-line biology reminder, what students already built with it (so the agent can say 'remember you did this before? reuse that pattern'), the sensor and its exact mBlock block with value meanings, calibration/reuse steps, and the top troubleshooting items. Excludes the hands-on biology activities (goggle game, termite observation, two-point discrimination) that don't transfer to a robot. Loaded together with final_project.md on capstone day."

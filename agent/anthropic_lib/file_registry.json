@@ -1,22 +1,27 @@
 {
   "robot_details.md": {
-    "file_id": "file_011CbxTJ23DXudSrarYNTjrJ",
+    "file_id": "file_011Cc7PqCnoKCAA9XzGFNPT8",
     "title": "mBot Ranger \u2014 Hardware, Setup, and Connection Reference",
     "description": "Hardware specs (ports, sensors, motors), how to connect the mBot Ranger to mBlock, and troubleshooting for cables, motors, and sensor placement."
   },
   "programming_blocks.md": {
-    "file_id": "file_011CbxTJ422HVwKPRtyb8jkK",
+    "file_id": "file_011Cc7PqFYzazH4rnCKd8yKu",
     "title": "mBlock Programming Block Reference",
     "description": "Reference for the mBlock visual programming blocks BME students use: action, sensor, and control-flow blocks."
   },
   "faculty_and_staff.md": {
-    "file_id": "file_011CbxTJ5pRqZdy6RTovjAN6",
+    "file_id": "file_011Cc7PqHe1e663hzCYKENUu",
     "title": "BME Faculty and Staff Directory",
     "description": "Who runs the BME program and who to contact about specific issues."
   },
-  "sound_localization.md": {
-    "file_id": "file_011CbxTJ7VdNJmior8AfX7i8",
-    "title": "Sound Localization \u2014 Biology and Robot Activity",
-    "description": "Biology of sound localization (two ears, pinnae, interaural level differences); the robot challenge of approaching a pulsed-sound speaker using a directional external ear made of paper or clay; the phasic, omnidirectional, loudness-only sound sensor; two builds \u2014 a one-eared robot that rotates and compares loudness across turns, and a two-eared robot that compares left vs. right; calibrating ear directionality, averaging noisy measurements, and an optional stop-at-the-target extension."
+  "final_project.md": {
+    "file_id": "file_011Cc7PqLBoDcNELQiY5x1fv",
+    "title": "Final Project \u2014 Self-Selected Capstone",
+    "description": "The capstone activity (no new sense or biology): students design and build their own robot challenge using any one, or any combination, of the senses already covered (color vision, touch/whiskers, sonar, olfaction/line following, sound localization). Covers scoping a realistic project, the sense-process-decide-act design process, and the main new engineering wrinkle \u2014 combining senses across the robot's five ports (6\u201310) and writing a priority rule for which sense the robot acts on when they disagree. Points to the companion sensor_toolkit.md for blocks, calibration, and per-sense troubleshooting; ends with a recap table of which robot build each sense uses. Loaded together with sensor_toolkit.md on capstone day."
+  },
+  "sensor_toolkit.md": {
+    "file_id": "file_011Cc7PqPTW1GgepNiH2CGtb",
+    "title": "Sensor Toolkit & Prior Activities \u2014 Final Project Reference",
+    "description": "Companion reference for the final project. For each sense already covered (color vision, touch/whiskers, sonar, olfaction/line following, sound localization): a one-line biology reminder, what students already built with it (so the agent can say 'remember you did this before? reuse that pattern'), the sensor and its exact mBlock block with value meanings, calibration/reuse steps, and the top troubleshooting items. Excludes the hands-on biology activities (goggle game, termite observation, two-point discrimination) that don't transfer to a robot. Loaded together with final_project.md on capstone day."
   }
 }
