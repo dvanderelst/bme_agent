@@ -257,3 +257,13 @@ Sun 14 Jun 2026 12:31:01 PM EDT (Claude)
 Tues 14:15 PM EDT 2026 (Dieter)
 
 Updated to final project
+
+
+Sat Jun 20 01:25:43 PM EDT 2026 (Claude)
+
+End-of-program data export. Program has ended; downloaded all 7 Postgres tables to `collected_data/database/` via new script `script_export_collected_data.py` (read-only against the DB; re-runnable). Three parts:
++ `raw/` — full-fidelity master copy WITH names + password hashes + the 71 attachment image files. Stays inside the encrypted folder; never shared.
++ `anonymized/` — shareable pseudonymized copies. Each login string -> stable pseudonym (S01..S30), same person same id across ALL tables (linkage preserved). Dropped: password_hash, students.full_name, student_settings.full_name (group A/B kept), attachment image bytes (metadata kept). Free-text scrubbed of roster names -> [NAME]. Verified 0 name leaks in this set.
++ `identity_key/pseudonym_map.csv` — pseudonym<->username<->full_name lookup + redaction_report.json. This is the recoverable key the data-retention promise requires (kept, not destroyed, so deletion-on-request stays honourable). Never leaves the encrypted folder unless IRB approves.
+Pseudonymization, not anonymization, per the 2026-06-01 commitment. collected_data/ is gitignored.
+Still TODO (Dieter): (1) encrypt the whole collected_data folder with TrueCrypt; (2) remove the data from the Railway server now that the local copy exists (the post-program server-deletion half of the policy).
